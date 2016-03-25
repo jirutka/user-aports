@@ -2,20 +2,28 @@
 :source-language: sh
 :gh-name: jirutka/aports
 :gh-branch: edge
-:key-file: change-me@example.org-56d0d9fd.rsa.pub
-:repos-uri: http://alpine.example.org/packages
+:key-file: jakub@jirutka.cz-56d0d9fd.rsa.pub
+:repos-uri: http://alpine.geeknet.cz/packages
 
 ifdef::env-github[]
 image:https://travis-ci.org/{gh-name}.svg?branch={gh-branch}["Build Status", link="https://travis-ci.org/{gh-name}"]
 endif::env-github[]
 
-This repository contains aports that are not merged in the official http://alpinelinux.org[Alpine Linux] repository yet or don’t adhere to Alpine polices (e.g. bundles).
+This repository contains aports that are not merged in the official http://alpinelinux.org[Alpine Linux] repository yet or don’t adhere to Alpine polices (bundles).
 Packages are automatically build on Travis CI for x86_64 architecture and synchronized with a remote server using SSHFS (SSH Filesystem).
 
 
 == Repositories
 
-TODO: Add list of your repositories.
+* {repos-uri}/edge/bundles
+
+
+=== Bundles
+
+Bundle is an aport with (some) bundled dependencies.
+It’s something that Alpine devs really don’t like, but it’s very convenient footnote:[Creating and maintaining gazillion distro-specific packages for Python modules, Rubygems, …, installing them globally and resolving version conflicts is nothing but totally insane…] for packaging applications with _a lot_ dependencies that are already managed by some language-specific package manager (e.g. pip, bundler, …).
+
+All bundles are installed in `/usr/lib/bundles/<pkgname>`.
 
 
 == How to use
@@ -35,8 +43,6 @@ wget https://raw.githubusercontent.com/{gh-name}/{gh-branch}/.keys/{key-file}
 :remote-user: alpine
 :remote-host: alpine.example.org
 :remote-dir: /var/www/alpine
-
-// This guide is from https://github.com/jirutka/aports.
 
 This guide will help you to set up your own aports repository and infrastructure for building packages using CI.
 It targets GitHub and Travis CI, but it might be modified for any other git hosting and CI.
