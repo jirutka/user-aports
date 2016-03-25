@@ -1,0 +1,26 @@
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Wed, 23 Mar 2016 16:41:00 +0000
+Subject: [PATCH] build plugins in plugin_build_dir instead of plugin_dir
+
+Without this patch the build fails, because uwsgi tries to build plugins
+in plugin_dir (/usr/lib/uwsgi) and not inside the $pkgdir.
+
+We want to set plugin_dir to /usr/lib/uwsgi instead of . to allow loading
+plugins using simple name (e.g. uwsgi --plugin python) instead of
+just absolute paths.
+
+This approach is adopted from Gentoo ebuild www-servers/uwsgi.
+
+diff --git a/uwsgiconfig.py b/uwsgiconfig.py
+index 29051d5..0a47a2b 100644
+--- a/uwsgiconfig.py
++++ b/uwsgiconfig.py
+@@ -1378,7 +1378,7 @@ def build_plugin(path, uc, cflags, ldflags, libs, name = None):
+         pass
+ 
+     if uc:
+-        plugin_dest = uc.get('plugin_dir') + '/' + name + '_plugin'
++        plugin_dest = uc.get('plugin_build_dir') + '/' + name + '_plugin'
+     else:
+         plugin_dest = name + '_plugin'
+ 
