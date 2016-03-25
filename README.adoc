@@ -15,15 +15,23 @@ Packages are automatically build on Travis CI for x86_64 architecture and synchr
 
 == Repositories
 
-* {repos-uri}/edge/bundles
-
-
 === Bundles
+
+* {repos-uri}/edge/bundles
 
 Bundle is an aport with (some) bundled dependencies.
 It’s something that Alpine devs really don’t like, but it’s very convenient footnote:[Creating and maintaining gazillion distro-specific packages for Python modules, Rubygems, …, installing them globally and resolving version conflicts is nothing but totally insane…] for packaging applications with _a lot_ dependencies that are already managed by some language-specific package manager (e.g. pip, bundler, …).
 
 All bundles are installed in `/usr/lib/bundles/<pkgname>`.
+
+
+=== Patched
+
+* {repos-uri}/edge/patched
+
+Patched aports from the official Alpine repository.
+These aports are short-lived, I removes them once the patch is accepted into the official repository.
+However, I’ll not remove APKs, they’ll remain on the server.
 
 
 == How to use
