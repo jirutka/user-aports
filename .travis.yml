@@ -5,6 +5,10 @@ branches:
 env:
   global:
     - TRAVIS_USER_UID=$(id -u)
+    - secure: wZApI3VEvL10Mr8q9+1hfLEyYRD8AQJisqAbJqe9UlFYAwiT7VkK026Nif1EABb5diC7mcoZLlrGEeNNHvrHMhfKi+XI7JVd0pzQwAgZ15U7f9OZOAOZB4JJTImzNL/pehNNpXAfINecYJFzdoaTOoTtGjsTW8xXnW4Vn+GGnCG+u/jBDCnzi9G6RlYYZzvmj1jQCy/xHAj70f8ZBF9Kak0x2hpbBpfAXHxwULpTDDORC9diCh61CKWCl7ggKPU9ieMWvTT7rsRNuvcWU0NOAoAd7j1fgTFVA/9o44ZTRdEXVGiY1ryUc0KSMMcjS4nm+7HmVZf++L2no6uL4kb5twHoV34IM8eeWikvRTkno6kz2XeL8zIL7ANHezw7ZD334tLNmbawCTHJIau+uccSjivTAx19zRRdwAZVyeNXCRNbNh5+rXEKT1YqP1MNfO0Q2+D2Bida+9g1PsyNgJH1AfzMOTpcVEzGnE8dXqv1RpyYaao8bVP184k4zNblzQLbUEhgFFpN6niWL42taZMR4UHCJmCkLuAY+yoaMGJSd+xtAjfBbwo4SMCyvxrQT69kLLyxo5nzzQPcyHYYeiQOKk3/UYjnPTRtAe8v2Urr4imY+6oPUDi/KJtha4Ij1nrjinPXyNUYYxw5vHDYmyBjV+6Ma4mPT8nSZZnRbsIpMrc=  # REMOTE
+
+before_install:
+  - openssl aes-256-cbc -K $encrypted_0f27bc85a100_key -iv $encrypted_0f27bc85a100_iv -in .travis/deploy-key.enc -out .travis/deploy-key -d
 
 install:
   - sudo apt-get install sshfs
