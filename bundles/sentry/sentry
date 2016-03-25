@@ -1,0 +1,13 @@
+#!/bin/sh
+
+BASE_DIR="/usr/lib/bundles/sentry"
+
+SENTRY_CONF="/etc/sentry"
+PYTHONPATH="$BASE_DIR/lib/python2.7/site-packages"
+PATH="$BASE_DIR/bin:$PATH"
+
+export SENTRY_CONF
+export PYTHONPATH
+export PATH
+
+exec $BASE_DIR/bin/sentry $@

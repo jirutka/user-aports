@@ -1,0 +1,73 @@
+#!/sbin/openrc-run
+
+name="Sentry"
+description="A cross-platform crash reporting built with love."
+extra_started_commands="reload stats"
+
+: ${user:=sentry}
+: ${log_output:=yes}
+: ${rundir:=/run/sentry}
+: ${logdir:=/var/log/sentry}
+
+command="/usr/bin/sentry"
+command_args_web="start --noinput $sentry_opts"
+command_args_worker="celery worker $celery_worker_opts"
+command_args_beat="celery beat --pidfile= ${celery_beat_opts:---loglevel=WARNING}"
+
+start_stop_daemon_args="
+	--background
+	--make-pidfile
+	--quiet
+	--user $user"
+
+components="web worker beat"
+
+
+depend() {
+	need net redis
+	after nginx postgresql
+}
+
+start_pre() {
+	if yesno "$log_output"; then
+		checkpath -d -o $user -m755 "$logdir"
+	else
+		logdir=
+	fi
+	checkpath -d -o $user -m755 "$rundir"
+}
+
+start() {
+	local comp; for comp in $components; do
+		ebegin "Starting $name ($comp)"
+		start-stop-daemon --start \
+			$start_stop_daemon_args \
+			--pidfile="$rundir/sentry-$comp.pid" \
+			${logdir:+--stdout="$logdir/sentry-$comp.log"} \
+			${logdir:+--stderr="$logdir/sentry-$comp.log"} \
+			--exec $command -- $(eval echo \$command_args_$comp)
+		eend $?
+	done
+}
+
+stop() {
+	local comp; for comp in $components; do
+		ebegin "Stopping $name ($comp)"
+		start-stop-daemon --stop \
+			--pidfile="$rundir/sentry-$comp.pid" \
+			--exec $command
+		eend $?
+	done
+}
+
+reload() {
+	ebegin "Reloading $name (web)"
+	start-stop-daemon --signal HUP --pidfile "$rundir/sentry-web.pid"
+	eend $?
+}
+
+stats() {
+	ebegin "Logging uWSGI statistics"
+	start-stop-daemon --signal USR1 --pidfile "$rundir/sentry-web.pid"
+	eend $?
+}

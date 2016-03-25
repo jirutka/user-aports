@@ -1,0 +1,3 @@
+#!/bin/sh
+
+su sentry -s /bin/sh -c 'sentry cleanup --days=30'

@@ -1,0 +1,17 @@
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Wed, 23 Mar 2016 21:28:00 +0000
+Subject: [PATCH] fix default config
+
+diff --git a/src/sentry/runner/settings.py b/src/sentry/runner/settings.py
+index 6c57235..19e9186 100644
+--- a/src/sentry/runner/settings.py
++++ b/src/sentry/runner/settings.py
+@@ -156,6 +156,8 @@ SENTRY_FILESTORE_OPTIONS = {
+ SENTRY_WEB_HOST = '0.0.0.0'
+ SENTRY_WEB_PORT = 9000
+ SENTRY_WEB_OPTIONS = {
++    'plugin': 'python',
++    'die-on-term': True,
+     # 'workers': 3,  # the number of web workers
+ }
+ 

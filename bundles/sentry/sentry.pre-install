@@ -1,0 +1,5 @@
+#!/bin/env
+
+adduser -h /usr/lib/bundles/sentry -s /sbin/nologin -SDH sentry 2>/dev/null
+
+exit 0

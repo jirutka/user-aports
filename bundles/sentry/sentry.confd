@@ -1,0 +1,14 @@
+# Options for sentry start.
+#sentry_opts=
+
+# Options for sentry celery worker.
+#celery_worker_opts=
+
+# Options for sentry celery beat.
+#celery_beat_opts="--loglevel=WARNING"
+
+# Capture stdout/stderr of the Sentry components to log files?
+#log_output=yes
+
+# Where to put log files.
+#logdir=/var/log/sentry

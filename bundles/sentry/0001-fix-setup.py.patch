@@ -1,0 +1,28 @@
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Wed, 23 Mar 2016 21:28:00 +0000
+Subject: [PATCH] fix dependencies
+
+uWSGI is installed from Alpine package, but pip doesn't know about it,
+so it tries to install it from PyPI, but compilation fails.
+
+The current version of setproctitle doesn't compile on Alpine, so we
+install it directly in APKBUILD.
+
+diff --git a/setup.py b/setup.py
+index 7ebf83d..1371017 100755
+--- a/setup.py
++++ b/setup.py
+@@ -123,13 +123,11 @@ install_requires = [
+     'requests%s>=2.9.1,<2.10.0' % (not IS_LIGHT_BUILD and '[security]' or ''),
+     'simplejson>=3.2.0,<3.9.0',
+     'six>=1.6.0,<2.0.0',
+-    'setproctitle>=1.1.7,<1.2.0',
+     'statsd>=3.1.0,<3.2.0',
+     'South==1.0.1',
+     'toronado>=0.0.4,<0.1.0',
+     'ua-parser>=0.6.1,<0.7.0',
+     'urllib3>=1.14,<1.15',
+-    'uwsgi>2.0.0,<2.1.0',
+     'rb>=1.4.0,<2.0.0',
+ ]
+ 

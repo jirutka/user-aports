@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+if [ ! -f /etc/sentry/sentry.conf.py ]; then
+	/usr/bin/sentry init
+
+	cat <<-EOF 1>&2
+	*
+	* Adjust configuration in /etc/sentry and then run: sentry upgrade
+	*
+	EOF
+fi
