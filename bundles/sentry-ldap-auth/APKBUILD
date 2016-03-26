@@ -1,0 +1,46 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname="sentry-ldap-auth"
+_pkgname="getsentry-ldap-auth"
+pkgver="2.0"
+pkgrel="0"
+pkgdesc="A Sentry extension to add an LDAP server as an authention source."
+url="https://github.com/Banno/getsentry-ldap-auth"
+arch="all"
+license="ASL"
+depends="libldap>=2.4 python sentry>=8"
+makedepends="openldap-dev>=2.4 python-dev py-pip"
+source="saveas-https://github.com/Banno/$_pkgname/archive/$pkgver.tar.gz/$pkgname-$pkgver.tar.gz
+	constraints.txt"
+
+_builddir="$srcdir/$_pkgname-$pkgver"
+_prefix="/usr/lib/bundles/sentry"
+
+build() {
+	cd "$_builddir"
+
+	PYTHONPATH="$_prefix/lib/python2.7/site-packages" pip install \
+		--root="$_builddir" \
+		--install-option="--root=$_builddir" \
+		--install-option="--no-compile" \
+		--isolated \
+		--disable-pip-version-check \
+		--constraint="$srcdir/constraints.txt" \
+		. || return 1
+
+	python -m compileall -fqd "$_prefix" usr/ || return 1
+}
+
+package() {
+	cd "$_builddir"
+
+	install -m755 -d "${pkgdir}${_prefix}" || return 1
+	cp -r usr/* "${pkgdir}${_prefix}"/ || return 1
+}
+
+md5sums="71392bfa441ccfdd1de5da45135b35d6  sentry-ldap-auth-2.0.tar.gz
+acb6648793f5b0c6ce7d05e896266bb7  constraints.txt"
+sha256sums="2dd09458a7cb404b8274b568c63271f55074934522355af0747abb63319a1507  sentry-ldap-auth-2.0.tar.gz
+ca8abf581135918038631d046dab01aea18996dd2a1572c46ce8b6b833e757a7  constraints.txt"
+sha512sums="b2a930ecfab333354e5b00e2450bd1cf6805f6b3746d777d0d71d9b1c149b3bf7835ce7f4862aca0f1a28cf25397a895ecbe95699caf419c50729eb1868c5780  sentry-ldap-auth-2.0.tar.gz
+86a873e8d69079f1bbecdcc5f26d519190e5e8adf2af8a59f5b074004b836d7557bdc1097a9b8e5ff2ffb13a3374414a7c1edc7a105fb24028aaa87a92370efb  constraints.txt"
