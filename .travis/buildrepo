@@ -37,7 +37,7 @@ echo '\n==> Building packages'
 
 key_name="$(basename ./.keys/*.pub | sed 's/.pub//')"
 packager_privkey="$REMOTE_DIR/.secret/$key_name"
-repos="$(ls -l | grep '^d' | awk '{print $9}')"
+repos="$(ls -l | grep '^d' | awk '{print $9}' | xargs)"
 
 [ -n "$repos" ] || { echo 'No repositories found'; exit 0; }
 
