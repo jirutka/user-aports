@@ -2,7 +2,7 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname="sentry"
 pkgver="8.2.2"
-pkgrel=0
+pkgrel=1
 pkgdesc="Sentry provides real-time crash reporting for your web apps, mobile apps, and games."
 url="https://github.com/getsentry/sentry"
 arch="all"
@@ -49,7 +49,7 @@ build() {
 		--disable-pip-version-check \
 		'git+https://github.com/dvarrazzo/py-setproctitle.git@3fd40a1516b5bec0e01984de530f42bc0b245b92#egg=setproctitle' \
 		. || return 1
-	
+
 	python -m compileall -f -d "$_prefix" usr/ || return 1
 
 	rm -f usr/bin/easy_install*
