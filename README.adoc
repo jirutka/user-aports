@@ -25,15 +25,6 @@ It’s something that Alpine devs really don’t like, but it’s very convenien
 All bundles are installed in `/usr/lib/bundles/<pkgname>`.
 
 
-=== Patched
-
-* {repos-uri}/edge/patched
-
-Patched aports from the official Alpine repository.
-These aports are short-lived, I removes them once the patch is accepted into the official repository.
-However, I’ll not remove APKs, they’ll remain on the server.
-
-
 == How to use
 
 . Add security key of this repository to your `/etc/apk/keys`:
