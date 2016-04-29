@@ -1,0 +1,43 @@
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+_gemname=bundler
+_slot=2.1
+pkgname=ruby$_slot-$_gemname
+pkgver=1.12.0
+pkgrel=0
+pkgdesc="Manage an application's gem dependencies (backport for Ruby 2.1)"
+url="http://gembundler.com/"
+arch="noarch"
+license="MIT"
+depends="ruby$_slot"
+source="http://gems.rubyforge.org/gems/$_gemname-$pkgver.gem"
+builddir="$srcdir"/$_realname-$pkgver
+
+build() {
+	return 0
+}
+
+package() {
+	local gemdir="$(ruby$_slot -rubygems -e 'puts Gem.default_dir')"
+	local geminstdir=$gemdir/gems/$_gemname-$pkgver
+
+	mkdir -p "$pkgdir" || return 1
+
+	gem$_slot install --local --install-dir "$pkgdir"/$gemdir \
+		--ignore-dependencies --verbose --no-rdoc --no-ri \
+		"$srcdir"/$_gemname-$pkgver.gem || return 1
+	rm -rf "$pkgdir"/$gemdir/cache \
+		"$pkgdir"/$geminstdir/ext \
+		"$pkgdir"/$geminstdir/.require_paths
+
+	cd "$pkgdir"
+	for i in usr/lib/ruby/gems/*/bin/*; do
+		if [ -e "$i" ]; then
+			mkdir -p "$pkgdir"/usr/bin
+			ln -s /$i "$pkgdir"/usr/bin/$(basename "$i")$_slot
+		fi
+	done
+}
+
+md5sums="2568a38d9869292e3a5873515b192ff6  bundler-1.12.0.gem"
+sha256sums="5bca5421236b5467e33aa318d8eecfbb64f217c14913f299e8775f0513af29ba  bundler-1.12.0.gem"
+sha512sums="0c84446ac6225ded7a181b9eece8e9badd69085b82bf27bdabed46720936167494d86a501490769b6d4fe11277a3e30894940e9e365c5289aaef2f54a1aba4a6  bundler-1.12.0.gem"
