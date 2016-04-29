@@ -25,6 +25,16 @@ It’s something that Alpine devs really don’t like, but it’s very convenien
 All bundles are installed in `/usr/lib/bundles/<pkgname>`.
 
 
+=== Legacy
+
+* {repos-uri}/edge/legacy
+
+Old versions of some aports that may be installed and used together with their latest version from the official repository.
+This is equivalent to https://github.com/Homebrew/homebrew-versions[homebrew-versions] or like poor man’s Gentoo slots.
+
+Binaries are installed into `/usr/bin` as usual, but with a version suffix, e.g. `ruby2.1`.
+
+
 == How to use
 
 . Add security key of this repository to your `/etc/apk/keys`:
