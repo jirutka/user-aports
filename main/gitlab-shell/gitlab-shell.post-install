@@ -1,0 +1,36 @@
+#!/bin/sh
+set -eu
+
+keys_file='/var/lib/gitlab/.ssh/authorized_keys'
+secret_file='/etc/gitlab/gitlab-shell.secret'
+
+secure_random() {
+	ruby2.1 -e 'require "securerandom"; puts SecureRandom.hex(64)'
+}
+
+if [ ! -f "$secret_file" ]; then
+	echo "* Generating random secret in $secret_file" 1>&2
+
+	secure_random > "$secret_file"
+	chown root:git "$secret_file"
+	chmod 0640 "$secret_file"
+fi
+
+if [ ! -f "$keys_file" ]; then
+	keys_dir="$(dirname "$keys_file")"
+	echo "* Initializing authorized_keys file in $keys_dir" 1>&2
+
+	mkdir -m0700 -p "$keys_dir"
+	chown git:git "$keys_dir"
+
+	touch "$keys_file"
+	chmod 0600 "$keys_file"
+	chown git:git "$keys_file"
+fi
+
+cat <<EOF 1>&2
+*
+* GitLab Shell has been initialized. Read /etc/gitlab/gitlab-shell.yml and
+* modify settings as need.
+*
+EOF

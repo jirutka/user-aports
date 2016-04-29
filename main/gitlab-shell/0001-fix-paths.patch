@@ -1,0 +1,63 @@
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Wed, 27 Mar 2016 22:40:00 +0000
+Subject: [PATCH] Make paths more FHS compliant
+
+diff --git a/config.yml.example b/config.yml.example
+index eff354d..f9fcb35 100644
+--- a/config.yml.example
++++ b/config.yml.example
+@@ -13,7 +13,7 @@ user: git
+ # only listen on a Unix domain socket. For Unix domain sockets use
+ # "http+unix://<urlquoted-path-to-socket>", e.g.
+ # "http+unix://%2Fpath%2Fto%2Fsocket"
+-gitlab_url: "http://localhost:8080"
++gitlab_url: "http+unix://%2Frun%2Fgitlab%2Funicorn.sock"
+ 
+ # See installation.md#using-https for additional HTTPS configuration details.
+ http_settings:
+@@ -28,14 +28,14 @@ http_settings:
+ # Give the canonicalized absolute pathname,
+ # REPOS_PATH MUST NOT CONTAIN ANY SYMLINK!!!
+ # Check twice that none of the components is a symlink, including "/home".
+-repos_path: "/home/git/repositories"
++repos_path: "/var/lib/gitlab/repositories"
+ 
+ # File used as authorized_keys for gitlab user
+-auth_file: "/home/git/.ssh/authorized_keys"
++auth_file: "/var/lib/gitlab/.ssh/authorized_keys"
+ 
+ # File that contains the secret key for verifying access to GitLab.
+ # Default is .gitlab_shell_secret in the root directory.
+-# secret_file: "/home/git/gitlab-shell/.gitlab_shell_secret"
++secret_file: "/etc/gitlab/gitlab-shell.secret"
+ 
+ # Redis settings used for pushing commit notices to gitlab
+ redis:
+@@ -44,12 +44,12 @@ redis:
+   # port: 6379
+   # pass: redispass # Allows you to specify the password for Redis
+   database: 0
+-  socket: /var/run/redis/redis.sock # Comment out this line if you want to use TCP
++  socket: /run/redis/redis.sock # Comment out this line if you want to use TCP
+   namespace: resque:gitlab
+ 
+ # Log file.
+ # Default is gitlab-shell.log in the root directory.
+-# log_file: "/home/git/gitlab-shell/gitlab-shell.log"
++log_file: "/var/log/gitlab/gitlab-shell.log"
+ 
+ # Log level. INFO by default
+ log_level: INFO
+diff --git a/lib/gitlab_config.rb b/lib/gitlab_config.rb
+index 831f0e3..96e0437 100644
+--- a/lib/gitlab_config.rb
++++ b/lib/gitlab_config.rb
+@@ -4,7 +4,7 @@ class GitlabConfig
+   attr_reader :config
+ 
+   def initialize
+-    @config = YAML.load_file(File.join(ROOT_PATH, 'config.yml'))
++    @config = YAML.load_file(ENV.fetch('GITLAB_SHELL_CONFIG', '/etc/gitlab/gitlab-shell.yml'))
+   end
+ 
+   def home

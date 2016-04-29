@@ -1,0 +1,41 @@
+#!/bin/sh
+# It's very important to set user/group correctly.
+
+git_dir='/var/lib/gitlab'
+
+if ! getent group git 1>/dev/null; then
+	echo '* Creating group git' 1>&2
+
+	addgroup -S git
+fi
+
+if ! id git 2>/dev/null 1>&2; then
+	echo '* Creating user git' 1>&2
+
+	adduser -DHS -G git -h "$git_dir" -s /bin/sh  \
+		-g "added by apk for gitlab-shell" git
+	passwd -u git 1>/dev/null  # unlock
+fi
+
+if ! id -Gn git | grep -Fq redis; then
+	echo '* Adding user git to group redis' 1>&2
+
+	addgroup git redis
+fi
+
+user_home="$(getent passwd git | cut -d: -f6)"
+
+if [ ! "$user_home" -ef "$git_dir" ]; then
+	cat <<-EOF 1>&2
+	!!
+	!! User git has home directory in $user_home, but this package and gitlab-ce
+	!! package assumes $git_dir. Although it's possible to use a different
+	!! directory, it's really not easy.
+	!!
+	!! Please change git's home directory to $git_dir, or adjust settings
+	!! and move files yourself. Otherwise GitLab will not work!
+	!!
+	EOF
+fi
+
+exit 0

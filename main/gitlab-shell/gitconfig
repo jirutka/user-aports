@@ -1,0 +1,8 @@
+[core]
+autocrlf = input
+
+[gc]
+auto = 0
+
+[user]
+name = GitLab
