@@ -15,6 +15,7 @@ mount --bind "$(pwd)" "$ALPINE_ROOT$(pwd)"
 
 alpine_run <<-EOF
 	apk add alpine-sdk lua-aports
+	apk add abuild@edge
 
 	patch -d / -p 1 < $(pwd)/.travis/abuild-sign.patch
 
