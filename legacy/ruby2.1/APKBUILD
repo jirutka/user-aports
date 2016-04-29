@@ -6,7 +6,7 @@ pkgver=2.1.9
 _pkgver=${pkgver/_/-}
 _suffix=${pkgname#ruby}
 _abi=2.1.0
-pkgrel=0
+pkgrel=1
 pkgdesc="An object-oriented language for quick and easy programming"
 url="http://www.ruby-lang.org/en/"
 arch="all"
@@ -123,7 +123,7 @@ _rmgem() {
 
 rake() {
 	pkgdesc="Ruby based make-like utility"
-	depends="ruby"
+	depends="$pkgname"
 	arch="noarch"
 	_mvgem rake || return 1
 	_mv usr/bin/rake$_suffix
@@ -131,8 +131,8 @@ rake() {
 
 irb() {
 	pkgdesc="The Interactive Ruby"
-	replaces="ruby"
-	depends="ruby"
+	replaces="$pkgname"
+	depends="$pkgname"
 	arch="noarch"
 	cd "$pkgdir"
 	_mv usr/bin/irb$_suffix \
@@ -141,7 +141,7 @@ irb() {
 
 rdoc() {
 	pkgdesc="Ruby documentation tool"
-	depends="ruby ruby-json"
+	depends="$pkgname $pkgname-json"
 	arch="noarch"
 	_mvgem rdoc || return 1
 	_mv usr/bin/ri$_suffix \
@@ -150,14 +150,14 @@ rdoc() {
 
 bigdecimal() {
 	pkgdesc="Ruby arbitrary-precision floating point decimal arithmetic"
-	depends="ruby"
+	depends="$pkgname"
 	arch="noarch"
 	_mvgem bigdecimal
 }
 
 io_console() {
 	pkgdesc="Ruby simple console IO library"
-	depends="ruby"
+	depends="$pkgname"
 	_mvgem io-console
 	_mv $_rubydir/io \
 		$_rubydir/${CHOST/-alpine-/-}/io/console.so
@@ -165,14 +165,14 @@ io_console() {
 
 minitest() {
 	pkgdesc="Ruby suite of testing facilities"
-	depends="ruby"
+	depends="$pkgname"
 	arch="noarch"
 	_mvgem minitest
 }
 
 json() {
 	pkgdesc="JSON implementation as a Ruby extension in C"
-	depends=ruby
+	depends="$pkgname"
 	_mvgem json
 }
 
