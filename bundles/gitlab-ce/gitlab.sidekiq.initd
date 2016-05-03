@@ -1,0 +1,34 @@
+#!/sbin/openrc-run
+
+name="GitLab (sidekiq)"
+description="GitLab backgroud workers"
+
+: ${gitlab_base:="/usr/lib/bundles/gitlab"}
+: ${sidekiq_logfile:="/var/log/gitlab/sidekiq.log"}
+: ${sidekiq_queues:="post_receive mailers archive_repo system_hook project_web_hook \
+	gitlab_shell incoming_email runner common default"}
+
+command="$gitlab_base/bin/sidekiq"
+command_args="$(printf ' -q %s' $sidekiq_queues)"
+command_background="yes"
+
+user="git"
+start_stop_daemon_args="
+	--chdir $gitlab_base
+	--user $user
+	--interpreted
+	--stdout $sidekiq_logfile
+	--stderr $sidekiq_logfile
+	--env RAILS_ENV=production
+	"
+pidfile="/run/gitlab/sidekiq.pid"
+
+depend() {
+	need redis
+	use net postgresql
+}
+
+start_pre() {
+	checkpath -d -m 755 -o $user "$(dirname "$pidfile")"
+	checkpath -f -m 644 -o $user "$sidekiq_logfile"
+}

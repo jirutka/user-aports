@@ -1,0 +1,48 @@
+# Enable mail_room to handle incoming mails?
+#mailroom_enabled="no"
+
+# IP address and port where the Unicorn server should listen on.
+# This is used just for communication with Workhorse.
+#unicorn_listen_tcp="127.0.0.1:8181"
+
+# Absolute path of the unix socket the Unicorn should listen on.
+# This is used for communication with gitlab-shell.
+#unicorn_listen_unix="/run/gitlab/unicorn.sock"
+
+# Number of Unicorn worker processes.
+#unicorn_workers="2"
+
+# The timeout for Unicorn workers in seconds.
+# Workers handling the request/app.call/response cycle taking longer than this
+# time period will be forcibly killed.
+#unicorn_timeout="60"
+
+# IP address and port, or absolute path of the unix socket, where should
+# Workhorse listen on for connections from a web server.
+#workhorse_listen="0.0.0.0:8080"
+
+# How long to wait for response headers when proxying the request.
+#workhorse_proxy_header_timeout="1m0s"
+
+
+# Base directory of the GitLab app.
+#gitlab_base="/usr/lib/bundles/gitlab"
+
+# Path fo the GitLab document root (public).
+#gitlab_public_dir="$gitlab_base/public"
+
+# Path to the gitlab.yml config file.
+#gitlab_config="/etc/gitlab/gitlab.yml"
+
+# Path to the unicorn.rb config file.
+#unicorn_config="$gitlab_base/config/unicorn.rb"
+
+
+# Path to the Workhorse log file.
+#workhorse_logfile="/var/log/gitlab/workhorse.log"
+
+# Path to the Sidekiq log file.
+#sidekiq_logfile="/var/log/gitlab/sidekiq.log"
+
+# Path to the mail_room log file.
+#mailroom_logfile="/var/log/gitlab/mail_room.log"

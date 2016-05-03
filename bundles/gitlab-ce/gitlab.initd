@@ -1,0 +1,88 @@
+#!/sbin/openrc-run
+
+name="GitLab (unicorns)"
+description="GitLab application"
+
+extra_started_commands="reload stop_all"
+description_reload="Reload configuration"
+description_stop_all="Stop all GitLab services"
+
+: ${gitlab_base:="/usr/lib/bundles/gitlab"}
+: ${gitlab_config:="/etc/gitlab/gitlab.yml"}
+: ${mailroom_enabled:="no"}
+: ${unicorn_listen_tcp:="127.0.0.1:8181"}
+: ${unicorn_listen_unix:="/run/gitlab/unicorn.sock"}
+: ${unicorn_workers:="2"}
+: ${unicorn_timeout:="60"}
+: ${unicorn_logfile:="/var/log/gitlab/unicorn.log"}
+: ${unicorn_config:="$gitlab_base/config/unicorn.rb"}
+
+command="$gitlab_base/bin/unicorn_rails"
+command_args="-c $unicorn_config -E production"
+command_background="yes"
+
+user="git"
+start_stop_daemon_args="
+	--chdir $gitlab_base
+	--user $user
+	--interpreted
+	--stdout $unicorn_logfile
+	--stderr $unicorn_logfile
+	--env RAILS_ENV=production
+	--env GITLAB_BASE=$gitlab_base
+	--env UNICORN_LISTEN_TCP=$unicorn_listen_tcp
+	--env UNICORN_LISTEN_UNIX=$unicorn_listen_unix
+	--env UNICORN_WORKERS=$unicorn_workers
+	--env UNICORN_TIMEOUT=$unicorn_timeout
+	"
+pidfile="/run/gitlab/unicorn.pid"
+
+required_files="$gitlab_config $unicorn_config"
+
+subservices="gitlab.sidekiq gitlab.workhorse"
+if yesno "$mailroom_enabled"; then
+	subservices="$subservices gitlab.mailroom"
+fi
+
+depend() {
+	need redis sshd $subservices
+	use net postgresql
+}
+
+start_pre() {
+	checkpath -d -m 755 -o $user "$(dirname "$pidfile")"
+	checkpath -d -m 755 -o $user "$(dirname "$unicorn_listen_unix")"
+	checkpath -d -m 700 -o $user "$(readlink "$gitlab_base"/tmp)"
+	checkpath -f -m 644 -o $user "$unicorn_logfile"
+
+	local downloads_path="$(_parse_yaml "$gitlab_config" \
+		production.gitlab.repository_downloads_path)"
+
+	if [ -n "$downloads_path" ]; then
+		checkpath -d -m 700 -o $user "$downloads_path"
+	fi
+}
+
+reload() {
+	ebegin "Reloading $name"
+	kill -USR2 $(head -n1 $pidfile)
+	eend $?
+}
+
+stop_all() {
+	local srv; for srv in $subservices; do
+		service $srv stop
+	done
+}
+
+_parse_yaml() {
+	local file="$1"
+	local key="$2"
+	local default="${3:-}"
+	local key_path="$(echo "[\"$key\"]" | sed 's/\./"]["/g')"
+
+	ruby2.1 <<-EOF
+	require "yaml"
+	puts YAML.load_file("$file")$key_path rescue puts "$default"
+	EOF
+}

@@ -1,0 +1,10 @@
+/var/log/gitlab/*.log {
+	compress
+	copytruncate
+	delaycompress
+	maxsize 10M
+	minsize 1M
+	missingok
+	rotate 10
+	weekly
+}

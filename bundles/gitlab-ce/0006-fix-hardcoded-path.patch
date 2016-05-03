@@ -1,0 +1,26 @@
+From eb983c944b5cd32b4e42bad1e4700962e5c54920 Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Wed, 27 Apr 2016 23:37:07 +0200
+Subject: [PATCH] Don't read otp_secret_encryption_key from hardcoded path in models/user
+
+Variable `Gitlab::Application.config.secret_key_base` is set in
+config/initializers/secret_token.rb. It's very bad practice to use
+hard-coded paths inside an application and really unnecessary in this
+case.
+---
+ app/models/user.rb | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/app/models/user.rb b/app/models/user.rb
+index ab48f8f..a468b6e 100644
+--- a/app/models/user.rb
++++ b/app/models/user.rb
+@@ -85,7 +85,7 @@ class User < ActiveRecord::Base
+   default_value_for :theme_id, gitlab_config.default_theme
+ 
+   devise :two_factor_authenticatable,
+-         otp_secret_encryption_key: File.read(Rails.root.join('.secret')).chomp
++         otp_secret_encryption_key: Gitlab::Application.config.secret_key_base
+   alias_attribute :two_factor_enabled, :otp_required_for_login
+ 
+   devise :two_factor_backupable, otp_number_of_backup_codes: 10

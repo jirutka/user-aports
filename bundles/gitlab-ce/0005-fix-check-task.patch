@@ -1,0 +1,17 @@
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Wed, 29 Apr 2016 15:44:00 +0200
+Subject: [PATCH] Disable checking init script in gitlab:check task
+
+diff --git a/lib/tasks/gitlab/check.rake b/lib/tasks/gitlab/check.rake
+index effb8eb..2f9ea2e 100644
+--- a/lib/tasks/gitlab/check.rake
++++ b/lib/tasks/gitlab/check.rake
+@@ -24,7 +24,7 @@ namespace :gitlab do
+       check_tmp_writable
+       check_uploads
+       check_init_script_exists
+-      check_init_script_up_to_date
++      #check_init_script_up_to_date  we use different init scripts
+       check_projects_have_namespace
+       check_redis_version
+       check_ruby_version

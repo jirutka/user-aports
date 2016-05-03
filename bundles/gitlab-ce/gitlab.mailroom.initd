@@ -1,0 +1,37 @@
+#!/sbin/openrc-run
+
+name="GitLab (mailroom)"
+description="GitLab service for processing incoming mails."
+
+: ${gitlab_base:="/usr/lib/bundles/gitlab"}
+: ${gitlab_config:="/etc/gitlab/gitlab.yml"}
+: ${mailroom_logfile:="/var/log/gitlab/mail_room.log"}
+: ${mailroom_config:="$gitlab_base/config/mail_room.yml"}
+
+command="$gitlab_base/bin/mail_room"
+command_args="-c $mailroom_config"
+command_background="yes"
+
+user="git"
+start_stop_daemon_args="
+	--chdir $gitlab_base
+	--user $user
+	--interpreted
+	--stdout $mailroom_logfile
+	--stderr $mailroom_logfile
+	--env RAILS_ENV=production
+	--env MAIL_ROOM_GITLAB_CONFIG_FILE=$gitlab_config
+	"
+pidfile="/run/gitlab/mail_room.pid"
+
+required_files="$mailroom_config $gitlab_config"
+
+depend() {
+	need redis
+	use net
+}
+
+start_pre() {
+	checkpath -d -m 755 -o $user "$(dirname "$pidfile")"
+	checkpath -f -m 640 -o $user "$mailroom_logfile"
+}
