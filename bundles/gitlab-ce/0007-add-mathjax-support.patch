@@ -1,0 +1,215 @@
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Wed, 4 May 2016 22:43:13 +0200
+Subject: [PATCH] Add support for MathJax with AsciiDoc
+
+---
+ app/assets/javascripts/blob/edit_blob.js.coffee |  1 +
+ app/assets/javascripts/mathjax.js.coffee        | 40 +++++++++++++++++++++++++
+ app/helpers/application_helper.rb               |  4 +++
+ app/helpers/gitlab_markdown_helper.rb           |  2 ++
+ app/helpers/page_layout_helper.rb               | 15 ++++++++++
+ app/views/layouts/_page.html.haml               |  2 +-
+ app/views/projects/blob/edit.html.haml          |  1 +
+ config/gitlab.yml.example                       | 11 +++++++
+ config/initializers/1_settings.rb               |  1 +
+ lib/gitlab/asciidoc.rb                          |  6 ++++
+ lib/gitlab/gon_helper.rb                        |  1 +
+ 11 files changed, 83 insertions(+), 1 deletion(-)
+ create mode 100644 app/assets/javascripts/mathjax.js.coffee
+
+diff --git a/app/assets/javascripts/blob/edit_blob.js.coffee b/app/assets/javascripts/blob/edit_blob.js.coffee
+index eea9aa9..6fcfc04 100644
+--- a/app/assets/javascripts/blob/edit_blob.js.coffee
++++ b/app/assets/javascripts/blob/edit_blob.js.coffee
+@@ -34,6 +34,7 @@ class @EditBlob
+       , (response) ->
+         currentPane.empty().append response
+         currentPane.syntaxHighlight()
++        $(document).trigger('mathjax:typeset')
+ 
+     else
+       @editor.focus()
+diff --git a/app/assets/javascripts/mathjax.js.coffee b/app/assets/javascripts/mathjax.js.coffee
+new file mode 100644
+index 0000000..b37fa1c
+--- /dev/null
++++ b/app/assets/javascripts/mathjax.js.coffee
+@@ -0,0 +1,40 @@
++# Inspired by http://reed.github.io/turbolinks-compatibility/mathjax.html.
++
++config =
++  tex2jax:
++    inlineMath: [['\\(', '\\)']]  # default for Asciidoctor
++    displayMath: [['\\[', '\\]']]  # default for Asciidoctor
++    ignoreClass: 'page-with-sidebar|navbar|nostem|nolatexmath'
++    processClass: 'wiki'
++  asciimath2jax:
++    delimiters: [['\\$', '\\$']]  # default for Asciidoctor
++    ignoreClass: 'page-with-sidebar|navbar|nostem|nolatexmath'
++    processClass: 'wiki'
++  TeX:
++    equationNumbers:
++      autoNumber: 'none'
++
++isEnabled = ->
++  $('.content').data('mathjax') == 'enabled'
++
++load = ->
++  $.ajax(
++    dataType: 'script'
++    cache: true
++    url: "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=#{gon.mathjax_config}"
++  ).done =>
++    window.MathJax.Hub.Config(config)
++
++typeset = ->
++  window.MathJax?.Hub.Queue(['Typeset', window.MathJax.Hub])
++
++onPageLoad = ->
++  return unless isEnabled()
++  if window.MathJax
++    typeset()
++  else
++    load()
++
++$(document).ready onPageLoad
++$(document).on 'page:load', onPageLoad
++$(document).on 'mathjax:typeset', typeset
+diff --git a/app/helpers/application_helper.rb b/app/helpers/application_helper.rb
+index 3e0074d..46391f6 100644
+--- a/app/helpers/application_helper.rb
++++ b/app/helpers/application_helper.rb
+@@ -244,6 +244,10 @@ module ApplicationHelper
+     Gitlab::MarkupHelper.asciidoc?(filename)
+   end
+ 
++  def contains_math?(file_name, file_content)
++    asciidoc?(file_name) && Gitlab::Asciidoc.contains_stem?(file_content)
++  end
++
+   def promo_host
+     'about.gitlab.com'
+   end
+diff --git a/app/helpers/gitlab_markdown_helper.rb b/app/helpers/gitlab_markdown_helper.rb
+index 3a45205..4cc4e13 100644
+--- a/app/helpers/gitlab_markdown_helper.rb
++++ b/app/helpers/gitlab_markdown_helper.rb
+@@ -67,6 +67,8 @@ module GitlabMarkdownHelper
+   end
+ 
+   def asciidoc(text)
++    load_mathjax! if Gitlab::Asciidoc.contains_stem?(text)
++
+     Gitlab::Asciidoc.render(
+       text,
+       project:      @project,
+diff --git a/app/helpers/page_layout_helper.rb b/app/helpers/page_layout_helper.rb
+index 82f805f..52e3b3c 100644
+--- a/app/helpers/page_layout_helper.rb
++++ b/app/helpers/page_layout_helper.rb
+@@ -113,4 +113,19 @@ module PageLayoutHelper
+ 
+     css_class
+   end
++
++  def load_mathjax!
++    @load_mathjax = true
++  end
++
++  def load_mathjax?
++    case extra_config.fetch('mathjax_load', 'never')
++    when 'auto'
++      @load_mathjax
++    when 'always'
++      true
++    else
++      false
++    end
++  end
+ end
+diff --git a/app/views/layouts/_page.html.haml b/app/views/layouts/_page.html.haml
+index c799e9c..1584c18 100644
+--- a/app/views/layouts/_page.html.haml
++++ b/app/views/layouts/_page.html.haml
+@@ -26,6 +26,6 @@
+     = render "layouts/flash"
+     = yield :flash_message
+     %div{ class: (container_class unless @no_container) }
+-      .content
++      %div{ class: 'content', 'data-mathjax' => ('enabled' if load_mathjax?) }
+         .clearfix
+           = yield
+diff --git a/app/views/projects/blob/edit.html.haml b/app/views/projects/blob/edit.html.haml
+index effcce5..8b8d164 100644
+--- a/app/views/projects/blob/edit.html.haml
++++ b/app/views/projects/blob/edit.html.haml
+@@ -1,4 +1,5 @@
+ - page_title "Edit", @blob.path, @ref
++- load_mathjax! if contains_math?(@blob.name, @blob.data)
+ = render "header_title"
+ 
+ .file-editor
+diff --git a/config/gitlab.yml.example b/config/gitlab.yml.example
+index d9c15f8..4b921d2 100644
+--- a/config/gitlab.yml.example
++++ b/config/gitlab.yml.example
+@@ -478,6 +478,17 @@ production: &base
+     # piwik_url: '_your_piwik_url'
+     # piwik_site_id: '_your_piwik_site_id'
+ 
++    ## MathJax
++    # Load MathJax library for typesetting math?
++    #   never  - this is default
++    #   auto   - when document declares that it contains math (depends on markup)
++    #   always -
++    # mathjax_load: auto
++    #
++    # Name of pre-defined MathJax configuration available on CDN.
++    # See http://docs.mathjax.org/en/latest/config-files.html for options.
++    # mathjax_config: TeX-MML-AM_CHTML
++
+   rack_attack:
+     git_basic_auth:
+       # Rack Attack IP banning enabled
+diff --git a/config/initializers/1_settings.rb b/config/initializers/1_settings.rb
+index 10c2504..cab8fd2 100644
+--- a/config/initializers/1_settings.rb
++++ b/config/initializers/1_settings.rb
+@@ -302,6 +302,7 @@ Settings.satellites['path'] = File.expand_path(Settings.satellites['path'] || "t
+ # Extra customization
+ #
+ Settings['extra'] ||= Settingslogic.new({})
++Settings.extra['mathjax_config'] ||= 'TeX-MML-AM_CHTML'
+ 
+ #
+ # Rack::Attack settings
+diff --git a/lib/gitlab/asciidoc.rb b/lib/gitlab/asciidoc.rb
+index 0b9c2e7..c0327b1 100644
+--- a/lib/gitlab/asciidoc.rb
++++ b/lib/gitlab/asciidoc.rb
+@@ -35,5 +35,11 @@ module Gitlab
+ 
+       html.html_safe
+     end
++
++    # Does the given document contain a valid :stem: attribute declaration
++    # that activates support for STEM (i.e. math)?
++    def self.contains_stem?(input)
++      input =~ /^:stem:/
++    end
+   end
+ end
+diff --git a/lib/gitlab/gon_helper.rb b/lib/gitlab/gon_helper.rb
+index 5ebaad6..224313d 100644
+--- a/lib/gitlab/gon_helper.rb
++++ b/lib/gitlab/gon_helper.rb
+@@ -7,6 +7,7 @@ module Gitlab
+       gon.max_file_size          = current_application_settings.max_attachment_size
+       gon.relative_url_root      = Gitlab.config.gitlab.relative_url_root
+       gon.user_color_scheme      = Gitlab::ColorSchemes.for_user(current_user).css_class
++      gon.mathjax_config         = Gitlab.config.extra.mathjax_config
+ 
+       if current_user
+         gon.current_user_id = current_user.id
+-- 
+2.8.1
