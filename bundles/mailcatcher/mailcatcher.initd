@@ -1,0 +1,42 @@
+#!/sbin/openrc-run
+
+name="MailCatcher"
+description="Runs an SMTP server, catches and displays email in a web interface."
+
+: ${smtp_port:="1025"}
+: ${smtp_listen_ip:="0.0.0.0"}
+: ${http_port:="1080"}
+: ${http_listen_ip:="0.0.0.0"}
+: ${db_path:="/var/lib/mailcatcher/${RC_SVCNAME}.sqlite"}
+
+: ${user:="nobody"}
+: ${pidfile:="/run/${RC_SVCNAME}.pid"}
+: ${logfile:="/var/log/${RC_SVCNAME}.log"}
+
+command="/usr/bin/mailcatcher"
+command_args="
+	--foreground
+	--no-quit
+	--smtp-port=$smtp_port
+	--smtp-ip=$smtp_listen_ip
+	--http-port=$http_port
+	--http-ip=$http_listen_ip
+	${db_path:+"--persist=$db_path"}"
+command_background="true"
+
+start_stop_daemon_args="
+	--user=$user
+	--stdout=$logfile
+	--stderr=$logfile"
+
+depend() {
+	need net
+}
+
+start_pre() {
+	checkpath -f -o $user -m 644 "$logfile"
+
+	if [ -n "$db_path" ]; then
+		checkpath -d -o $user -m 750 "$(dirname "$db_path")"
+	fi
+}

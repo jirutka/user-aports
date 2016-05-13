@@ -1,0 +1,21 @@
+# Port of the SMTP server.
+#smtp_port="1025"
+
+# IP address to listen on for SMTP. Default is to listen all.
+#smtp_listen_ip="0.0.0.0"
+
+# Port of the web interface.
+#http_port="1080"
+
+# IP address to listen on for web interface. Default is to listen all.
+#http_listen_ip="0.0.0.0"
+
+# Location of SQLite database file to persist messages.
+# If empty, then messages are stored just in memory.
+#db_path="/var/lib/mailcatcher/${RC_SVCNAME}.sqlite"
+
+# Path to logfile.
+#logfile="/var/log/${RC_SVCNAME}.log"
+
+# User to run mailcatcher.
+#user="nobody"

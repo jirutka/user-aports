@@ -1,0 +1,80 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=mailcatcher
+pkgver=0.6.4
+pkgrel=0
+pkgdesc="Catches mail and serves it through a dream."
+url="https://github.com/sj26/mailcatcher"
+arch="all"
+license="MIT"
+depends="ruby ruby-bigdecimal"
+makedepends="ruby-dev sqlite-dev"
+source="https://rubygems.org/downloads/$pkgname-$pkgver.gem
+	$pkgname.initd
+	$pkgname.confd
+	0001-add-persist-option.patch
+	"
+builddir="$srcdir/build"
+
+_prefix="/usr/lib/bundles/$pkgname"
+
+prepare() {
+	return 0
+}
+
+build() {
+	local file
+	cd "$srcdir"
+
+	msg "Installing Rubygems..."
+
+	mkdir -p "$builddir"
+	gem install \
+		--no-document \
+		--install-dir="$builddir" \
+		$pkgname-$pkgver.gem || return 1
+
+	cd "$builddir"/gems/mailcatcher-* || return 1
+	for file in $source; do
+		case $file in
+			*.patch) patch -p1 -i "$srcdir/$file" || return 1
+			;;
+		esac
+	done
+
+	cd "$builddir"
+	for file in bin/*; do
+		# Add text after the first line of the file.
+		sed -i "1a ENV['GEM_PATH'] = '$_prefix'" $file || return 1
+	done
+}
+
+package() {
+	cd "$builddir"
+
+	mkdir -p "$pkgdir"$_prefix
+	cp -r bin extensions gems specifications "$pkgdir"$_prefix/ || return 1
+
+	mkdir -p "$pkgdir"/usr/bin
+	ln -sf $_prefix/bin/mailcatcher "$pkgdir"/usr/bin/mailcatcher || return 1
+	ln -sf $_prefix/bin/catchmail "$pkgdir"/usr/bin/catchmail || return 1
+
+	install -m755 -D "$srcdir"/$pkgname.initd \
+		"$pkgdir"/etc/init.d/$pkgname || return 1
+
+	install -m644 -D "$srcdir"/$pkgname.confd \
+		"$pkgdir"/etc/conf.d/$pkgname
+}
+
+md5sums="fbb74af47d4d828da6f934dd82d55ecd  mailcatcher-0.6.4.gem
+6d6760d8b836756b80dd0e5ec5c75f2e  mailcatcher.initd
+24294d919b14a5f41d8070734079a6b3  mailcatcher.confd
+bb78e9522b59c6e227982b8550e16ecf  0001-add-persist-option.patch"
+sha256sums="7fae7dcf94c5806601723d5e817bfc5a155623355506e53d0d157b1b8169c168  mailcatcher-0.6.4.gem
+e8b5c0616a8d037c08fda5054c623b7036321c0c0d5311950d11caad71c753cb  mailcatcher.initd
+83c3cfdb2ec2a0832b78025c89e66ba33457ce28d3435bbde96c26946a44e819  mailcatcher.confd
+1df39246d16e48868f45187e6dd58357be268e11c425afe3d0088c38b56173cc  0001-add-persist-option.patch"
+sha512sums="b2b46c26a6c8988a322d482c15f663d9106510a44c9a5ad412b6ed7296961ce3d8169db060ad645fe18ecabd66a05dfcd5be5e616513fcfc21253b1c9555b845  mailcatcher-0.6.4.gem
+1826b6f4398d88b1e2b1f83ce23f4d4d6563ae3cfc28d5bf2a50cd28f199c86f84f49ed87f89632cbc1f3de24d597df395138a66c996931c1fd9b4242cf47f80  mailcatcher.initd
+cb556658baddc637a091c54286cc75330b65836afb99a8d3b56dc4ba34605f2f9aeb706156285202cbe5cdce3503f83c94ec4a875351255b97a01bd3bc9e656e  mailcatcher.confd
+3b457f16618005029b62fc471b3571261941e0a3ae67512f8d7f069eb132ddbd5057ef6b0e1e160c2eb37dc687b90bc88597a262d6bbe375346a0a68c1070ea0  0001-add-persist-option.patch"

@@ -1,0 +1,65 @@
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Fri, 13 May 2016 20:13:21 +0200
+Subject: [PATCH] Add option to persist mails between restarts
+
+Ported from https://github.com/sj26/mailcatcher/pull/109
+---
+ lib/mail_catcher.rb      | 6 ++++++
+ lib/mail_catcher/mail.rb | 8 +++++---
+ 2 files changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/lib/mail_catcher.rb b/lib/mail_catcher.rb
+index d801617..93ef87c 100644
+--- a/lib/mail_catcher.rb
++++ b/lib/mail_catcher.rb
+@@ -130,6 +130,10 @@ module MailCatcher extend self
+           end
+         end
+ 
++        parser.on('-p', '--persist [PATH]', 'Persist messages in DB at path (messages.sqlite by default)') do |path|
++          options[:persist] = path || 'messages.sqlite'
++        end
++
+         parser.on('-v', '--verbose', 'Be more verbose') do
+           options[:verbose] = true
+         end
+@@ -160,6 +164,8 @@ module MailCatcher extend self
+ 
+     Thin::Logging.silent = (ENV["MAILCATCHER_ENV"] != "development")
+ 
++    MailCatcher::Mail.db_path = options[:persist]
++
+     # One EventMachine loop...
+     EventMachine.run do
+       smtp_url = "smtp://#{options[:smtp_ip]}:#{options[:smtp_port]}"
+diff --git a/lib/mail_catcher/mail.rb b/lib/mail_catcher/mail.rb
+index 2836bdc..0683494 100644
+--- a/lib/mail_catcher/mail.rb
++++ b/lib/mail_catcher/mail.rb
+@@ -4,11 +4,13 @@ require "mail"
+ require "sqlite3"
+ 
+ module MailCatcher::Mail extend self
++  attr_accessor :db_path
++
+   def db
+     @__db ||= begin
+-      SQLite3::Database.new(":memory:", :type_translation => true).tap do |db|
++      SQLite3::Database.new(db_path || ":memory:", :type_translation => true).tap do |db|
+         db.execute(<<-SQL)
+-          CREATE TABLE message (
++          CREATE TABLE IF NOT EXISTS message (
+             id INTEGER PRIMARY KEY ASC,
+             sender TEXT,
+             recipients TEXT,
+@@ -20,7 +22,7 @@ module MailCatcher::Mail extend self
+           )
+         SQL
+         db.execute(<<-SQL)
+-          CREATE TABLE message_part (
++          CREATE TABLE IF NOT EXISTS message_part (
+             id INTEGER PRIMARY KEY ASC,
+             message_id INTEGER NOT NULL,
+             cid TEXT,
+-- 
+2.8.1
