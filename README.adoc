@@ -3,7 +3,7 @@
 :gh-name: jirutka/aports
 :gh-branch: edge
 :key-file: jakub@jirutka.cz-56d0d9fd.rsa.pub
-:repos-uri: http://alpine.geeknet.cz/packages
+:repos-uri: https://alpine.geeknet.cz/packages
 
 ifdef::env-github[]
 image:https://travis-ci.org/{gh-name}.svg?branch={gh-branch}["Build Status", link="https://travis-ci.org/{gh-name}"]
