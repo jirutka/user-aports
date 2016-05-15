@@ -3,15 +3,15 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=R
 pkgver=3.3.0
-pkgrel=2
+pkgrel=3
 pkgdesc="Language and environment for statistical computing"
 url="https://www.r-project.org"
 arch="x86_64 x86"
 license="GPL-2 GPL-3 LGPL-2.1"
 depends=""
-makedepends="bzip2-dev curl-dev>=7.28 gfortran lapack-dev pcre-dev>=8.10 perl
-	readline-dev xz-dev zlib-dev
-	"
+depends_dev="g++ gcc gfortran lapack-dev make pcre-dev>=8.10 readline-dev xz-dev zlib-dev"
+makedepends="$depends_dev bzip2-dev curl-dev>=7.28 perl"
+install="$pkgname.post-install"
 subpackages="
 	$pkgname-mathlib
 	$pkgname-mathlib-dev:mathlib_dev
