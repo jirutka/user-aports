@@ -3,14 +3,18 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=R
 pkgver=3.3.0
-pkgrel=4
+pkgrel=5
 pkgdesc="Language and environment for statistical computing"
 url="https://www.r-project.org"
 arch="x86_64 x86"
 license="GPL-2 GPL-3 LGPL-2.1"
 depends=""
-depends_dev="g++ gcc gfortran lapack-dev make pcre-dev>=8.10 readline-dev xz-dev zlib-dev"
-makedepends="$depends_dev bzip2-dev curl-dev>=7.28 perl"
+depends_dev="gcc gfortran icu-dev lapack-dev libjpeg-turbo libpng-dev make
+	pcre-dev>=8.10 readline-dev xz-dev zlib-dev
+	"
+makedepends="$depends_dev bzip2-dev cairo-dev curl-dev>=7.28 libxmu-dev
+	openjdk8-jre-base pango-dev perl tiff-dev tk-dev
+	"
 install="$pkgname.post-install"
 subpackages="
 	$pkgname-mathlib
@@ -39,19 +43,19 @@ build() {
 		rdocdir=/usr/share/doc/R \
 		rincludedir=/usr/include/R \
 		rsharedir=/usr/share/R \
-		--enable-R-shlib \
-		--disable-java \
 		--disable-nls \
-		--with-blas \
-		--with-lapack \
-		--without-tcltk \
-		--without-cairo \
-		--without-libpng \
-		--without-jpeglib \
-		--without-libtiff \
+		--enable-R-shlib \
+		--enable-java \
 		--without-recommended-packages \
-		--without-ICU \
-		--without-x \
+		--with-blas \
+		--with-cairo \
+		--with-ICU \
+		--with-jpeglib \
+		--with-lapack \
+		--with-libpng \
+		--with-libtiff \
+		--with-tcltk \
+		--with-x \
 		|| return 1
 	make || return 1
 
@@ -77,7 +81,7 @@ package() {
 
 	# Remove some useless files (COPYING is duplicated, it will be
 	# in -doc, don't worry).
-	rm "$destdir"/etc/javaconf "$destdir"/COPYING "$destdir"/SVN-REVISION
+	rm "$destdir"/COPYING "$destdir"/SVN-REVISION
 
 	mkdir -p "$pkgdir"/etc/R
 
