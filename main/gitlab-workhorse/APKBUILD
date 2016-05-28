@@ -1,7 +1,7 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitlab-workhorse
-pkgver=0.7.2
+pkgver=0.7.4
 pkgrel=0
 pkgdesc="A reverse proxy for GitLab."
 pkgusers="git"
@@ -37,9 +37,9 @@ package() {
 		"$pkgdir"/etc/init.d/gitlab.workhorse
 }
 
-md5sums="9b00f26df70ab36c135670052f7a3203  gitlab-workhorse-0.7.2.tar.gz
+md5sums="6e99a1d5f1a4c93bfdc9d821f9e02c01  gitlab-workhorse-0.7.4.tar.gz
 fba75a4f21e4c952db6f099e4c4d07b8  gitlab-workhorse.initd"
-sha256sums="27df98156a62a55d0428b6bd131d4756a145aa6cbf20956f0f7157654ae8ab45  gitlab-workhorse-0.7.2.tar.gz
+sha256sums="51ef010cfc5788a8059cdedf9c4110d497d263584117bd82edcdc813892ef008  gitlab-workhorse-0.7.4.tar.gz
 0e766bdeff376b681d1adad9c4da1ac68250579ee62e0e6e3a23dc340dbab388  gitlab-workhorse.initd"
-sha512sums="14f1d5155e47ecc22333eadda95017a76d3c4d7289a520c192a5d84ca52baeedeffc7b5c1b2a7e50a33117bf73298584a15b3efd5c9afe9b123a239ec4bd01d1  gitlab-workhorse-0.7.2.tar.gz
+sha512sums="47af4e7198483de5996ae25d1fa264d148c3b356d732a2a80226dd5157f34256f9d442b418d75590aef47043e0fa41fd298244ae0a7fb4e3a57ff5b74dcdaa4e  gitlab-workhorse-0.7.4.tar.gz
 eba4e1bf634f504d5f8a610cae5919ec61e176ac505f354fa4cc6e4f90e96a8ce429cc5918f5bd9d769743fdfd6dca604f591bb79a2aff8c48c506a8d901c63f  gitlab-workhorse.initd"
