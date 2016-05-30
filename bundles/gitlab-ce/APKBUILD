@@ -3,7 +3,7 @@
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
 pkgver=8.7.6
-pkgrel=0
+pkgrel=1
 pkgdesc="A version control for your server"
 url="https://github.com/gitlabhq/gitlabhq"
 arch="all"
@@ -35,6 +35,7 @@ source="$pkgname-$pkgver.tar.gz::https://github.com/gitlabhq/gitlabhq/archive/v$
 	0005-fix-check-task.patch
 	0006-fix-hardcoded-path.patch
 	0007-add-mathjax-support.patch
+	0008-fix-asciidoc-headers.patch
 	"
 builddir="$srcdir/gitlabhq-$pkgver"
 
@@ -239,7 +240,8 @@ d1c8a8a2cd3ec07fa26d9c3e5f82ba03  gitlab-rake
 fae44c0a7da22724a907a87c4199c300  0004-fix-setup-task.patch
 caac1ad3ea952399bc383e4775d67cbf  0005-fix-check-task.patch
 ea55d2ffaadfb7a500f67bfe95627101  0006-fix-hardcoded-path.patch
-fc9bb3bb79b907d7c6cd6a4e445b6abe  0007-add-mathjax-support.patch"
+fc9bb3bb79b907d7c6cd6a4e445b6abe  0007-add-mathjax-support.patch
+9a5c56040b8ca5188ded3d1696562033  0008-fix-asciidoc-headers.patch"
 sha256sums="c0422cfa51a6b4f8113cc39095066e67380cf8283a70da4acdf902c6d435a68e  gitlab-ce-8.7.6.tar.gz
 5a4332fc33836219b44e91238b8dd6aa38da9573a5e1df75de3843fa69a90db2  gitlab.initd
 7b1a785762dbdd5fa755ff4eeb3e2b52d6c8668833bd520ccef0561c5d497322  gitlab.mailroom.initd
@@ -253,7 +255,8 @@ b7b91619142352a9c8993936c10b25d85b502a197917df91d07d8ca12146e355  0002-default-c
 29e37d0d76a1e66f0ebe607e843ccd46f3b7b380619cea9ffe29a0da2b638429  0004-fix-setup-task.patch
 f7f1a9adbbc15781c9966316d1ed10d73fa86ba8e093916940f4a0e640f11248  0005-fix-check-task.patch
 a3e1464304cfd1bba86fd23901caca0196c03f8ecd7b97b4fe58d33f833e397c  0006-fix-hardcoded-path.patch
-588f93673bd0f2e45c997a12ff126acd3d863bb7f77762b4717dc531cdb2f59b  0007-add-mathjax-support.patch"
+588f93673bd0f2e45c997a12ff126acd3d863bb7f77762b4717dc531cdb2f59b  0007-add-mathjax-support.patch
+7acc561e597df2ad5ac04371e15af36d1903ad1c7830fd8b7676ca868b1e764f  0008-fix-asciidoc-headers.patch"
 sha512sums="aa2c78c3f6814c2a7da7967a4d2264bc0f605ff71505467e08c85bfcb3bf202cdd8a9a337ef8e943c3e4371e848ada358d5b47d1d55c0a5544c54eb958727f3b  gitlab-ce-8.7.6.tar.gz
 835db9b6f4d9df0f1868d37b4562d0ae02d44983ef2119c13f7935fb258e6341a37f2162ac1716961252ff2bb7a9a23f8822443b7897388d07db59016ac964e9  gitlab.initd
 d56587e94db0f607d4d37dbc1952914e2d6628405b3c2fe9f7548f27ca70f5393bf4fdebc7fa192b9bad7d07706a55cd77a910bd127236422f0f6d4a5a46be25  gitlab.mailroom.initd
@@ -267,4 +270,5 @@ d6e1fbedac5382066349eefb0faf07d5aed292e358bb394b32ac5466dbca89eb3b2991d3a1e35897
 ae798cdbc5e3292cc874a4bb8aee56f489abd2de1d33333fe2638f7a6bca768be08151d492532d606ee65de2931687b4ada164890efb670e91e84fbdc5098a91  0004-fix-setup-task.patch
 2b9c8b63f1428447878e14eac2f8cb0a8e345f4933ef527b8954e9d807250c88de9b33c02e9903946b4e60707fb6b6451df78496de573a1078a262df7582ad46  0005-fix-check-task.patch
 95a20e0974e7a804ac1e1e7cd0002fcd3aa3bb0b359beaee8c3120b350263cd2496b0bd9b8b927b17bc8e9876f28efe95ddec583389a6009882f684e98b74b80  0006-fix-hardcoded-path.patch
-b24bd03cb3bb2057b95266a73d328cb95d8c73670e3c2344b009f1da5ae42b66890a4ffd092f8f430ed0ff1ed6f098421bfce3624aefa2a684c87e2349a802f4  0007-add-mathjax-support.patch"
+b24bd03cb3bb2057b95266a73d328cb95d8c73670e3c2344b009f1da5ae42b66890a4ffd092f8f430ed0ff1ed6f098421bfce3624aefa2a684c87e2349a802f4  0007-add-mathjax-support.patch
+8a6d3b6731f29addd9215079a8e26d30b4d54f4e7050585af1cbee5f1b1ecec0aa28c952efdf5d96324ce92e94aa3b439ccc563f8b57d6788a07a1866a1331b1  0008-fix-asciidoc-headers.patch"
