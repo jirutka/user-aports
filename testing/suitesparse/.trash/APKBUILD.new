@@ -1,0 +1,106 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=suitesparse
+_pkgname=SuiteSparse
+pkgver=4.5.3
+_acrev=df45632fe18fb302b7a7ef58ceb69cc69914af03
+pkgrel=0
+pkgdesc="A collection of sparse matrix libraries"
+url="http://faculty.cse.tamu.edu/davis/suitesparse.html"
+arch="x86 x86_64"
+license="GPL"
+depends=""
+depends_dev="openblas-dev"
+makedepends="$depends_dev autoconf automake bash libtool"
+subpackages="$pkgname-dev $pkgname-doc"
+source="http://faculty.cse.tamu.edu/davis/$_pkgname/$_pkgname-$pkgver.tar.gz
+	$pkgname-autotools-$pkgver.tar.gz::https://github.com/matzeri/suitesparse/archive/$_acrev.tar.gz
+	configure.ac
+	Makefile.am
+	"
+builddir="$srcdir/$_pkgname"
+
+_addonsdir="$srcdir/$pkgname-$_acrev/addons"
+_pkgs="SuiteSparse_config AMD COLAMD CAMD CCOLAMD CXSparse RBio LDL BTF
+	CHOLMOD KLU SPQR UMFPACK"
+
+prepare() {
+	cp "$srcdir"/configure.ac "$srcdir"/Makefile.am "$builddir"/ || return 1
+
+	local pkg; for pkg in $_pkgs; do
+		_prepare $pkg || return 1
+	done
+
+	cd "$builddir"
+
+	autoreconf -vi && ./configure
+}
+
+_prepare() {
+	local pkg="$1"
+	local ver
+
+	cd "$builddir"/$pkg || return 1
+
+	# Copy common files.
+	cp -r "$_addonsdir"/config "$_addonsdir"/m4 . || return 1
+
+	# Copy package specific files.
+	cp -r "$_addonsdir"/$pkg/* . || return 1
+
+	if [ -x post-copy-hook.bash ]; then
+		./post-copy-hook.bash || return 1
+	fi
+
+	# Try to guess version.
+	if [ -e Doc/ChangeLog ]; then
+		ver=$(awk '{print $5;exit};1' Doc/ChangeLog | sed 's/,/./g')
+	else
+		ver=$(grep VERSION ../README.txt | awk '(NR==1){print $6}')
+	fi
+	[ -n "$ver" ] || { error "Failed to detect version" 1>&2; return 1; }
+
+	sed -i "/AC_INIT/s/[[:digit:]]\.[[:digit:]]\.[[:digit:]]/$ver/" configure.ac
+}
+
+build() {
+	cd "$builddir"
+
+#	local pkg; for pkg in $_pkgs; do
+#		msg "Building $pkg..."
+#		_build $pkg || return 1
+#	done
+}
+
+_build() {
+	local pkg="$1"
+
+	cd "$builddir/$pkg"
+
+	autoreconf -vi \
+		&& PKG_CONFIG_PATH="$builddir/lib/pkgconfig:$builddir/SuiteSparse_config:$PKG_CONFIG_PATH" ./configure
+		#&& make install DESTDIR="$builddir"
+#		&& make distcheck PKG_CONFIG_PATH="$builddir/lib/pkgconfig:$PKG_CONFIG_PATH"
+}
+
+package() {
+	cd "$builddir"
+
+	make install \
+		INSTALL="$pkgdir/usr" \
+		INSTALL_INCLUDE="$pkgdir/usr/include/$pkgname" \
+		INSTALL_DOC="$pkgdir/usr/share/doc/$pkgname"
+}
+
+md5sums="8ec57324585df3c6483ad7f556afccbd  SuiteSparse-4.5.3.tar.gz
+a11ff2e376fcd2426f545dd61e4c416c  suitesparse-autotools-4.5.3.tar.gz
+25c718008cecbfd7f8e732bff3efc811  configure.ac
+50f1e21ac643d26d89361805ea6a3455  Makefile.am"
+sha256sums="6199a3a35fbce82b155fd2349cf81d2b7cddaf0dac218c08cb172f9bc143f37a  SuiteSparse-4.5.3.tar.gz
+db59af4372e0645fef731bbe7844fd2c65876fc71e64cdea6488f3e9d83a37b6  suitesparse-autotools-4.5.3.tar.gz
+0a18d3ad5abb76eabffa8100339d92b8a7c45e392be68caa0d025bffe87bbabb  configure.ac
+9ffda57a3301221b461420c323be1143c1d18df1473f53557b489fdf01d6e5db  Makefile.am"
+sha512sums="88a5ba6c70e4d66751d1ac32fd8998cde11509e7b034814c34757180db70ce2838ebb77fd7c617bf96e473214c70ccbdd0064b4f5e4dd69ae4c51dfeb9696496  SuiteSparse-4.5.3.tar.gz
+d7108a03983449f901ccf7cb82565ea08c5daea3eecc900690b06a2421fa9a5f403a7dffe907453a4275a1830bde26356fca7424eb312690ce9370b891679d62  suitesparse-autotools-4.5.3.tar.gz
+5144ad94ebd1594fa682f692cd9ce339dea99b83b33f0b28a72edeb547495b668882a03fb8dc42bd8c14deb54e05379ac56874f1c98cc0175be8e8521afefc0a  configure.ac
+2790160379acb6729d8b055c42a5b0a745742e0a5f85296cd170dc9adb7d6f761290d42a95379c77bf7ef6c1bd846d28e20a816b24e05a9b73ff8ac63a1a9667  Makefile.am"
