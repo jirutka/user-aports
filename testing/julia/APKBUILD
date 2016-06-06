@@ -1,0 +1,163 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=julia
+pkgver=0.4.5
+# Keep in sync with deps/libuv.version.
+_libuv_ver=efb40768b7c7bd9f173a7868f74b92b1c5a61a0e
+# Keep in sync with deps/Versions.make.
+_rmathjulia_ver=0.1
+pkgrel=0
+pkgdesc="A high-level, high-performance dynamic language for technical computing."
+url="http://julialang.org"
+arch="x86 x86_64"
+license="MIT"
+depends="arpack
+	fftw>=3.3
+	gmp>=5.0
+	libgit2>=0.21
+	mpfr3
+	openblas
+	openlibm
+	openspecfun>=0.4
+	pcre2>=10.0
+	suitesparse>=4.1
+	"
+depends_dev="arpack-dev
+	dsfmt-dev
+	fftw-dev
+	gmp-dev
+	libgit2-dev
+	libunwind-dev
+	llvm-dev>=3.7
+	mpfr-dev
+	openblas-dev
+	openlibm-dev
+	openspecfun-dev
+	pcre2-dev
+	suitesparse-dev
+	utf8proc-dev>=1.3
+	"
+makedepends="$depends_dev
+	bash
+	cmake
+	gawk
+	gfortran
+	linux-headers
+	openssl-dev
+	paxmark
+	perl
+	"
+subpackages="$pkgname-dev $pkgname-doc"
+source="https://github.com/JuliaLang/julia/releases/download/v$pkgver/$pkgname-$pkgver.tar.gz
+	libuv-$_libuv_ver.tar.gz::https://api.github.com/repos/JuliaLang/libuv/tarball/$_libuv_ver
+	Rmath-julia-$_rmathjulia_ver.tar.gz::https://api.github.com/repos/JuliaLang/Rmath-julia/tarball/v$_rmathjulia_ver
+	0001-hardened.patch
+	0002-verbose-build.patch
+	0003-no-debug-version.patch
+	0004-no-clean-docs.patch
+	0005-remove-sysctl.h.patch
+	0006-llvm-3.8.patch
+	"
+builddir="$srcdir/$pkgname-$pkgver"
+ldpath="/usr/lib/julia"
+
+prepare() {
+	cd "$builddir"
+
+	cp "$srcdir"/Rmath-julia-$_rmathjulia_ver.tar.gz deps/ || return 1
+
+	# Julia needs patched libuv.
+	cp "$srcdir"/libuv-$_libuv_ver.tar.gz deps/ || return 1
+
+	# Prevent fetching of bundled stuff in the build and package phase.
+	cat <<-EOF > deps/xjldownload
+		#!/bin/sh
+		echo "!!! Downloading disabled !!!"
+		echo "Abuild should not fetch any files in the build phase."
+		echo "Add all the needed files to the APKBUILD's source=."
+		exit 1
+	EOF
+
+	cat <<-EOF > Make.user
+		prefix=/usr
+		libexecdir=/usr/lib
+		sysconfdir=/etc
+		DESTDIR="$pkgdir"
+		MARCH=${CARCH/_/-}
+		LIBBLAS=-lopenblas
+		LIBBLASNAME=libopenblas
+		LIBLAPACK=-lopenblas
+		LIBLAPACKNAME=libopenblas
+		USE_SYSTEM_LLVM=1
+		USE_SYSTEM_LIBUNWIND=1
+		USE_SYSTEM_PCRE=1
+		USE_SYSTEM_LIBM=1
+		USE_SYSTEM_OPENLIBM=1
+		USE_SYSTEM_OPENSPECFUN=1
+		USE_SYSTEM_DSFMT=1
+		USE_SYSTEM_BLAS=1
+		USE_SYSTEM_LAPACK=1
+		USE_SYSTEM_FFTW=1
+		USE_SYSTEM_GMP=1
+		USE_SYSTEM_MPFR=1
+		USE_SYSTEM_ARPACK=1
+		USE_SYSTEM_SUITESPARSE=1
+		USE_SYSTEM_LIBUV=0
+		USE_SYSTEM_UTF8PROC=1
+		USE_SYSTEM_LIBGIT2=1
+		USE_SYSTEM_PATCHELF=1
+		USE_LLVM_SHLIB=1
+		VERBOSE=1
+	EOF
+
+	# Pre-SSE2 CPU targets are not supported;
+	# create a generic 32-bit x86 binary.
+	if [ "$CARCH" = i686 ]; then
+		echo "MARCH=i686" >> Make.user
+		echo "JULIA_CPU_TARGET=pentium4" >> Make.user
+	fi
+ 
+	default_prepare
+}
+
+build() {
+	cd "$builddir"
+
+	# If we don't clean here, then make install will recompile everything,
+	# don't know why...
+	make clean && make release
+}
+
+package() {
+	cd "$builddir"
+
+	make install
+}
+
+md5sums="dc2ff07bb6fd5eeae12c7ec41ec38f22  julia-0.4.5.tar.gz
+b94c9164471d0492dce170961d7c65a2  libuv-efb40768b7c7bd9f173a7868f74b92b1c5a61a0e.tar.gz
+4e3f9e41e7b8cd3070225d1f5e8b21d9  Rmath-julia-0.1.tar.gz
+014a2c4efb55c0f36079a41ef6035929  0001-hardened.patch
+2539b4abe49d669ae01a4239fb14243f  0002-verbose-build.patch
+329b5481902a9737fc4c0d83c889d163  0003-no-debug-version.patch
+0fc44cc7b6a0167ee1e36310364e7049  0004-no-clean-docs.patch
+e5a50262e22a97d7f8108e6e8fc160d1  0005-remove-sysctl.h.patch
+aa0a5c577ccd3d0c652d15b6a064594e  0006-llvm-3.8.patch"
+sha256sums="441ff61b71bb0ad1d5279156105b20e9d2b59fccf2ad0c390636923d9c37ec25  julia-0.4.5.tar.gz
+872a96b616fc3517526812df11ed188500abff8dd73b75ae92377916b6efd3fe  libuv-efb40768b7c7bd9f173a7868f74b92b1c5a61a0e.tar.gz
+64c1ac8ee12859cf295d23bc1c840ea52e5abbcf4384ffacdaec0fc2246c252a  Rmath-julia-0.1.tar.gz
+e839522bd6120cdb024158f4c8fc3db1d267c7dd7e3bda4433484eb8b146591c  0001-hardened.patch
+892b3e0b3a94ad53a06574851dd397da4293c371ad980a03daa816a0585cb0ee  0002-verbose-build.patch
+53f2a7b2cf849645a3910f424fac619456e0055323dcab7c8ab30bdc22e0634d  0003-no-debug-version.patch
+8dc6aabe30ff02acfdae7aea3c6ef8fcf397481dfe2a3e2ad7c65bd8d1bbb09a  0004-no-clean-docs.patch
+70b9f2957d818ccd93f64a61f87eb5c7476258905d235c8e34745ec9c9e9a649  0005-remove-sysctl.h.patch
+2fa4fd8aef4a8805919cf66442f8b76f6a47886c1f6d31e7be525aad33c358c0  0006-llvm-3.8.patch"
+sha512sums="66af1b1f25350f92c229725391993ccf2ad516c22348d3523a76c110509792c083d7ad0c32058c236900afb0b854e939d151501c2611dfd8afe4b266861287cc  julia-0.4.5.tar.gz
+21bdcffd0c13c864bac6a1f42c5f229a57fd91e124ab4c43bd14ab29e5334bfcbdcdda2e16b3b08e8f79df5ab133bac5cdaeb2a88627fe152dd91d5e18154e61  libuv-efb40768b7c7bd9f173a7868f74b92b1c5a61a0e.tar.gz
+1dd94eca05bc06c3f33e8be5087d3b1742d01c8b38588e0fa79b8f6b9998760bca21bee1b65873825c4dde2d994a8271166bc21f670a34810fa9db598473a887  Rmath-julia-0.1.tar.gz
+8c5893298c87deeec31a4fdbbf59a17c6606ad2a7261d3d160725017c9a9ecd567ce7cfee78b73ef42f8b5b2c4d7baaea667252c426fbbb978c8c9f20b98f0e7  0001-hardened.patch
+266e0170c133e5be98f843adca948a4d13f3549a3a01b0c6220d495149ef26a9a837e9d7b0d9066eb7f8370a46ee5de042882a7dd585ddb245a1573882e32365  0002-verbose-build.patch
+4283a0a7a85d0ebd56c0bee38681218f30482a3729272a24425d09512bd1393ac861bf7b233bf2717924bb3312d4d0e3b201a784309e1036ee64fb6993e02658  0003-no-debug-version.patch
+2eae3ea85a56b5deaef464d36f543d60afb2e6a65ee4b57b599dd508046a02179ca53c5efd91351c8d0cbd5a3585b236da9b316e82416f9bff249b8b74ded305  0004-no-clean-docs.patch
+6c111ccdd12af5b00fdf0b7cc8fba11980fceccf7c246b40e791cd1be8e39cd75b8c290c65ebd9b4add60fc242261e17e94807736fce6a96733e9bf18182b489  0005-remove-sysctl.h.patch
+8546ff6c762b2a3a9f15a898e8b95b6cb0dd50a014de8349ee8d94d9663ca5031f775ec4f00e136ae2aef4778a8bdb1074930d10e2e1c40a8ec8db55fb7dc4d8  0006-llvm-3.8.patch"

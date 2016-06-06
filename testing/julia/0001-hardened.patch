@@ -1,0 +1,22 @@
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Sun, 05 Jun 2016 14:11:00 +0200
+Subject: [PATCH] Disable PaX memory protection for julia binary
+--- a/Makefile	2016-03-18 09:17:13.341211733 +0100
++++ b/Makefile	2016-06-05 13:56:52.614261263 +0200
+@@ -71,7 +71,7 @@
+ julia-sysimg-debug : julia-inference julia-ui-debug
+ 	@$(MAKE) $(QUIET_MAKE) $(build_private_libdir)/sys-debug.$(SHLIB_EXT) JULIA_BUILD_MODE=debug
+ 
+-julia-debug julia-release : julia-% : julia-ui-% julia-sysimg-% julia-symlink julia-libccalltest
++julia-debug julia-release : julia-% : julia-ui-% julia-sysimg-% julia-symlink julia-pax julia-libccalltest
+ 
+ debug release : % : julia-%
+ 
+@@ -599,3 +599,7 @@
+ 	chmod a+x 7z.dll && \
+ 	$(call spawn,./7z.exe) x -y -onsis nsis-2.46.5-Unicode-setup.exe && \
+ 	chmod a+x ./nsis/makensis.exe
++
++.PHONY: julia-pax
++julia-pax: julia-ui-$(JULIA_BUILD_MODE)
++	paxmark m $(JULIA_EXECUTABLE)
