@@ -2,7 +2,7 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=mailcatcher
 pkgver=0.6.4
-pkgrel=1
+pkgrel=2
 pkgdesc="Catches mail and serves it through a dream."
 url="https://github.com/sj26/mailcatcher"
 arch="all"
@@ -45,7 +45,8 @@ build() {
 	cd "$builddir"
 	for file in bin/*; do
 		# Add text after the first line of the file.
-		sed -i "1a ENV['GEM_PATH'] = '$_prefix'" $file || return 1
+		sed -i -e "1a ENV['GEM_PATH'] = '$_prefix'" \
+			-e "1a Gem.clear_paths" $file || return 1
 	done
 }
 
