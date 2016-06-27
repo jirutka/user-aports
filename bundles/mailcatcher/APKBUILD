@@ -2,7 +2,7 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=mailcatcher
 pkgver=0.6.4
-pkgrel=0
+pkgrel=1
 pkgdesc="Catches mail and serves it through a dream."
 url="https://github.com/sj26/mailcatcher"
 arch="all"
