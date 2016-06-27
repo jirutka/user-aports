@@ -35,9 +35,9 @@ echo ' done'
 
 echo '\n==> Building packages'
 
-key_name="$(basename ./.keys/*.pub | sed 's/.pub//')"
+key_name="$(ls "$MOUNT_DIR"/.secret/*.rsa | head -n 1 | xargs basename)"
 packager_privkey="$REMOTE_DIR/.secret/$key_name"
-repos="$(ls -l | grep '^d' | awk '{print $9}' | xargs)"
+repos="$(find * -maxdepth 0 -type d ! -name '.*' | xargs)"
 
 [ -n "$repos" ] || { echo 'No repositories found'; exit 0; }
 

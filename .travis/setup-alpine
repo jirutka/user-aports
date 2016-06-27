@@ -8,8 +8,6 @@ echo '\n==> Setting up Alpine Linux'
 
 cd "$CLONE_DIR"
 
-cp .keys/*.pub "$ALPINE_ROOT"/etc/apk/keys/
-
 mkdir -p "$ALPINE_ROOT$(pwd)"
 mount --bind "$(pwd)" "$ALPINE_ROOT$(pwd)"
 
