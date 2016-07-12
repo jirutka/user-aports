@@ -1,5 +1,5 @@
-https://repository.fit.cvut.cz/mirrors/alpine/edge/main
-https://repository.fit.cvut.cz/mirrors/alpine/edge/community
+https://repository.fit.cvut.cz/mirrors/alpine/v3.4/main
+https://repository.fit.cvut.cz/mirrors/alpine/v3.4/community
 https://repository.fit.cvut.cz/mirrors/alpine/edge/testing
-https://alpine.geeknet.cz/packages/edge/main
-https://alpine.geeknet.cz/packages/edge/legacy
+https://alpine.geeknet.cz/packages/v3.4/main
+https://alpine.geeknet.cz/packages/v3.4/legacy
