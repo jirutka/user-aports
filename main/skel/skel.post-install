@@ -1,0 +1,18 @@
+#!/bin/sh
+
+echo "* Copying skel files into users' directories"
+
+for target in /root /home/*; do
+	[ -d "$target" ] || continue  # needed when /home is empty
+
+	owner="$(stat -c '%U:%G' "$target")"
+
+	find /etc/skel -mindepth 1 -maxdepth 1 | xargs -n 1 basename | while read file; do
+		if [ ! -e "$target"/$file ]; then
+			cp -aiv /etc/skel/$file "$target"/
+			chown -R "$owner" "$target"/$file
+		fi
+	done
+done
+
+exit 0

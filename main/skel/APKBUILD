@@ -1,0 +1,34 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=skel
+pkgver=1.0
+pkgrel=0
+pkgdesc="Base dotfiles into /etc/skel"
+url="https://alpine.geeknet.cz"
+arch="noarch"
+license="MIT"
+depends=""
+makedepends=""
+install="$pkgname.post-install"
+source=".gitconfig
+	.profile"
+
+package() {
+	mkdir -p "$pkgdir"
+	cd "$pkgdir"
+
+	local file; for file in $source; do
+		install -m644 -D "$srcdir"/$file etc/skel/$file || return 1
+	done
+
+	install -m700 -d etc/skel/.ssh
+	touch etc/skel/.ssh/authorized_keys
+	chmod 600 etc/skel/.ssh/authorized_keys
+}
+
+md5sums="04da8ee29e0fbb9b36afaa7cff2a4723  .gitconfig
+bfd0042a7a86c6fcc0626ff3b02f2b7b  .profile"
+sha256sums="c99b4daa4643fd88c038a30c499c298dfc2ff60655118aedc81bda29c559958f  .gitconfig
+a794a76a0075b8a8064df90788051d7a160e33bfc938b076c48764156ac4c46b  .profile"
+sha512sums="b4b294e9a4dcd3e1563326a928eb5e7735ab35f825ed00bc133c94daa9e306aa3a69d3a5be094d3a432e676afbd10759fd9a1c22645d67b5e5a7e76bb2539c06  .gitconfig
+62aa45ce3825f712bfb3d845251ceb40881bcd5c55efbc24ea1e5541b2c9e4066573b3b02712247b5570df5c753b83abe284a399570cf92467226a0b7c6e4db6  .profile"
