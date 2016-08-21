@@ -1,28 +1,23 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 _gemname=bundler
-_slot=2.1
-pkgname=ruby$_slot-$_gemname
+_rubyver=2.1
+pkgname=ruby$_rubyver-$_gemname
 pkgver=1.12.0
 pkgrel=0
-pkgdesc="Manage an application's gem dependencies (backport for Ruby 2.1)"
+pkgdesc="Manage an application's gem dependencies (backport for Ruby $_rubyver)"
 url="http://gembundler.com/"
 arch="noarch"
 license="MIT"
-depends="ruby$_slot"
+depends="ruby$_rubyver"
 source="http://gems.rubyforge.org/gems/$_gemname-$pkgver.gem"
-builddir="$srcdir"/$_realname-$pkgver
-
-build() {
-	return 0
-}
 
 package() {
-	local gemdir="$(ruby$_slot -rubygems -e 'puts Gem.default_dir')"
+	local gemdir="$(ruby$_rubyver -rubygems -e 'puts Gem.default_dir')"
 	local geminstdir=$gemdir/gems/$_gemname-$pkgver
 
 	mkdir -p "$pkgdir" || return 1
 
-	gem$_slot install --local --install-dir "$pkgdir"/$gemdir \
+	gem$_rubyver install --local --install-dir "$pkgdir"/$gemdir \
 		--ignore-dependencies --verbose --no-rdoc --no-ri \
 		"$srcdir"/$_gemname-$pkgver.gem || return 1
 	rm -rf "$pkgdir"/$gemdir/cache \
@@ -30,10 +25,10 @@ package() {
 		"$pkgdir"/$geminstdir/.require_paths
 
 	cd "$pkgdir"
-	for i in usr/lib/ruby/gems/*/bin/*; do
-		if [ -e "$i" ]; then
+	local f; for f in usr/lib/ruby/gems/*/bin/*; do
+		if [ -e "$f" ]; then
 			mkdir -p "$pkgdir"/usr/bin
-			ln -s /$i "$pkgdir"/usr/bin/$(basename "$i")$_slot
+			ln -s /$f "$pkgdir"/usr/bin/$(basename "$f")$_rubyver
 		fi
 	done
 }
