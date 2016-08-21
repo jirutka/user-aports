@@ -35,11 +35,11 @@ This is equivalent to https://github.com/Homebrew/homebrew-versions[homebrew-ver
 Binaries are installed into `/usr/bin` as usual, but with a version suffix, e.g. `ruby2.1`.
 
 
-=== Main
+=== User
 
-* {repos-uri}/{gh-branch}/main
+* {repos-uri}/{gh-branch}/user
 
-Regular aports that are not available in the official Alpine repository, typically some specific dependencies for _bundles_.
+My aports that are not available in the official Alpine repository, typically some specific dependencies for _bundles_.
 
 
 == How to use
