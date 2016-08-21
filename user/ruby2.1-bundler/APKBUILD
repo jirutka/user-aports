@@ -2,7 +2,7 @@
 _gemname=bundler
 _rubyver=2.1
 pkgname=ruby$_rubyver-$_gemname
-pkgver=1.12.0
+pkgver=1.12.5
 pkgrel=0
 pkgdesc="Manage an application's gem dependencies (backport for Ruby $_rubyver)"
 url="http://gembundler.com/"
@@ -33,6 +33,6 @@ package() {
 	done
 }
 
-md5sums="2568a38d9869292e3a5873515b192ff6  bundler-1.12.0.gem"
-sha256sums="5bca5421236b5467e33aa318d8eecfbb64f217c14913f299e8775f0513af29ba  bundler-1.12.0.gem"
-sha512sums="0c84446ac6225ded7a181b9eece8e9badd69085b82bf27bdabed46720936167494d86a501490769b6d4fe11277a3e30894940e9e365c5289aaef2f54a1aba4a6  bundler-1.12.0.gem"
+md5sums="2f6f897c2c77c790f51b26850661b3dc  bundler-1.12.5.gem"
+sha256sums="6c5e111b828de62d3b5d72d8ae0add77099a34059ede582f0de7c85479ec04e1  bundler-1.12.5.gem"
+sha512sums="e854186e06a2c09b532d5fa72ef75de3a9206b86b86ef4a7f6dbf5a02030a76efd43b213d440933252f2e2ead56d4675b2e180c0bd93cfaa870b408a5797a142  bundler-1.12.5.gem"
