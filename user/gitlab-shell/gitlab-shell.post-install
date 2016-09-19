@@ -5,7 +5,7 @@ keys_file='/var/lib/gitlab/.ssh/authorized_keys'
 secret_file='/etc/gitlab/gitlab-shell.secret'
 
 secure_random() {
-	ruby2.1 -e 'require "securerandom"; puts SecureRandom.hex(64)'
+	ruby -e 'require "securerandom"; puts SecureRandom.hex(64)'
 }
 
 if [ ! -f "$secret_file" ]; then

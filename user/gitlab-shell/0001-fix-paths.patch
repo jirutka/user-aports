@@ -3,10 +3,9 @@ Date: Wed, 27 Mar 2016 22:40:00 +0000
 Subject: [PATCH] Make paths more FHS compliant
 
 diff --git a/config.yml.example b/config.yml.example
-index eff354d..f9fcb35 100644
 --- a/config.yml.example
 +++ b/config.yml.example
-@@ -13,7 +13,7 @@ user: git
+@@ -13,7 +13,7 @@
  # only listen on a Unix domain socket. For Unix domain sockets use
  # "http+unix://<urlquoted-path-to-socket>", e.g.
  # "http+unix://%2Fpath%2Fto%2Fsocket"
@@ -15,12 +14,8 @@ index eff354d..f9fcb35 100644
  
  # See installation.md#using-https for additional HTTPS configuration details.
  http_settings:
-@@ -28,14 +28,14 @@ http_settings:
- # Give the canonicalized absolute pathname,
- # REPOS_PATH MUST NOT CONTAIN ANY SYMLINK!!!
- # Check twice that none of the components is a symlink, including "/home".
--repos_path: "/home/git/repositories"
-+repos_path: "/var/lib/gitlab/repositories"
+@@ -25,11 +25,11 @@
+   self_signed_cert: false
  
  # File used as authorized_keys for gitlab user
 -auth_file: "/home/git/.ssh/authorized_keys"
@@ -33,13 +28,16 @@ index eff354d..f9fcb35 100644
  
  # Redis settings used for pushing commit notices to gitlab
  redis:
-@@ -44,12 +44,12 @@ redis:
+@@ -38,7 +38,7 @@
    # port: 6379
    # pass: redispass # Allows you to specify the password for Redis
    database: 0
--  socket: /var/run/redis/redis.sock # Comment out this line if you want to use TCP
-+  socket: /run/redis/redis.sock # Comment out this line if you want to use TCP
+-  socket: /var/run/redis/redis.sock # Comment out this line if you want to use TCP or Sentinel
++  socket: /run/redis/redis.sock # Comment out this line if you want to use TCP or Sentinel
    namespace: resque:gitlab
+   # sentinels:
+   #   -
+@@ -51,7 +51,7 @@
  
  # Log file.
  # Default is gitlab-shell.log in the root directory.
@@ -48,8 +46,6 @@ index eff354d..f9fcb35 100644
  
  # Log level. INFO by default
  log_level: INFO
-diff --git a/lib/gitlab_config.rb b/lib/gitlab_config.rb
-index 831f0e3..96e0437 100644
 --- a/lib/gitlab_config.rb
 +++ b/lib/gitlab_config.rb
 @@ -4,7 +4,7 @@ class GitlabConfig

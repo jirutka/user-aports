@@ -1,38 +1,31 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitlab-shell
-pkgver=2.7.2
+pkgver=3.5.0
 pkgrel=0
 pkgdesc="GitLab Shell handles git commands for GitLab."
 url="https://github.com/gitlabhq/gitlab-shell"
 arch="noarch"
 license="MIT"
-# gitlab-shell should work with latest Ruby, but gitlab-ce not.
-_rubyslot=2.1
-depends="git>=2.7.4 openssh redis>=2.8 ruby$_rubyslot ruby${_rubyslot}-json"
+_rubyslot=""
+depends="git>=2.7.4 openssh redis>=2.8 ruby$_rubyslot ruby$_rubyslot-json"
 makedepends=""
 pkgusers="git"
 pkggroups="git"
 install="$pkgname.pre-install $pkgname.post-install"
 source="$pkgname-$pkgver.tar.gz::https://github.com/gitlabhq/$pkgname/archive/v$pkgver.tar.gz
 	gitconfig
-	0001-fix-paths.patch
-	"
+	0001-fix-paths.patch"
 builddir="$srcdir/$pkgname-$pkgver"
 
 prepare() {
 	default_prepare || return 1  # apply patches
 
-	cd "$builddir"
-
+	#cd "$builddir"
 	# Change shebang in ruby scripts.
-	local file; for file in bin/* hooks/*; do
-		sed -i "s|/usr/bin/env ruby|/usr/bin/env ruby$_rubyslot|" $file || return 1
-	done
-}
-
-build() {
-	return 0  # nothing to build
+	#local file; for file in bin/* hooks/*; do
+	#	sed -i "s|/usr/bin/env ruby|/usr/bin/env ruby$_rubyslot|" $file || return 1
+	#done
 }
 
 package() {
@@ -57,12 +50,12 @@ package() {
 	install -m644 -D config.yml.example "$pkgdir"/etc/gitlab/gitlab-shell.yml
 }
 
-md5sums="59d89706642ba34d859448405bec9baf  gitlab-shell-2.7.2.tar.gz
-b92e092ddcc146e0fc94446a902cba40  gitconfig
-121b02e9aab5843c6b5ae3edbbcee7a4  0001-fix-paths.patch"
-sha256sums="2cb4bac3d5888154f39a51b717ad2ae0795c6c59ecbc97deb9c94f51b1c9af27  gitlab-shell-2.7.2.tar.gz
-0cb464455fb18b013a3bb83004dbe06603054563f341a4a38d2a728d975ccb3f  gitconfig
-a496be57bb37cf9c3d6e77d9837cefa781d681df384d5ae2179249554e289f7d  0001-fix-paths.patch"
-sha512sums="7b28d6593f8752e79f78f24c1be216eb94a5bed827e12ef96fe3f04f57e55e9eabfcf66259df8191d5eee7932a788d0f9f36e4d1658a296547c4c9021f6d7662  gitlab-shell-2.7.2.tar.gz
-a07617f1921ca2e6a9f6afc26ae2864c04f2d96097c6a231c3c75cd57040eab270daeb38afbd0cbea3f8809d8bed706de705ffe3d2473423aad3e5108347156b  gitconfig
-de9ef9cf0e19e1e8dc452cf5dca0d3ef7ceaaccbadd3547c17632ef1ade3b3f5c95347c2e0297ca459c8da8a6b8475f41bade84e58f69d97cf468569f5912179  0001-fix-paths.patch"
+md5sums="acae7a33355a3f5488e1fdcbebde79ef  gitlab-shell-3.5.0.tar.gz
+e95b4dfd9e791e66e8d3a452cfebc557  gitconfig
+2da1cb0c5dc5ee8c4d7af1531f9cb210  0001-fix-paths.patch"
+sha256sums="fc843a91b3ac1d78b4cb3e669c734fdba02e57494e78c743dd0992230eb4dd1c  gitlab-shell-3.5.0.tar.gz
+b2bb5c2835e346c2a7b58a3fb97abac98a2a1086e7616930a9047b247c12b4fa  gitconfig
+0970eed91a7a180c0c178461c691dd0bbbf894882a658db5439a513b0ab63c0c  0001-fix-paths.patch"
+sha512sums="fc26bce13ddf7b989b02338a012bce0f24fb11fce9c3b7785a10043cc2d22542194fdb2387ac87a1b6f900cda41f47031a6408a60a00694e31a0614ae06654e8  gitlab-shell-3.5.0.tar.gz
+ff5932f83df5e456c84998b7301341a17a11d06333961564bdcc1b9ec7d2154e27647cf9c7da24cc7ceda7831c442616d8e7a541d3cb3a79a8062f0bfdaa78a8  gitconfig
+c01c69f1f449dd7484d9c03253a668e3c538e76284a866734816476be6bab22392070e00ee652a85f51be972dc8c992d509b4834b973abd7ce8db110bf3ec508  0001-fix-paths.patch"

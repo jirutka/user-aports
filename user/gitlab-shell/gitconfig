@@ -4,5 +4,8 @@ autocrlf = input
 [gc]
 auto = 0
 
+[repack]
+writeBitmaps = true
+
 [user]
 name = GitLab
