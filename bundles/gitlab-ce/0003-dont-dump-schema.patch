@@ -1,0 +1,15 @@
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Wed, 21 Sep 2016 01:02:00 +0200
+Subject: [PATCH] Disable dumping schema.rb after db:migrate
+
+db/schema.rb is owned by root, so not writable for git user.
+
+--- a/config/environments/production.rb
++++ b/config/environments/production.rb
+@@ -80,4 +80,6 @@
+   config.eager_load = true
+ 
+   config.allow_concurrency = false
++
++  config.active_record.dump_schema_after_migration = false
+ end

@@ -4,6 +4,6 @@ cat <<-EOF 1>&2
 *
 * To finish GitLab upgrade run:
 *
-*     gitlab-rake db:migrate
+*     gitlab-rake gitlab:db:configure
 *
 EOF

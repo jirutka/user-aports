@@ -24,7 +24,7 @@ if ! id -Gn git | grep -Fq redis; then
 fi
 
 if [ "$(id -gn git)" != 'git' ]; then
-	cat <<-EOF 1>&2
+	cat >&2 <<-EOF
 	!!
 	!! User git has primary group $(git -gn git). We strongly recommend to change
 	!! git's primary group to git, otherwise GitLab may not work correctly.
@@ -38,7 +38,7 @@ fi
 user_home="$(getent passwd git | cut -d: -f6)"
 
 if [ "$user_home" != "$git_dir" ]; then
-	cat <<-EOF 1>&2
+	cat >&2 <<-EOF
 	!!
 	!! User git has home directory in $user_home, but this package assumes
 	!! $git_dir. Although it's possible to use a different directory,

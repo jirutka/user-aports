@@ -1,0 +1,13 @@
+#!/bin/sh
+
+BUNDLE_DIR='/usr/lib/bundles/gitlab'
+export RAILS_ENV='production'
+
+cd $BUNDLE_DIR
+install -m 700 -o git -g git -d "$(readlink ./tmp)"
+
+if [ "$(id -un)" != 'git' ]; then
+	exec su git -c '"$0" "$@"' -- bin/__COMMAND__ "$@"
+else
+	exec bin/__COMMAND__ "$@"
+fi

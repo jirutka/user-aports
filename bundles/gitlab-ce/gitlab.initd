@@ -14,6 +14,8 @@ description_stop_all="Stop all GitLab services"
 : ${unicorn_listen_unix:="/run/gitlab/unicorn.sock"}
 : ${unicorn_workers:="2"}
 : ${unicorn_timeout:="60"}
+: ${unicorn_memory_min:="400"}  # default per Omnibus
+: ${unicorn_memory_max:="650"}  # default per Omnibus
 : ${unicorn_logfile:="/var/log/gitlab/unicorn.log"}
 : ${unicorn_config:="$gitlab_base/config/unicorn.rb"}
 
@@ -34,6 +36,8 @@ start_stop_daemon_args="
 	--env UNICORN_LISTEN_UNIX=$unicorn_listen_unix
 	--env UNICORN_WORKERS=$unicorn_workers
 	--env UNICORN_TIMEOUT=$unicorn_timeout
+	--env GITLAB_UNICORN_MEMORY_MIN=$(( unicorn_memory_min * 1024 * 1024 ))
+	--env GITLAB_UNICORN_MEMORY_MAX=$(( unicorn_memory_max * 1024 * 1024 ))
 	"
 pidfile="/run/gitlab/unicorn.pid"
 
@@ -81,7 +85,7 @@ _parse_yaml() {
 	local default="${3:-}"
 	local key_path="$(echo "[\"$key\"]" | sed 's/\./"]["/g')"
 
-	ruby2.1 <<-EOF
+	ruby <<-EOF
 	require "yaml"
 	puts YAML.load_file("$file")$key_path rescue puts "$default"
 	EOF

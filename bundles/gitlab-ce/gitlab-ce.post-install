@@ -2,35 +2,26 @@
 set -eu
 
 group='git'
-secret_file='/etc/gitlab/secret_token'
 secrets_file='/etc/gitlab/secrets.yml'
 
 secure_random() {
-	ruby2.1 -e 'require "securerandom"; puts SecureRandom.hex(64)'
+	ruby -e 'require "securerandom"; puts SecureRandom.hex(64)'
 }
-
-if [ ! -f "$secret_file" ]; then
-	echo "* Generating random secret in $secret_file" 1>&2
-
-	secure_random > "$secret_file"
-	chown root:$group "$secret_file"
-	chmod 0640 "$secret_file"
-fi
 
 if [ ! -f "$secrets_file" ]; then
 	echo "* Generating random secrets in $secrets_file" 1>&2
 
-	local secret="$(secure_random)"
 	cat > "$secrets_file" <<-EOF
 	production:
-	  db_key_base: $secret
-	  secret_key_base: $secret
+	  secret_key_base: $(secure_random)
+	  otp_key_base: $(secure_random)
+	  db_key_base: $(secure_random)
 	EOF
 	chown root:$group "$secrets_file"
 	chmod 0640 "$secrets_file"
 fi
 
-cat <<-EOF 1>&2
+cat >&2 <<-EOF
 *
 * 1. Configure Redis to listen on /run/redis/redis.sock.
 *
@@ -42,7 +33,7 @@ cat <<-EOF 1>&2
 *     psql -c "CREATE DATABASE gitlab OWNER gitlab ENCODING 'UTF-8';"
 *     psql -d gitlab -c "CREATE EXTENSION pg_trgm;"
 *
-* 4. Run "gitlab-rake gitlab:setup", or "gitlab-rake db:migrate" if you are
-*    updating existing database.
+* 4. Run "gitlab-rake gitlab:setup", or "gitlab-rake gitlab:db:configure" if
+*    you are updating existing database.
 *
 EOF
