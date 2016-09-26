@@ -3,13 +3,14 @@
 pkgname=bacula5-client
 _pkgname=bacula
 pkgver=5.2.13
-pkgrel=0
+pkgrel=1
 pkgdesc="Client (File Daemon) of Bacula, a network based backup program"
 url="http://www.bacula.org"
 arch="all"
 license="AGPL3"
 depends=""
-makedepends="autoconf automake libstdc++ openssl-dev ncurses-dev zlib-dev lzo-dev"
+makedepends="autoconf automake libcap-dev libstdc++ lzo-dev ncurses-dev
+	openssl-dev zlib-dev"
 install="$pkgname.pre-install"
 subpackages="$pkgname-doc"
 replaces="bacula-client"
@@ -68,9 +69,8 @@ package() {
 
 	cd "$pkgdir"
 
-	# Remove useless scripts.
-	rm -Rf .scriptdir
-
+	# Remove useless dirs and libs.
+	rm -Rf .scriptdir tmp
 	find ./usr/lib -iname libbaccats* -type l -delete || return 1
 
 	# Fix permissions.
