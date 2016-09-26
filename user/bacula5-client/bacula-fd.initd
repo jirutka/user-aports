@@ -1,0 +1,17 @@
+#!/sbin/openrc-run
+
+name="Bacula file daemon"
+command="/usr/sbin/bacula-fd"
+command_args="$FD_OPTIONS"
+start_stop_daemon_args="--quiet"
+
+depend() {
+	need net
+	use dns
+}
+
+stop() {
+	ebegin "Stopping $name"
+	start-stop-daemon --stop --quiet --pidfile /run/bacula-fd.*.pid
+	eend $?
+}
