@@ -3,14 +3,14 @@
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
 pkgver=8.11.7
-pkgrel=2
+pkgrel=3
 pkgdesc="A version control for your server"
 url="https://github.com/gitlabhq/gitlabhq"
 arch="all"
 license="MIT"
 _rubyslot=""
-depends="$pkgname-assets ca-certificates git>=2.7.3 gitlab-shell>=3.5.0
-	gitlab-workhorse>=0.8.1 http-parser libgit2>=0.24 nodejs procps
+depends="$pkgname-assets ca-certificates git>=2.7.3 gitlab-shell>=3.4.0
+	gitlab-workhorse>=0.7.10 http-parser libgit2>=0.24 nodejs procps
 	py-docutils redis>=2.8 tzdata
 	ruby$_rubyslot ruby$_rubyslot-io-console ruby$_rubyslot-bigdecimal
 	ruby$_rubyslot-json ruby$_rubyslot-rake ruby$_rubyslot-bundler
