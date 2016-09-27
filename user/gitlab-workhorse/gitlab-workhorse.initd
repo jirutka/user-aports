@@ -10,7 +10,6 @@ description="A reverse proxy for GitLab."
 : ${workhorse_listen:="0.0.0.0:8080"}
 : ${workhorse_listen_umask:="000"}
 : ${workhorse_proxy_header_timeout:="1m0s"}
-: ${workhorse_secret_file:="/etc/gitlab/gitlab_workhorse.secret"}
 : ${workhorse_logfile:="/var/log/gitlab/workhorse.log"}
 
 command="/usr/bin/gitlab-workhorse"
@@ -21,7 +20,6 @@ command_args="
 	-listenAddr=$workhorse_listen
 	-listenUmask=$workhorse_listen_umask
 	-proxyHeadersTimeout=$workhorse_proxy_header_timeout
-	-secretPath=$workhorse_secret_file
 	"
 command_background="true"
 
@@ -31,7 +29,6 @@ start_stop_daemon_args="
 	--user $user
 	--stdout $workhorse_logfile
 	--stderr $workhorse_logfile
-	${workhorse_sentry_dsn:+"--env GITLAB_WORKHORSE_SENTRY_DSN=$workhorse_sentry_dsn"}
 	"
 pidfile="/run/gitlab/workhorse.pid"
 
