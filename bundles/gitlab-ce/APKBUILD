@@ -3,7 +3,7 @@
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
 pkgver=8.11.7
-pkgrel=1
+pkgrel=2
 pkgdesc="A version control for your server"
 url="https://github.com/gitlabhq/gitlabhq"
 arch="all"
@@ -21,7 +21,7 @@ makedepends="icu-dev libgcrypt-dev libgit2-dev>=0.24 libxml2-dev libxslt-dev
 pkgusers="git"
 pkggroups="git"
 install="$pkgname.pre-install $pkgname.post-install $pkgname.post-upgrade"
-subpackages="$pkgname-assets $pkgname-doc"
+subpackages="$pkgname-assets"
 source="$pkgname-$pkgver.tar.gz::https://github.com/gitlabhq/gitlabhq/archive/v$pkgver.tar.gz
 	$_pkgname.initd
 	$_pkgname.mailroom.initd
@@ -165,9 +165,11 @@ package() {
 
 	mv config/unicorn.rb.example config/unicorn.rb || return 1
 
-	# Install application files. Note: *VERSION files are required.
+	# Install application files.
+	# Note: *VERSION files and doc directory are required (Help in GitLab
+	# menu refers to the doc directory).
 	cp -rl .bundle config.ru Gemfile* GITLAB_SHELL_VERSION GITLAB_WORKHORSE_VERSION \
-		Rakefile VERSION app db fixtures config lib public vendor \
+		Rakefile VERSION app db doc fixtures config lib public vendor \
 		"$destdir"/ || return 1
 
 	install -m755 -t "$destdir"/bin \
@@ -223,17 +225,6 @@ assets() {
 
 	install -dm755 "$destdir"/public
 	mv "${pkgdir}$_prefix"/public/assets "$destdir"/public/
-}
-
-doc() {
-	arch="noarch"
-	depends=""
-	local destdir="$subpkgdir/usr/share/doc/$_pkgname"
-
-	cd "$builddir"
-
-	install -dm755 "$destdir"
-	cp -r CHANGELOG LICENSE doc "$destdir"/
 }
 
 md5sums="414a6d44cb1bb1f22d01426634f4004f  gitlab-ce-8.11.7.tar.gz
