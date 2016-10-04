@@ -3,17 +3,23 @@
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
 pkgver=8.11.8
-pkgrel=0
+pkgrel=1
 pkgdesc="A version control for your server"
 url="https://github.com/gitlabhq/gitlabhq"
 arch="all"
 license="MIT"
 _rubyslot=""
+# ruby-irb is needed only for Rails console (gitlab-rails console)
 depends="$pkgname-assets ca-certificates git>=2.7.3 gitlab-shell>=3.4.0
 	gitlab-workhorse>=0.7.10 http-parser libgit2>=0.24 nodejs procps
 	py-docutils redis>=2.8 tzdata
-	ruby$_rubyslot ruby$_rubyslot-io-console ruby$_rubyslot-bigdecimal
-	ruby$_rubyslot-json ruby$_rubyslot-rake ruby$_rubyslot-bundler
+	ruby$_rubyslot
+	ruby$_rubyslot-io-console
+	ruby$_rubyslot-bigdecimal
+	ruby$_rubyslot-json
+	ruby$_rubyslot-rake
+	ruby$_rubyslot-irb
+	ruby$_rubyslot-bundler
 	"
 makedepends="icu-dev libgcrypt-dev libgit2-dev>=0.24 libxml2-dev libxslt-dev
 	linux-headers openssl-dev postgresql-dev>=9.1 nodejs ruby$_rubyslot-dev
