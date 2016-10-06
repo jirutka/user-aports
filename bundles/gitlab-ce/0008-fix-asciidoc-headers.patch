@@ -1,12 +1,26 @@
+From 752dea2081078d2fee12b3404fc720fafcbed35a Mon Sep 17 00:00:00 2001
 From: Jakub Jirutka <jakub@jirutka.cz>
-Date: Sat, 30 May 2016 14:36:00 +0200
+Date: Thu, 6 Oct 2016 14:46:37 +0200
 Subject: [PATCH] Fix margins of AsciiDoc headers
 
 This patch is backported from
 https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/4337.
+---
+ app/assets/stylesheets/framework/typography.scss | 19 ++++++++----
+ app/helpers/application_helper.rb                |  4 +++
+ app/views/projects/_readme.html.haml             |  2 +-
+ app/views/projects/blob/_text.html.haml          |  2 +-
+ app/views/projects/blob/preview.html.haml        |  4 +--
+ app/views/projects/tree/_readme.html.haml        |  2 +-
+ app/views/projects/wikis/show.html.haml          |  2 +-
+ app/views/search/results/_snippet_blob.html.haml |  2 +-
+ app/views/shared/snippets/_blob.html.haml        |  2 +-
+ lib/gitlab/markup_helper.rb                      | 37 ++++++++++++++++++++++--
+ spec/lib/gitlab/markup_helper_spec.rb            | 36 ++++++++++++++++++++---
+ 11 files changed, 92 insertions(+), 20 deletions(-)
 
 diff --git a/app/assets/stylesheets/framework/typography.scss b/app/assets/stylesheets/framework/typography.scss
-index 0a5b4b8..bb82745 100644
+index 06874a9..d1847b3 100644
 --- a/app/assets/stylesheets/framework/typography.scss
 +++ b/app/assets/stylesheets/framework/typography.scss
 @@ -1,4 +1,4 @@
@@ -23,10 +37,10 @@ index 0a5b4b8..bb82745 100644
 -    margin-top: 0;
 -  }
 -
+   // Single code lines should wrap
    code {
      font-family: $monospace_font;
-     white-space: pre;
-@@ -172,6 +168,12 @@
+@@ -182,6 +178,12 @@
    }
  }
  
@@ -39,7 +53,7 @@ index 0a5b4b8..bb82745 100644
  
  /**
   * Headers
-@@ -239,10 +241,15 @@ a > code {
+@@ -253,10 +255,15 @@ a > code {
   *
   */
  .wiki {
@@ -57,10 +71,10 @@ index 0a5b4b8..bb82745 100644
  }
  
 diff --git a/app/helpers/application_helper.rb b/app/helpers/application_helper.rb
-index 3e0074d..a1da220 100644
+index f3733b0..185dce2 100644
 --- a/app/helpers/application_helper.rb
 +++ b/app/helpers/application_helper.rb
-@@ -228,6 +228,10 @@ module ApplicationHelper
+@@ -215,6 +215,10 @@ module ApplicationHelper
      simple_format(file_content)
    end
  
@@ -72,7 +86,7 @@ index 3e0074d..a1da220 100644
      Gitlab::MarkupHelper.plain?(filename)
    end
 diff --git a/app/views/projects/_readme.html.haml b/app/views/projects/_readme.html.haml
-index a9908ea..2565161 100644
+index 369a847..6d452b9 100644
 --- a/app/views/projects/_readme.html.haml
 +++ b/app/views/projects/_readme.html.haml
 @@ -3,7 +3,7 @@
@@ -85,17 +99,18 @@ index a9908ea..2565161 100644
          = render_readme(readme)
  - else
 diff --git a/app/views/projects/blob/_text.html.haml b/app/views/projects/blob/_text.html.haml
-index d09cd73..22679dc 100644
+index 5852441..8c29947 100644
 --- a/app/views/projects/blob/_text.html.haml
 +++ b/app/views/projects/blob/_text.html.haml
-@@ -1,6 +1,6 @@
- - blob.load_all_data!(@repository)
- - if markup?(blob.name)
--  .file-content.wiki
-+  .file-content.wiki{ class: markup_lang(blob.name) }
-     = render_markup(blob.name, blob.data)
- - else
-   - unless blob.empty?
+@@ -9,7 +9,7 @@
+   - blob.load_all_data!(@repository)
+ 
+   - if markup?(blob.name)
+-    .file-content.wiki
++    .file-content.wiki{ class: markup_lang(blob.name) }
+       = render_markup(blob.name, blob.data)
+   - else
+     - if blob.empty?
 diff --git a/app/views/projects/blob/preview.html.haml b/app/views/projects/blob/preview.html.haml
 index 541dc96..4007d31 100644
 --- a/app/views/projects/blob/preview.html.haml
@@ -126,17 +141,17 @@ index baaa2ca..be1c801 100644
 +  .file-content.wiki{ class: markup_lang(readme.name) }
      = render_readme(readme)
 diff --git a/app/views/projects/wikis/show.html.haml b/app/views/projects/wikis/show.html.haml
-index 067fb7f..0ea21f1 100644
+index 5cebb53..1e06cc6 100644
 --- a/app/views/projects/wikis/show.html.haml
 +++ b/app/views/projects/wikis/show.html.haml
-@@ -20,6 +20,6 @@
+@@ -21,6 +21,6 @@
  
  
- .wiki-holder.prepend-top-default
--  .wiki
-+  .wiki{ class: markup_lang(@page.page.path) }
-     = preserve do
-       = render_wiki_content(@page)
+   .wiki-holder.prepend-top-default.append-bottom-default
+-    .wiki
++    .wiki{ class: markup_lang(@page.page.path) }
+       = preserve do
+         = render_wiki_content(@page)
 diff --git a/app/views/search/results/_snippet_blob.html.haml b/app/views/search/results/_snippet_blob.html.haml
 index c9b7bd1..6cc44e1 100644
 --- a/app/views/search/results/_snippet_blob.html.haml
@@ -164,7 +179,7 @@ index 773ce8a..a3a4533 100644
    - else
      = render 'shared/file_highlight', blob: @snippet
 diff --git a/lib/gitlab/markup_helper.rb b/lib/gitlab/markup_helper.rb
-index a5f767b..69260ed 100644
+index dda371e..6ae2b5f 100644
 --- a/lib/gitlab/markup_helper.rb
 +++ b/lib/gitlab/markup_helper.rb
 @@ -10,8 +10,7 @@ module Gitlab
@@ -178,7 +193,7 @@ index a5f767b..69260ed 100644
  
      # Public: Determines if a given filename is compatible with
 @@ -43,8 +42,42 @@ module Gitlab
-         filename.downcase == 'readme'
+         filename.casecmp('readme').zero?
      end
  
 +    def other_markup?(filename)
@@ -287,3 +302,6 @@ index 93b91b8..53930e5 100644
 +    end
 +  end
  end
+-- 
+1.9.5 (Apple Git-50.3)
+

@@ -1,34 +1,37 @@
+From 55b00c88690d7fa45b46aeffe721f9710666fb3e Mon Sep 17 00:00:00 2001
 From: Jakub Jirutka <jakub@jirutka.cz>
-Date: Wed, 4 May 2016 22:43:13 +0200
+Date: Thu, 6 Oct 2016 16:26:26 +0200
 Subject: [PATCH] Add support for MathJax with AsciiDoc
 
+Ported from https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/4333
+
 ---
- app/assets/javascripts/blob/edit_blob.js.coffee |  1 +
- app/assets/javascripts/mathjax.js.coffee        | 40 +++++++++++++++++++++++++
- app/helpers/application_helper.rb               |  4 +++
- app/helpers/gitlab_markdown_helper.rb           |  2 ++
- app/helpers/page_layout_helper.rb               | 15 ++++++++++
- app/views/layouts/_page.html.haml               |  2 +-
- app/views/projects/blob/edit.html.haml          |  1 +
- config/gitlab.yml.example                       | 11 +++++++
- config/initializers/1_settings.rb               |  1 +
- lib/gitlab/asciidoc.rb                          |  6 ++++
- lib/gitlab/gon_helper.rb                        |  1 +
+ app/assets/javascripts/blob_edit/edit_blob.js |  1 +
+ app/assets/javascripts/mathjax.js.coffee      | 40 +++++++++++++++++++++++++++
+ app/helpers/application_helper.rb             |  4 +++
+ app/helpers/gitlab_markdown_helper.rb         |  2 ++
+ app/helpers/page_layout_helper.rb             | 15 ++++++++++
+ app/views/layouts/_page.html.haml             |  2 +-
+ app/views/projects/blob/edit.html.haml        |  1 +
+ config/gitlab.yml.example                     | 11 ++++++++
+ config/initializers/1_settings.rb             |  1 +
+ lib/gitlab/asciidoc.rb                        |  6 ++++
+ lib/gitlab/gon_helper.rb                      |  1 +
  11 files changed, 83 insertions(+), 1 deletion(-)
  create mode 100644 app/assets/javascripts/mathjax.js.coffee
 
-diff --git a/app/assets/javascripts/blob/edit_blob.js.coffee b/app/assets/javascripts/blob/edit_blob.js.coffee
-index eea9aa9..6fcfc04 100644
---- a/app/assets/javascripts/blob/edit_blob.js.coffee
-+++ b/app/assets/javascripts/blob/edit_blob.js.coffee
-@@ -34,6 +34,7 @@ class @EditBlob
-       , (response) ->
-         currentPane.empty().append response
-         currentPane.syntaxHighlight()
-+        $(document).trigger('mathjax:typeset')
- 
-     else
-       @editor.focus()
+diff --git a/app/assets/javascripts/blob_edit/edit_blob.js b/app/assets/javascripts/blob_edit/edit_blob.js
+index 649c79d..9a564ed 100644
+--- a/app/assets/javascripts/blob_edit/edit_blob.js
++++ b/app/assets/javascripts/blob_edit/edit_blob.js
+@@ -52,6 +52,7 @@
+           content: this.editor.getValue()
+         }, function(response) {
+           currentPane.empty().append(response);
++          $(document).trigger('mathjax:typeset');
+           return currentPane.syntaxHighlight();
+         });
+       } else {
 diff --git a/app/assets/javascripts/mathjax.js.coffee b/app/assets/javascripts/mathjax.js.coffee
 new file mode 100644
 index 0000000..b37fa1c
@@ -76,10 +79,10 @@ index 0000000..b37fa1c
 +$(document).on 'page:load', onPageLoad
 +$(document).on 'mathjax:typeset', typeset
 diff --git a/app/helpers/application_helper.rb b/app/helpers/application_helper.rb
-index 3e0074d..46391f6 100644
+index f3733b0..668f11a 100644
 --- a/app/helpers/application_helper.rb
 +++ b/app/helpers/application_helper.rb
-@@ -244,6 +244,10 @@ module ApplicationHelper
+@@ -231,6 +231,10 @@ module ApplicationHelper
      Gitlab::MarkupHelper.asciidoc?(filename)
    end
  
@@ -91,10 +94,10 @@ index 3e0074d..46391f6 100644
      'about.gitlab.com'
    end
 diff --git a/app/helpers/gitlab_markdown_helper.rb b/app/helpers/gitlab_markdown_helper.rb
-index 3a45205..4cc4e13 100644
+index 1a25965..75d124e 100644
 --- a/app/helpers/gitlab_markdown_helper.rb
 +++ b/app/helpers/gitlab_markdown_helper.rb
-@@ -67,6 +67,8 @@ module GitlabMarkdownHelper
+@@ -65,6 +65,8 @@ module GitlabMarkdownHelper
    end
  
    def asciidoc(text)
@@ -104,10 +107,10 @@ index 3a45205..4cc4e13 100644
        text,
        project:      @project,
 diff --git a/app/helpers/page_layout_helper.rb b/app/helpers/page_layout_helper.rb
-index 82f805f..52e3b3c 100644
+index 22387d6..e7dd8fb 100644
 --- a/app/helpers/page_layout_helper.rb
 +++ b/app/helpers/page_layout_helper.rb
-@@ -113,4 +113,19 @@ module PageLayoutHelper
+@@ -121,4 +121,19 @@ module PageLayoutHelper
  
      css_class
    end
@@ -128,32 +131,31 @@ index 82f805f..52e3b3c 100644
 +  end
  end
 diff --git a/app/views/layouts/_page.html.haml b/app/views/layouts/_page.html.haml
-index c799e9c..1584c18 100644
+index bf50633..897e073 100644
 --- a/app/views/layouts/_page.html.haml
 +++ b/app/views/layouts/_page.html.haml
-@@ -26,6 +26,6 @@
+@@ -24,5 +24,5 @@
      = render "layouts/flash"
      = yield :flash_message
-     %div{ class: (container_class unless @no_container) }
+     %div{ class: "#{(container_class unless @no_container)} #{@content_class}" }
 -      .content
 +      %div{ class: 'content', 'data-mathjax' => ('enabled' if load_mathjax?) }
-         .clearfix
-           = yield
+         = yield
 diff --git a/app/views/projects/blob/edit.html.haml b/app/views/projects/blob/edit.html.haml
-index effcce5..8b8d164 100644
+index 680e95a..b21a5ca 100644
 --- a/app/views/projects/blob/edit.html.haml
 +++ b/app/views/projects/blob/edit.html.haml
 @@ -1,4 +1,5 @@
  - page_title "Edit", @blob.path, @ref
 +- load_mathjax! if contains_math?(@blob.name, @blob.data)
- = render "header_title"
- 
- .file-editor
+ - content_for :page_specific_javascripts do
+   = page_specific_javascript_tag('lib/ace.js')
+   = page_specific_javascript_tag('blob_edit/blob_edit_bundle.js')
 diff --git a/config/gitlab.yml.example b/config/gitlab.yml.example
-index d9c15f8..4b921d2 100644
+index 1470a6e..70c2b0e 100644
 --- a/config/gitlab.yml.example
 +++ b/config/gitlab.yml.example
-@@ -478,6 +478,17 @@ production: &base
+@@ -496,6 +496,17 @@ production: &base
      # piwik_url: '_your_piwik_url'
      # piwik_site_id: '_your_piwik_site_id'
  
@@ -172,10 +174,10 @@ index d9c15f8..4b921d2 100644
      git_basic_auth:
        # Rack Attack IP banning enabled
 diff --git a/config/initializers/1_settings.rb b/config/initializers/1_settings.rb
-index 10c2504..cab8fd2 100644
+index 4a01b9e..9c22447 100644
 --- a/config/initializers/1_settings.rb
 +++ b/config/initializers/1_settings.rb
-@@ -302,6 +302,7 @@ Settings.satellites['path'] = File.expand_path(Settings.satellites['path'] || "t
+@@ -372,6 +372,7 @@ Settings.satellites['path'] = File.expand_path(Settings.satellites['path'] || "t
  # Extra customization
  #
  Settings['extra'] ||= Settingslogic.new({})
@@ -184,10 +186,10 @@ index 10c2504..cab8fd2 100644
  #
  # Rack::Attack settings
 diff --git a/lib/gitlab/asciidoc.rb b/lib/gitlab/asciidoc.rb
-index 0b9c2e7..c0327b1 100644
+index 1a22ad9..33571ce 100644
 --- a/lib/gitlab/asciidoc.rb
 +++ b/lib/gitlab/asciidoc.rb
-@@ -35,5 +35,11 @@ module Gitlab
+@@ -34,5 +34,11 @@ module Gitlab
  
        html.html_safe
      end
@@ -200,16 +202,17 @@ index 0b9c2e7..c0327b1 100644
    end
  end
 diff --git a/lib/gitlab/gon_helper.rb b/lib/gitlab/gon_helper.rb
-index 5ebaad6..224313d 100644
+index 2c21804..d4abfaa 100644
 --- a/lib/gitlab/gon_helper.rb
 +++ b/lib/gitlab/gon_helper.rb
-@@ -7,6 +7,7 @@ module Gitlab
-       gon.max_file_size          = current_application_settings.max_attachment_size
-       gon.relative_url_root      = Gitlab.config.gitlab.relative_url_root
+@@ -8,6 +8,7 @@ module Gitlab
+       gon.shortcuts_path         = help_page_path('shortcuts')
        gon.user_color_scheme      = Gitlab::ColorSchemes.for_user(current_user).css_class
+       gon.award_menu_url         = emojis_path
 +      gon.mathjax_config         = Gitlab.config.extra.mathjax_config
  
        if current_user
          gon.current_user_id = current_user.id
 -- 
-2.8.1
+1.9.5 (Apple Git-50.3)
+
