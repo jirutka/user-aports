@@ -35,9 +35,14 @@ build() {
 		--isolated \
 		--disable-pip-version-check \
 		. || return 1
-	python -m compileall -f -d "$_prefix" usr/ || return 1
 
+	# Remove tests.
+	find usr/lib/python*/site-packages/ -name tests -type d -exec rm -Rfv {} + || return 1
+
+	# Remove useless scripts.
 	rm -f usr/bin/easy_install*
+
+	python -m compileall -f -d "$_prefix" usr/ || return 1
 }
 
 package() {
