@@ -1,17 +1,16 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
-pkgname="sentry"
-pkgver="8.2.2"
-pkgrel=1
+pkgname=sentry
+pkgver=8.2.5
+pkgrel=0
 pkgdesc="Sentry provides real-time crash reporting for your web apps, mobile apps, and games."
 url="https://github.com/getsentry/sentry"
 arch="all"
 license="BSD"
-depends="libpq libxslt python>=2.7 redis uwsgi-python>2.0.0"
-makedepends="build-base ca-certificates libffi-dev libxml2-dev libxslt-dev \
-	libzip-dev linux-headers openssl-dev postgresql-dev python-dev py-pip"
+depends="libpq libxslt python redis uwsgi-python>2.0.0"
+makedepends="ca-certificates libffi-dev libxml2-dev libxslt-dev libzip-dev
+	linux-headers openssl-dev postgresql-dev python-dev py-pip"
 install="$pkgname.pre-install $pkgname.post-install $pkgname.post-upgrade"
-subpackages=""
 source="https://github.com/getsentry/sentry/releases/download/$pkgver/$pkgname-$pkgver.tar.gz
 	$pkgname
 	$pkgname.initd
@@ -21,44 +20,30 @@ source="https://github.com/getsentry/sentry/releases/download/$pkgver/$pkgname-$
 	0001-fix-setup.py.patch
 	0002-config-template.patch
 	"
+builddir="$srcdir/$pkgname-$pkgver"
 
-_builddir="$srcdir/$pkgname-$pkgver"
 _prefix="/usr/lib/bundles/$pkgname"
 
-prepare() {
-	cd "$_builddir"
-
-	local i; for i in $source; do
-		case $i in
-		*.patch) msg $i; patch -p1 -i "$srcdir"/$i || return 1;;
-		esac
-	done
-}
-
 build() {
-	cd "$_builddir"
+	cd "$builddir"
 
-	# XXX: Remove direct link for setproctitle after
-	# https://github.com/dvarrazzo/py-setproctitle/issues/44 is fixed.
 	pip install \
-		--root="$_builddir" \
-		--install-option="--root=$_builddir" \
+		--root="$builddir" \
+		--install-option="--root=$builddir" \
 		--install-option="--no-compile" \
 		--ignore-installed \
 		--isolated \
 		--disable-pip-version-check \
-		'git+https://github.com/dvarrazzo/py-setproctitle.git@3fd40a1516b5bec0e01984de530f42bc0b245b92#egg=setproctitle' \
 		. || return 1
-
 	python -m compileall -f -d "$_prefix" usr/ || return 1
 
 	rm -f usr/bin/easy_install*
 }
 
 package() {
-	cd "$_builddir"
+	cd "$builddir"
 
-	install -m755 -d "${pkgdir}${_prefix}" || return 1
+	mkdir -p "${pkgdir}${_prefix}" || return 1
 	cp -r usr/* "${pkgdir}${_prefix}"/ || return 1
 
 	install -m755 -D "$srcdir"/$pkgname \
@@ -77,27 +62,27 @@ package() {
 		"$pkgdir"/etc/logrotate.d/$pkgname || return 1
 }
 
-md5sums="6248e5df36b900c9a3e267e3d7159def  sentry-8.2.2.tar.gz
+md5sums="9044844ea8a3f694bc24265833d729ab  sentry-8.2.5.tar.gz
 f27b53a3b2c4e8f466e79118f4ae0b39  sentry
 6b8e1efebd8834b9f4fe30761d930752  sentry.initd
 9454efab110fb005c838dec7b49bf30a  sentry.confd
 ff8573b3a785fa5df7740133e2209c96  sentry.cron
 f2302ce24629f24a9a6652713826453c  sentry.logrotate
-e5df852e0b279abdf9649395484043dc  0001-fix-setup.py.patch
+591b903dc877f4b93e2908f7a4edab44  0001-fix-setup.py.patch
 5990aefa57b2b2075ce64ca604a08c80  0002-config-template.patch"
-sha256sums="5204e3d8ad3b3d03f7d1c80f22831289fbbb1afbcd8858abc88146b228423ce9  sentry-8.2.2.tar.gz
+sha256sums="b554e8fedc11270ff270adc24a9b6d507ddcf2617d5b0d9eed62f0e86ed8f2b5  sentry-8.2.5.tar.gz
 dccf0803c43462a3ea74af8ebaac0eb66d21f941ef883984417c52aa8f657d5b  sentry
 050ac9a7b5c1bb811094aa6e55307eaeb085d0a9138223a1d40ebd202c8236d1  sentry.initd
 3b1c4cca0742ed037e0a870794c47642ebfcb6768b09b333234ed1650afd088f  sentry.confd
 14306619445d8bb80d6c8b8ddde725306b87b33f1619071c14f34461c0d28b2b  sentry.cron
 e4f617413b2f32177de9a607711bba94625268660aa2aac5210851512642c49f  sentry.logrotate
-c5db9fb58261396e706ee714515f0bba13e4590b62ac4e5ce5c5e27e57443fbd  0001-fix-setup.py.patch
+fbbe882a572e191d46dad0a497bdea65c7448d58769f3d4ecaae153553003dd6  0001-fix-setup.py.patch
 2f30e06dea952acb2ff6cc7a55ba13a151fa9493cc30c133d798a1b8fa07aeed  0002-config-template.patch"
-sha512sums="2b26b485781db407c6e353fcefe5a43d74e76b6f53a3e9043a0fea18af4d223f1575b1e11af2b467329f437d3b601f574f7e120849e71f0e61aa529a5fbce614  sentry-8.2.2.tar.gz
+sha512sums="e7ccc1270b0e5ba718a7f491317e6bd665ee43d67e07ca0bfa5fefe26a4f65eaf409f1720586ff903a9c71562c7148fc377b9a1cf00fc08c6412518d490d993f  sentry-8.2.5.tar.gz
 20fa0891e2d88a606d598803fe0afb9c4d799d84b4fcd362772118b3d7b6aa2f53d70ae71f0d9b68002009212887c48e9c09aafc4fe6b1c16da1169e1015cc7e  sentry
 e670937322b9bbc816f957e219219c7049fed350065177d4bfd4eb4daf66894182d358322fcef6220a25868bbff21a3729915301537160aa168e67f90ba3bd9d  sentry.initd
 0d4ab5bb14922311abf03353d3559fbf616e9d923120e4785853d62bed7f77666111f6889187040825f4d135aa615068ebc1e2d2437869640b35894b15853be9  sentry.confd
 747695d558c08dc39e05d4a77bf7d027979e6ea3a57a4b8c5baea6edbde26f375a29bda4940dd155da5aa39e9298723e47ddc69f86a3bb18407a5870c5301350  sentry.cron
 31f0b351e339ec50da06ed311e1646a6290b3e20a76ead8e773cdeb9f42274e65055ffc2426dc89ad5171cb186723b72c709143bd92e081ef622c114226d97a1  sentry.logrotate
-f5ad475b51ca2c97ae7fbfbab42155661737663a3431f9e62cf86b5cfd4352d3c31a8646c3637a141112d1e3a8db953117d50989e18f288fa981537b88c0895f  0001-fix-setup.py.patch
+f7ec86d07b8cae2bfcf2c874fddd45de1578e9c0bb1e7e02a029125b2203c172db4cbdffa67a4e667c7ca64abac7632328c3b3014a098d543bd35388af36563c  0001-fix-setup.py.patch
 308c168f10a56f0d11333d371d66ad2bf849e273d3349d3f78e51d70a0e23e4d5e0f49224c6f3b7ffc406bfd28bc7b2770089b7cf16dbddc7b476bd28631d193  0002-config-template.patch"
