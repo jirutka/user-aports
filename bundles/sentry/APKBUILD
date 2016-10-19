@@ -2,7 +2,7 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=sentry
 pkgver=8.2.5
-pkgrel=0
+pkgrel=1
 pkgdesc="Sentry provides real-time crash reporting for your web apps, mobile apps, and games."
 url="https://github.com/getsentry/sentry"
 arch="all"
@@ -37,7 +37,7 @@ build() {
 		. || return 1
 
 	# Remove tests.
-	find usr/lib/python*/site-packages/ -name tests -type d -exec rm -Rfv {} + || return 1
+	find lib/python*/ -name "test_*.py" -delete
 
 	# Remove useless scripts.
 	rm -f usr/bin/easy_install*
