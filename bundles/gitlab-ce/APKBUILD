@@ -2,8 +2,8 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
-pkgver=8.11.8
-pkgrel=2
+pkgver=8.11.9
+pkgrel=0
 pkgdesc="A version control for your server"
 url="https://github.com/gitlabhq/gitlabhq"
 arch="all"
@@ -232,7 +232,7 @@ assets() {
 	mv "${pkgdir}$_prefix"/public/assets "$destdir"/public/
 }
 
-md5sums="40eb32f59c88c8b42155835f3a4f8f78  gitlab-ce-8.11.8.tar.gz
+md5sums="2b64008f366d8ee97d940408f917a9d0  gitlab-ce-8.11.9.tar.gz
 39123c546b87b8383442efe542d85556  gitlab.initd
 5cd94a6ac7e92b02d65126bfcaf6eb05  gitlab.mailroom.initd
 c46dd56334ec024ecfcc7e7ec69f4808  gitlab.sidekiq.initd
@@ -247,7 +247,7 @@ ac9cb7da3cdeb056922d05b86b1df6d7  0005-fix-check-task.patch
 56f86baa8b855e893fe35a833410ad85  0006-replace-sys-filesystem.patch
 428d76f8bc1a1a734c481ec389c38e8c  0007-add-mathjax-support.patch
 ff429447e0e19efc8c4b5f15e3010696  0008-fix-asciidoc-headers.patch"
-sha256sums="ac1525f1f9acb57ca7ee376824c709b3f94ea7de70d389603bdbfed3a8a352a3  gitlab-ce-8.11.8.tar.gz
+sha256sums="6437ca7f29a86ab42ce328652f230960253453d8588af6e6aa7f430440a9e575  gitlab-ce-8.11.9.tar.gz
 9f0666c4632a8a4672a58bb4b5f8b6221db342b7c4f344c03dac627d3b168658  gitlab.initd
 7b1a785762dbdd5fa755ff4eeb3e2b52d6c8668833bd520ccef0561c5d497322  gitlab.mailroom.initd
 952f2ce3b9c8463582acb72c0e5a1f67d2a3829086112aa81ec0dfed6524f1fe  gitlab.sidekiq.initd
@@ -262,7 +262,7 @@ d2ae2c2c8229606ca109b39e5f43bce528534a8d50babe1ec77bbedc5799d20c  0005-fix-check
 5668c541eb85f21d9d6cae027425b657e3d31a65d433452199c51f141aa43ed0  0006-replace-sys-filesystem.patch
 4417bf34d3b63a0c2e31b2fdce4cd13ee5677c355c3ad231cbd04c79597d142d  0007-add-mathjax-support.patch
 174bec2f4eee20ca5001c25c39b04d8824e129f221c7ee23b42822d2266608d3  0008-fix-asciidoc-headers.patch"
-sha512sums="e7564d49f17b889539a1b61b75ec6ec032877804d123df649a31c7f4cb0cd1b1cc0bf9d29a02e85a6e7772941ff8421f49876971ee2be832516991848b3badaf  gitlab-ce-8.11.8.tar.gz
+sha512sums="108f3382f6e48e818405ab8eb8fc68c2803d25d9b6718501ed8c0831a45991d03c334ad076106363f4b3bdbb14ac5418bd57bf6c54866a1755066f3c253c2b28  gitlab-ce-8.11.9.tar.gz
 a043a21660611ea94bb59a67399a2f84fd4ca2afd8d2ae12f375c32b774c8329b714904430c0772e8844348bdae6b1338e92606e8b9baad8956a255b54b09250  gitlab.initd
 d56587e94db0f607d4d37dbc1952914e2d6628405b3c2fe9f7548f27ca70f5393bf4fdebc7fa192b9bad7d07706a55cd77a910bd127236422f0f6d4a5a46be25  gitlab.mailroom.initd
 705a05d7a1e1d01a83845d483d65ffd2bf1c5c9f3186f78bfe8cd515efda7452f74a5ce92be9373be5a1cf6bedb583ba545821cecdb43f42859644cf8fab78b2  gitlab.sidekiq.initd
