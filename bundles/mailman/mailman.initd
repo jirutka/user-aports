@@ -13,7 +13,12 @@ command_args="--config=$cfgfile --force"
 # Mailman master process insists on creating his own pidfile.
 pidfile="/run/mailman/master.pid"
 user="mailman"
-start_stop_daemon_args="--background --pidfile $pidfile --user $user"
+start_stop_daemon_args="
+	--background
+	--pidfile $pidfile
+	--user $user
+	--stdout /var/log/mailman/master.log
+	--stderr /var/log/mailman/master.log"
 
 required_files="$cfgfile"
 
