@@ -1,0 +1,34 @@
+#!/sbin/openrc-run
+
+: ${cfgfile:="/etc/mailman.cfg"}
+
+name="Mailman"
+description="The GNU Mailing List Management System"
+
+extra_started_commands="reopen"
+description_reopen="Reopen log files"
+
+command="/usr/lib/bundles/mailman/bin/master"
+command_args="--config=$cfgfile --force"
+# Mailman master process insists on creating his own pidfile.
+pidfile="/run/mailman/master.pid"
+user="mailman"
+start_stop_daemon_args="--background --pidfile $pidfile --user $user"
+
+required_files="$cfgfile"
+
+depend() {
+	need net
+	after postgresql
+}
+
+start_pre() {
+	checkpath -d -o $user -m755 "${pidfile%/*}"
+}
+
+reopen() {
+	ebegin "Reopening log files of $name"
+
+	start-stop-daemon --signal HUP --pidfile "$pidfile"
+	eend $?
+}

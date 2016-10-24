@@ -1,0 +1,111 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=mailman
+# Note: When bumping pkgver, wipe constraints.txt, run abuild -r, then
+# abuild checksum and commit the updated constraints.txt.
+pkgver=3.0.3
+pkgrel=0
+pkgdesc="The GNU Mailing List Management System"
+url="http://www.list.org/"
+arch="all"
+license="GPLv3"
+depends=""
+_pyver=3.4
+makedepends="python$_pyver-dev postgresql-dev"
+install="$pkgname.pre-install"
+pkgusers="mailman"
+pkggroups="mailman"
+source="https://files.pythonhosted.org/packages/source/${pkgname:0:1}/$pkgname/$pkgname-$pkgver.tar.gz
+	constraints.txt
+	$pkgname.initd
+	$pkgname.logrotate
+	$pkgname
+	mailman.cfg"
+builddir="$srcdir/$pkgname-$pkgver"
+
+_builddir="$srcdir/build"
+_prefix="/usr/lib/bundles/$pkgname"
+
+build() {
+	local extra_eggs="mailman-hyperkitty psycopg2"
+
+	mkdir -p "$_builddir"
+	cd "$_builddir"
+
+	# Create virtualenv.
+	python$_pyver -m venv . || return 1
+
+	bin/python -m pip install \
+		--disable-pip-version-check \
+		--install-option="--no-compile" \
+		--isolated \
+		--no-cache-dir \
+		--constraint "$srcdir"/constraints.txt \
+		"$builddir" $extra_eggs || return 1
+
+	# Note: This overwrites existing constraints.txt.
+	bin/python -m pip freeze --disable-pip-version-check \
+		| sed '/^mailman==.*/d' > "$srcdir"/constraints.txt
+
+	# Remove pip that is not needed in runtime (note: setuptools is needed).
+	bin/python -m pip uninstall --disable-pip-version-check -y pip || return 1
+
+	# Fix shebang to correct destination.
+	find ./bin -type f -exec sed -i "s|$_builddir|$_prefix|g" {} \; || return 1
+
+	# Remove some unnecessary scripts and directories.
+	rm -f bin/activate.* bin/falcon-bench bin/nose*
+	rm -Rf man include lib64
+
+	# Remove tests.
+	find lib/$python/ -name "test_*.py" -delete
+	rm -Rf lib/$python/site-packages/falcon/bench
+
+	bin/python -m compileall -f -d "$_prefix/lib" lib
+}
+
+package() {
+	mkdir -p "${pkgdir}${_prefix}"
+	cd "$pkgdir" || return 1
+
+	mv "$_builddir"/* .$_prefix/ || return 1
+
+	mkdir -p ./usr/bin
+	ln -s $_prefix/bin/mailman ./usr/bin/mailman || return 1
+
+	install -m 640 -g mailman -D "$srcdir"/mailman.cfg \
+		./etc/mailman.cfg || return 1
+
+	install -m 755 -D "$srcdir"/$pkgname.initd \
+		./etc/init.d/$pkgname || return 1
+
+	install -m 644 -D "$srcdir"/$pkgname.logrotate \
+		./etc/logrotate.d/$pkgname || return 1
+
+	install -d -m 750 -o mailman -g mailman \
+		./var/lib/mailman \
+		./var/log/mailman || return 1
+
+	install -d -m 700 -o mailman -g mailman \
+		./var/spool/mailman \
+		./var/lock/mailman
+}
+
+md5sums="dd1d18cfa82df956a3ca4053d764d805  mailman-3.0.3.tar.gz
+6d9ce55bab13e30c9fe1bc149f52f949  constraints.txt
+ad41499704c93a0e74596e44c514a21b  mailman.initd
+219b397b0d9795c190fccb66fdb6af97  mailman.logrotate
+8897948a23c70c096e3896f617513eef  mailman
+a11c724690d5e92416a3a36cc495aa01  mailman.cfg"
+sha256sums="9b826453e2cb01aeb0d231bc41aeb60012c1bd97964b57a5074e975d23b74d6e  mailman-3.0.3.tar.gz
+2708943dba84e363ce386ed054258a50fe9ef04e5b972796cb90dddacea3db75  constraints.txt
+489b2d335b629d9fb96d8a531624b9d748330dcdb97663c2d152276d3a6c34c1  mailman.initd
+0914f82c113d19d7690b74556b1b8b244c95f033398da9be16aa5d874b0336c8  mailman.logrotate
+36e9d3ebf11a66244588722425a4b3bb53856d16e58aad34a8057061d9bda5ec  mailman
+fcd4dc5fb9190aa3c045dfb10040de9f092e746d24b59b70cb193d48189b9827  mailman.cfg"
+sha512sums="c1fd3f697768a60f6711a9c1841563b3dcb7bef04f527d95fb40057a841ba509fa46c8c47756196202d6f1f067e5b5a7cd9dbc640c328631475b63a9ec3fe50d  mailman-3.0.3.tar.gz
+ded4c91de4f34ea5b3f8c1b6d0680f42a9e1d6bdd6c94e23ff030e2264e9da87c3b143bfc34cead411ac3d1f800610d2f6c9182debe0e626175c4872dd0cd6d2  constraints.txt
+2d3e18eb6d49a7efc5e4732f50d5be0860d1d0fb7588013b31ec8b18806d411d370178e0c30200e838aad10903c7bdffdf22038e644362fe3b352b8ad5334f1b  mailman.initd
+31e6fd356d9b0e04ab28596828539260995e33688b27baae525b16fb103449c59ea291146f749f51dd1e34bb2b718c785c4828d739896a3ca6fadedc14d67f47  mailman.logrotate
+e8cdec412326ae8758408d3bd8b1a623e388aadd77d0858cfe493d15628ceaec3dc0bc3e4b7749f0680157fdd98d22f1e93a810e94bb1df277810d89593307e2  mailman
+7029d661f2608eceaa8ed7f84749ad099b4d74c9e8d016dcc53dabe4a8909144aff6939f4545c09c8aefa40a3fc70b6812cbf4bbdbd2d4eb955cb0380e789f07  mailman.cfg"
