@@ -4,7 +4,7 @@ pkgname=mailman
 # Note: When bumping pkgver, wipe constraints.txt, run abuild -r, then
 # abuild checksum and commit the updated constraints.txt.
 pkgver=3.0.3
-pkgrel=1
+pkgrel=2
 pkgdesc="The GNU Mailing List Management System"
 url="http://www.list.org/"
 arch="all"
