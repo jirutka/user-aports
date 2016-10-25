@@ -1,0 +1,7 @@
+#!/bin/sh
+
+addgroup -S mailman 2>/dev/null
+adduser -S -D -H -h /var/lib/mailman -s /bin/sh -G mailman \
+	-g "added by apk for mailman-webui" mailman 2>/dev/null
+
+exit 0

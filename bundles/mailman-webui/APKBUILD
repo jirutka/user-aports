@@ -1,0 +1,192 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=mailman-webui
+pkgver=1.0_git20161024
+_postorius_ref=1c1a759f79f9fe94914d5622289c727dc6ea54ff
+_hyperkitty_ref=b878daecdb5dd54746951438e30e1a838b2769d2
+_mailmanclient_ref=1b25268ba10c921db3668d5d34177b64a0da03ed
+pkgrel=0
+pkgdesc="A web user interface for GNU Mailman (Postorius + HyperKitty)"
+url="http://www.list.org/"
+arch="all"
+license="GPLv3"
+depends="$pkgname-assets uwsgi-python uwsgi-http"
+makedepends="python-dev py-pip py-virtualenv postgresql-dev openldap-dev sassc"
+install="$pkgname.post-install"
+pkgusers="mailman"
+pkggroups="mailman"
+subpackages="$pkgname-assets"
+source="postorius-$_postorius_ref.tar.gz::https://gitlab.com/mailman/postorius/repository/archive.tar.gz?ref=$_postorius_ref
+	hyperkitty-$_hyperkitty_ref.tar.gz::https://gitlab.com/mailman/hyperkitty/repository/archive.tar.gz?ref=$_hyperkitty_ref
+	mailmanclient-$_mailmanclient_ref.tar.gz::https://gitlab.com/mailman/mailmanclient/repository/archive.tar.gz?ref=$_mailmanclient_ref
+	constraints.txt
+	settings.py
+	urls.py
+	wsgi.py
+	$pkgname.confd
+	$pkgname.cron
+	$pkgname.logrotate
+	hyperkitty-fix-0007_allauth_20160808_1604.patch"
+builddir="$srcdir/build"
+
+_postorius_dir="$srcdir/postorius-$_postorius_ref-$_postorius_ref"
+_hyperkitty_dir="$srcdir/hyperkitty-$_hyperkitty_ref-$_hyperkitty_ref"
+_mailmanclient_dir="$srcdir/mailmanclient-$_mailmanclient_ref-$_mailmanclient_ref"
+_prefix="/usr/lib/bundles/$pkgname"
+
+prepare() {
+	mkdir -p "$builddir"
+
+	cd "$srcdir"
+	ln -s "$_postorius_dir" postorius || return 1
+	ln -s "$_hyperkitty_dir" hyperkitty || return 1
+	ln -s "$_mailmanclient_dir" mailmanclient || return 1
+
+	local builddir="$srcdir"
+	default_prepare
+}
+
+build() {
+	local extra_eggs="Whoosh psycopg2 django-auth-ldap django-mailman3"
+	cd "$builddir"
+
+	# Create virtualenv.
+	python -m virtualenv --no-download --no-wheel . || return 1
+
+	# Install projects and their dependencies.
+	bin/pip install \
+		--constraint "$srcdir"/constraints.txt \
+		--disable-pip-version-check \
+		--install-option="--no-compile" \
+		--isolated \
+		--no-cache-dir \
+		"$_mailmanclient_dir" "$_postorius_dir" "$_hyperkitty_dir" $extra_eggs || return 1
+
+	# Note: This overwrites existing constraints.txt.
+	bin/python -m pip freeze --disable-pip-version-check \
+		| sed -E '/^(postorius|HyperKitty|mailmanclient)==.*/d' \
+		> "$srcdir"/constraints.txt
+
+	bin/pip uninstall -y pip || return 1
+
+	# Inject code into django-admin that adds ../ into PYTHONPATH, so
+	# it can find the settings module, and also set default name of the
+	# settings module.
+	sed -i -e "3a import os, sys" \
+		-e "3a sys.path.append(os.path.abspath(os.path.dirname(os.path.realpath(__file__)) + '/..'))" \
+		-e "3a os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings')" \
+		-e '3a' \
+		bin/django-admin || return 1
+
+	# Remove some unnecessary scripts.
+	rm bin/activate_* bin/activate.* bin/easy_install* bin/python-config
+
+	# Remove tests.
+	find lib/python*/ -name "test_*.py" -delete
+
+	python -m compileall -f -d $_prefix/lib lib || return 1
+
+
+	## Collect static assets
+
+	sed -E	-e "s|^(STATIC_ROOT =).*|\1 'static'|" \
+		-e "s|^(SECRET_KEY =).*|\1 'top-secret'|" \
+		-e "/^LOGGING/,/^}$/ s|('handlers':) \[.*\],|\1 \['console'\],|g" \
+		-e "/^LOGGING/,/^}$/ s|('filename':) .*,|\1 '/dev/null',|g" \
+		"$srcdir"/settings.py > settings.py || return 1
+
+	bin/django-admin collectstatic --noinput --ignore "*.scss" \
+		--ignore "README.*" --ignore "*license*" || return 1
+	bin/django-admin compress || return 1
+
+	# Remove empty directories.
+	find static/ -type d -exec rmdir {} + 2>/dev/null || true
+
+
+	# Fix absolute paths e.g. in shebang to correct destination.
+	find ./bin -type f -exec sed -i "s|$builddir|$_prefix|g" {} \; || return 1
+}
+
+package() {
+	mkdir -p "${pkgdir}${_prefix}"
+	cd "$pkgdir" || return 1
+
+	mv "$builddir"/bin "$builddir"/lib "$builddir"/static \
+		.$_prefix/ || return 1
+
+	touch .$_prefix/__init__.py || return 1
+	install -m 644 "$srcdir"/wsgi.py .$_prefix/wsgi.py || return 1
+
+	mkdir -p ./usr/bin
+	ln -s $_prefix/bin/django-admin ./usr/bin/$pkgname-admin || return 1
+
+	install -m 640 -o root -g mailman -D \
+		"$srcdir"/settings.py ./etc/$pkgname/settings.py || return 1
+	install -m 644 "$srcdir"/urls.py ./etc/$pkgname/urls.py || return 1
+
+	local name; for name in settings.py urls.py; do
+		ln -s /etc/$pkgname/$name .$_prefix/$name || return 1
+	done
+
+	mkdir -p ./etc/init.d
+	ln -s uwsgi ./etc/init.d/$pkgname || return 1
+
+	install -m 644 -D "$srcdir"/$pkgname.confd \
+		./etc/conf.d/$pkgname || return 1
+
+	install -m 644 -D "$srcdir"/$pkgname.cron \
+		./etc/cron.d/$pkgname || return 1
+
+	install -m 644 -D "$srcdir"/$pkgname.logrotate \
+		./etc/logrotate.d/$pkgname || return 1
+
+	install -d -m 750 -o mailman -g mailman \
+		./var/lib/$pkgname || return 1
+
+	install -d -m 755 -o mailman -g mailman \
+		./var/log/$pkgname \
+		./var/lib/$pkgname/templates
+}
+
+assets() {
+	pkgdesc="$pkgdesc (static files)"
+	arch="noarch"
+	depends=""
+
+	mkdir -p "$subpkgdir"$_prefix/static
+	mv "$pkgdir"$_prefix/static "$subpkgdir"$_prefix/
+}
+
+md5sums="ec8854979677ac3e565b8c435ec2a855  postorius-1c1a759f79f9fe94914d5622289c727dc6ea54ff.tar.gz
+4418bd353d16afafbbe834b54776abf3  hyperkitty-b878daecdb5dd54746951438e30e1a838b2769d2.tar.gz
+563e3f3b355ab2e28fa3b99d9e8c43b1  mailmanclient-1b25268ba10c921db3668d5d34177b64a0da03ed.tar.gz
+7d909212bc2ff6a6e7cdd155cfbf8d6d  constraints.txt
+012fde424a4cec52de1859211b4d900b  settings.py
+50b27a5bd9f652a176ceb5ca4db71b6e  urls.py
+6fae99b95f61b0ae8387702895c0b4d3  wsgi.py
+2d6164583da78a55476ee54decd51921  mailman-webui.confd
+f6c946ca11cc61da1430c3725a8cb99c  mailman-webui.cron
+482999831fb2c1482ef61a7efb2e6667  mailman-webui.logrotate
+3fa2577ed8d3580b40b5f1facd4d08b7  hyperkitty-fix-0007_allauth_20160808_1604.patch"
+sha256sums="ba2aaee49725820b56792a6a37d7a5006a112a21908e3114ddcfebf44f542e18  postorius-1c1a759f79f9fe94914d5622289c727dc6ea54ff.tar.gz
+e0d3436c45fbc9c3fb9e04bbfd5fe9b9ea068587d80bc35f0349d2758b3a0a42  hyperkitty-b878daecdb5dd54746951438e30e1a838b2769d2.tar.gz
+988ab885cbc1db9ad63801080192341a148ac244eee78f67d120e0fb78fafa8e  mailmanclient-1b25268ba10c921db3668d5d34177b64a0da03ed.tar.gz
+02f9994b962090d937c70a9e726611ecade20d0c2187b6f77360334814823a60  constraints.txt
+194549db418362233d00bd05f768497947022475d81d7680bf79c773d33b5f16  settings.py
+e373b3a088067e049b40018261a2c219ddea524faa3809674d59860d0b02b57b  urls.py
+0268cead5048b48632d2c7de4051b8a563fa97b667785c14eec96964ee2200f2  wsgi.py
+86004e54eb0ba2ccde15d56d246e4fd90dbef9af834228317004908c1d215d6c  mailman-webui.confd
+d5e10216167862c4922b0a0f8faf1a261b4bb29f44d77646fe957ef5e095e9ba  mailman-webui.cron
+bb3c5d67a739f085f9f8f7fd9f68e6bca3ef65eb63c5c55f7b7aedf70482e0c0  mailman-webui.logrotate
+137afdec4083f7558c524191a00410d13a0996d276da40b53372cbf97f062d7f  hyperkitty-fix-0007_allauth_20160808_1604.patch"
+sha512sums="4416b2ee48ea93ef85627bc40dd3df9d16a674529c87cb21bf1c02423fbbe9902fc7ac3c1a089a7c7b2a3ae2554faa007869cab0352a40cce14125fdf6e7a3e6  postorius-1c1a759f79f9fe94914d5622289c727dc6ea54ff.tar.gz
+560c12c1e8749989611c6e13433aa6375abc930b35eca156c8505e974737c00d9dbe67dd309443faf1bf4dcb7246bc07bfb5cd8181c0cea7af55dee520fe3704  hyperkitty-b878daecdb5dd54746951438e30e1a838b2769d2.tar.gz
+dbfb185cf1ab049d6f91c1f5a998e5b50665d5d09c867f746ef17ae088aa091b4fb193bdd0fe6b30d055c90f0bcb1637a902aa0db708cb354e7d6e2f6b851fd6  mailmanclient-1b25268ba10c921db3668d5d34177b64a0da03ed.tar.gz
+5ec62fdef9f32ae46a7e17bacf4dbf4a996434afbc4e830da08a1aeee05d942a298dc1230a1b307b2ccb58796498d791c900358c8b4571807e39a155ac3ce805  constraints.txt
+7af613f6ac51974c5a7912f2d3373fef6a3197df7c9b7ebbff9a1ea0f2ca9ef131612c6a52d53d63ecf48001ec9de831a8e572d820544b615ce7aef363ee1dd1  settings.py
+4da086029a0e1329a68815ba17e50e9925ffabf9171f219ee8e57b40013b5a40204467f6ce6f0da7bba57e55c99acb0b659e18e7f0c4eb16d2ac249a6cfa628d  urls.py
+52b94c1e58efadda4e78fece7ed8e42079d9fb981ec9916d18a5c8650e5bc27e9face7ed3be1f140c68e411e6725ba6bdcb28b67c4801619a3a4fe7c2e93f564  wsgi.py
+ce134a7882582a32932ee0bce1456504fef607177982ea7247716dc7b197738a41bb375b876e4ce13500cbeec132eb1b5db5d77ef46ab7143c19d97e9ba10d80  mailman-webui.confd
+7fb26557be7bb89a8a0ce4bbf1dce55fc03a48f3400b261b26469f8e44de1a31182572754ae81a955462e495cc0dab0dc4928969cd0ddbff98b4692002b694ea  mailman-webui.cron
+ddb6af06966f284e38e8f76689fecf4423f352cd2af0ad928e07c82c0c852220399e579383fcf707fe244bd925ded0d5745ce7a93feaad71f5d7ce0b1c5d3da5  mailman-webui.logrotate
+6470de186af1822d89e2485e47aa637ab7c69daa650c7bb1a38b42e66959f785768c11394abf7ad636ce53ae49b986c4fa4be1c35b19a226792626cc513ba9f6  hyperkitty-fix-0007_allauth_20160808_1604.patch"

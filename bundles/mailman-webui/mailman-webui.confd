@@ -1,0 +1,17 @@
+# Configuration file for /etc/init.d/mailman-webui
+
+user="mailman"
+logfile="/var/log/mailman-webui/uwsgi.log"
+
+basedir="/usr/lib/bundles/mailman-webui"
+
+# --socket exposes uwsgi socket for communication with a webserver
+# --http exposes HTTP socket that should be used for communication with Mailman
+uwsgi_opts="
+	--plugins python,http
+	--virtualenv $basedir
+	--chdir $basedir
+	--module wsgi
+	--socket /run/mailman-webui/uwsgi.sock
+	--http 127.0.0.1:8081
+	--static-map /static=$basedir/static"

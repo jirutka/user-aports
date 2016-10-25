@@ -1,0 +1,7 @@
+/var/log/mailman-webui/*.log {
+	missingok
+	sharedscripts
+	postrotate
+		/etc/init.d/mailman-webui --ifstarted --quiet reload
+	endscript
+}

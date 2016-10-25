@@ -1,0 +1,24 @@
+#!/bin/sh
+set -eu
+
+SECRET_KEY="/etc/mailman-webui/secret_key"
+
+if [ ! -f $SECRET_KEY ]; then
+	echo "* Generating random secret_key..."
+
+	cat /dev/urandom | LC_CTYPE=C tr -dc A-Za-z0-9 | head -c 64 > $SECRET_KEY
+	printf '\n' >> $SECRET_KEY
+
+	chown root:mailman $SECRET_KEY
+	chmod 640 $SECRET_KEY
+fi
+
+cat >&2 <<EOF
+*
+* Adjust settings in /etc/mailman-webui and run:
+*   su mailman -c "mailman-webui-admin migrate"
+*   su mailman -c "mailman-webui-admin update_index"
+*
+* Make sure that cron is enabled!
+*
+EOF

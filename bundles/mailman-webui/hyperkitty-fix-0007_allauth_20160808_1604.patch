@@ -1,0 +1,12 @@
+Reported in https://gitlab.com/mailman/hyperkitty/issues/114.
+--- a/hyperkitty/hyperkitty/migrations/0007_allauth_20160808_1604.py
++++ b/hyperkitty/hyperkitty/migrations/0007_allauth_20160808_1604.py
+@@ -33,7 +33,7 @@
+     cursor = connection.cursor()
+     try:
+         cursor.execute("SELECT 1 from social_auth_usersocialauth")
+-    except utils.OperationalError:
++    except:
+         # No social_auth table, stop here.
+         return
+     for provider_old, provider_new in PROVIDERS_MAP.items():

@@ -1,0 +1,9 @@
+# Cron jobs for Hyperkitty
+
+* * * * *    mailman  /usr/lib/bundles/mailman-webui/bin/django-admin runjobs minutely
+*/15 * * * * mailman  /usr/lib/bundles/mailman-webui/bin/django-admin runjobs quarter_hourly
+0 * * * *    mailman  /usr/lib/bundles/mailman-webui/bin/django-admin runjobs hourly
+0 0 * * *    mailman  /usr/lib/bundles/mailman-webui/bin/django-admin runjobs daily
+0 0 * * 1    mailman  /usr/lib/bundles/mailman-webui/bin/django-admin runjobs weekly
+0 0 1 * *    mailman  /usr/lib/bundles/mailman-webui/bin/django-admin runjobs monthly
+0 0 1 1 *    mailman  /usr/lib/bundles/mailman-webui/bin/django-admin runjobs yearly
