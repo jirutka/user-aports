@@ -1,11 +1,13 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=mailman-webui
+# Note: When bumping pkgver, wipe constraints.txt, run abuild -r, then
+# abuild checksum and commit the updated constraints.txt.
 pkgver=1.0_git20161024
 _postorius_ref=1c1a759f79f9fe94914d5622289c727dc6ea54ff
 _hyperkitty_ref=b878daecdb5dd54746951438e30e1a838b2769d2
 _mailmanclient_ref=1b25268ba10c921db3668d5d34177b64a0da03ed
-pkgrel=0
+pkgrel=1
 pkgdesc="A web user interface for GNU Mailman (Postorius + HyperKitty)"
 url="http://www.list.org/"
 arch="all"
@@ -21,12 +23,15 @@ source="postorius-$_postorius_ref.tar.gz::https://gitlab.com/mailman/postorius/r
 	mailmanclient-$_mailmanclient_ref.tar.gz::https://gitlab.com/mailman/mailmanclient/repository/archive.tar.gz?ref=$_mailmanclient_ref
 	constraints.txt
 	settings.py
+	custom.py
 	urls.py
 	wsgi.py
 	$pkgname.confd
 	$pkgname.cron
 	$pkgname.logrotate
-	hyperkitty-fix-0007_allauth_20160808_1604.patch"
+	hyperkitty-fix-0007_allauth_20160808_1604.patch
+	hyperkitty-allow-to-hide-signup.patch
+	postorius-allow-to-hide-signup.patch"
 builddir="$srcdir/build"
 
 _postorius_dir="$srcdir/postorius-$_postorius_ref-$_postorius_ref"
@@ -94,6 +99,7 @@ build() {
 		-e "/^LOGGING/,/^}$/ s|('handlers':) \[.*\],|\1 \['console'\],|g" \
 		-e "/^LOGGING/,/^}$/ s|('filename':) .*,|\1 '/dev/null',|g" \
 		"$srcdir"/settings.py > settings.py || return 1
+	cp "$srcdir"/custom.py . || return 1
 
 	bin/django-admin collectstatic --noinput --ignore "*.scss" \
 		--ignore "README.*" --ignore "*license*" || return 1
@@ -108,6 +114,8 @@ build() {
 }
 
 package() {
+	local name
+
 	mkdir -p "${pkgdir}${_prefix}"
 	cd "$pkgdir" || return 1
 
@@ -115,7 +123,9 @@ package() {
 		.$_prefix/ || return 1
 
 	touch .$_prefix/__init__.py || return 1
-	install -m 644 "$srcdir"/wsgi.py .$_prefix/wsgi.py || return 1
+	for name in wsgi.py custom.py; do
+		install -m 644 "$srcdir"/$name .$_prefix/$name || return 1
+	done
 
 	mkdir -p ./usr/bin
 	ln -s $_prefix/bin/django-admin ./usr/bin/$pkgname-admin || return 1
@@ -124,7 +134,7 @@ package() {
 		"$srcdir"/settings.py ./etc/$pkgname/settings.py || return 1
 	install -m 644 "$srcdir"/urls.py ./etc/$pkgname/urls.py || return 1
 
-	local name; for name in settings.py urls.py; do
+	for name in settings.py urls.py; do
 		ln -s /etc/$pkgname/$name .$_prefix/$name || return 1
 	done
 
@@ -161,32 +171,41 @@ md5sums="ec8854979677ac3e565b8c435ec2a855  postorius-1c1a759f79f9fe94914d5622289
 4418bd353d16afafbbe834b54776abf3  hyperkitty-b878daecdb5dd54746951438e30e1a838b2769d2.tar.gz
 563e3f3b355ab2e28fa3b99d9e8c43b1  mailmanclient-1b25268ba10c921db3668d5d34177b64a0da03ed.tar.gz
 7d909212bc2ff6a6e7cdd155cfbf8d6d  constraints.txt
-012fde424a4cec52de1859211b4d900b  settings.py
+c29d4410378111f3d823cb0d15f0a9c3  settings.py
+cf59065b5b47565f5657250a0b702e35  custom.py
 50b27a5bd9f652a176ceb5ca4db71b6e  urls.py
 6fae99b95f61b0ae8387702895c0b4d3  wsgi.py
 2d6164583da78a55476ee54decd51921  mailman-webui.confd
 f6c946ca11cc61da1430c3725a8cb99c  mailman-webui.cron
 482999831fb2c1482ef61a7efb2e6667  mailman-webui.logrotate
-3fa2577ed8d3580b40b5f1facd4d08b7  hyperkitty-fix-0007_allauth_20160808_1604.patch"
+3fa2577ed8d3580b40b5f1facd4d08b7  hyperkitty-fix-0007_allauth_20160808_1604.patch
+58b2567ced31bef6a8406cdf78a98d04  hyperkitty-allow-to-hide-signup.patch
+44f7abaf47f905bf56d31bd9eea4b5e3  postorius-allow-to-hide-signup.patch"
 sha256sums="ba2aaee49725820b56792a6a37d7a5006a112a21908e3114ddcfebf44f542e18  postorius-1c1a759f79f9fe94914d5622289c727dc6ea54ff.tar.gz
 e0d3436c45fbc9c3fb9e04bbfd5fe9b9ea068587d80bc35f0349d2758b3a0a42  hyperkitty-b878daecdb5dd54746951438e30e1a838b2769d2.tar.gz
 988ab885cbc1db9ad63801080192341a148ac244eee78f67d120e0fb78fafa8e  mailmanclient-1b25268ba10c921db3668d5d34177b64a0da03ed.tar.gz
 02f9994b962090d937c70a9e726611ecade20d0c2187b6f77360334814823a60  constraints.txt
-194549db418362233d00bd05f768497947022475d81d7680bf79c773d33b5f16  settings.py
+196dd158a198a5d40357847f4ffcf270a9700baf81b02194cd3294d124fdf4a2  settings.py
+4dce35b1e5ef1de1054e140eaa75f296a4b7eddd3ebfbacc6562f6816fc0f2e8  custom.py
 e373b3a088067e049b40018261a2c219ddea524faa3809674d59860d0b02b57b  urls.py
 0268cead5048b48632d2c7de4051b8a563fa97b667785c14eec96964ee2200f2  wsgi.py
 86004e54eb0ba2ccde15d56d246e4fd90dbef9af834228317004908c1d215d6c  mailman-webui.confd
 d5e10216167862c4922b0a0f8faf1a261b4bb29f44d77646fe957ef5e095e9ba  mailman-webui.cron
 bb3c5d67a739f085f9f8f7fd9f68e6bca3ef65eb63c5c55f7b7aedf70482e0c0  mailman-webui.logrotate
-137afdec4083f7558c524191a00410d13a0996d276da40b53372cbf97f062d7f  hyperkitty-fix-0007_allauth_20160808_1604.patch"
+137afdec4083f7558c524191a00410d13a0996d276da40b53372cbf97f062d7f  hyperkitty-fix-0007_allauth_20160808_1604.patch
+36d4f13848923a5241579dd3246629d9d791910d51b5261eb6a0ce188830bc66  hyperkitty-allow-to-hide-signup.patch
+17a75fcb26dd4f65675b668b339b2d0345b28e225dae6ce4a70e0e4ffbc89a0c  postorius-allow-to-hide-signup.patch"
 sha512sums="4416b2ee48ea93ef85627bc40dd3df9d16a674529c87cb21bf1c02423fbbe9902fc7ac3c1a089a7c7b2a3ae2554faa007869cab0352a40cce14125fdf6e7a3e6  postorius-1c1a759f79f9fe94914d5622289c727dc6ea54ff.tar.gz
 560c12c1e8749989611c6e13433aa6375abc930b35eca156c8505e974737c00d9dbe67dd309443faf1bf4dcb7246bc07bfb5cd8181c0cea7af55dee520fe3704  hyperkitty-b878daecdb5dd54746951438e30e1a838b2769d2.tar.gz
 dbfb185cf1ab049d6f91c1f5a998e5b50665d5d09c867f746ef17ae088aa091b4fb193bdd0fe6b30d055c90f0bcb1637a902aa0db708cb354e7d6e2f6b851fd6  mailmanclient-1b25268ba10c921db3668d5d34177b64a0da03ed.tar.gz
 5ec62fdef9f32ae46a7e17bacf4dbf4a996434afbc4e830da08a1aeee05d942a298dc1230a1b307b2ccb58796498d791c900358c8b4571807e39a155ac3ce805  constraints.txt
-7af613f6ac51974c5a7912f2d3373fef6a3197df7c9b7ebbff9a1ea0f2ca9ef131612c6a52d53d63ecf48001ec9de831a8e572d820544b615ce7aef363ee1dd1  settings.py
+c030226ecfce54ec21a7868d27e131aa0e686e94623b25474d2d7ef6ce33ff2b36b0c43f5729b48f817b1f283f8b78dd88c3c8909eadc33ca604a4989e7a5b47  settings.py
+b37798f5c7fb8bbf4ca6e4515bb5b3b3c260d6c97f4561f88135a4d1b2bb2b7d3ddd14668fa02562452faf0d32cc16ceacd08bb30b3595442cce216382937e70  custom.py
 4da086029a0e1329a68815ba17e50e9925ffabf9171f219ee8e57b40013b5a40204467f6ce6f0da7bba57e55c99acb0b659e18e7f0c4eb16d2ac249a6cfa628d  urls.py
 52b94c1e58efadda4e78fece7ed8e42079d9fb981ec9916d18a5c8650e5bc27e9face7ed3be1f140c68e411e6725ba6bdcb28b67c4801619a3a4fe7c2e93f564  wsgi.py
 ce134a7882582a32932ee0bce1456504fef607177982ea7247716dc7b197738a41bb375b876e4ce13500cbeec132eb1b5db5d77ef46ab7143c19d97e9ba10d80  mailman-webui.confd
 7fb26557be7bb89a8a0ce4bbf1dce55fc03a48f3400b261b26469f8e44de1a31182572754ae81a955462e495cc0dab0dc4928969cd0ddbff98b4692002b694ea  mailman-webui.cron
 ddb6af06966f284e38e8f76689fecf4423f352cd2af0ad928e07c82c0c852220399e579383fcf707fe244bd925ded0d5745ce7a93feaad71f5d7ce0b1c5d3da5  mailman-webui.logrotate
-6470de186af1822d89e2485e47aa637ab7c69daa650c7bb1a38b42e66959f785768c11394abf7ad636ce53ae49b986c4fa4be1c35b19a226792626cc513ba9f6  hyperkitty-fix-0007_allauth_20160808_1604.patch"
+6470de186af1822d89e2485e47aa637ab7c69daa650c7bb1a38b42e66959f785768c11394abf7ad636ce53ae49b986c4fa4be1c35b19a226792626cc513ba9f6  hyperkitty-fix-0007_allauth_20160808_1604.patch
+34adadc73101e0dfd84fb82c5f74d13f094ffa0beddc4dc92ba8c33ce37420345b1a11aee25089ed62b43f4ef6ca035731417d0eedad8cc43192e5879702b57f  hyperkitty-allow-to-hide-signup.patch
+0b7cd8ac8a85bf8ff38bad697bcc9e6d34fd4f658ae438f6d45d77029409659e74b37173035b875910e3ef5b2334308731ba3237ee1195f4f19b18a9466ca562  postorius-allow-to-hide-signup.patch"

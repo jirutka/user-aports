@@ -175,6 +175,18 @@ EMAIL_USE_TLS = False
 # Whether to use an implicit TLS connection when talking to the SMTP server.
 EMAIL_USE_SSL = False
 
+# If you enable email reporting for error messages, this is where those emails
+# will appear to be coming from. Make sure you set a valid domain name,
+# otherwise the emails may get rejected.
+# https://docs.djangoproject.com/en/1.9/ref/settings/#std:setting-SERVER_EMAIL
+#SERVER_EMAIL = 'root@your-domain.org'
+
+# If you enable internal authentication, this is the address that the emails
+# will appear to be coming from. Make sure you set a valid domain name,
+# otherwise the emails may get rejected.
+# https://docs.djangoproject.com/en/1.9/ref/settings/#default-from-email
+#DEFAULT_FROM_EMAIL = 'mailing-lists@you-domain.org'
+
 
 #
 # Security settings
@@ -276,7 +288,14 @@ LOGIN_URL          = 'account_login'
 LOGIN_REDIRECT_URL = 'hk_root'
 LOGOUT_URL         = 'account_logout'
 
+# Whether registration of new accounts is currently permitted.
+REGISTRATION_OPEN = True
+
 # Django Allauth
+
+# Custom AccountAdapter for allauth that respects REGISTRATION_OPEN variable.
+ACCOUNT_ADAPTER = 'custom.CloseableRegistrationAccountAdapter'
+
 ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
@@ -312,22 +331,6 @@ SOCIALACCOUNT_PROVIDERS = {}
 #       'VERSION': 'v2.4',
 #    },
 #}
-
-# These can be set to override the defaults but are not mandatory:
-#EMAIL_CONFIRMATION_TEMPLATE = 'postorius/address_confirmation_message.txt'
-#EMAIL_CONFIRMATION_SUBJECT = 'Confirmation needed'
-
-# If you enable internal authentication, this is the address that the emails
-# will appear to be coming from. Make sure you set a valid domain name,
-# otherwise the emails may get rejected.
-# https://docs.djangoproject.com/en/1.9/ref/settings/#default-from-email
-#DEFAULT_FROM_EMAIL = 'mailing-lists@you-domain.org'
-
-# If you enable email reporting for error messages, this is where those emails
-# will appear to be coming from. Make sure you set a valid domain name,
-# otherwise the emails may get rejected.
-# https://docs.djangoproject.com/en/1.9/ref/settings/#std:setting-SERVER_EMAIL
-#SERVER_EMAIL = 'root@your-domain.org'
 
 # Password validation
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators

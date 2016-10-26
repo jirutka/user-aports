@@ -1,0 +1,15 @@
+--- a/postorius/src/postorius/templates/postorius/base.html
++++ b/postorius/src/postorius/templates/postorius/base.html
+@@ -88,10 +88,12 @@
+                             <span class="glyphicon glyphicon-log-in"></span>
+                             {% trans 'Login' %}
+                         </a></li>
++                        {% if registration_open %}
+                         <li><a href="{% url 'account_signup' %}?next={{next|default:request.path|urlencode}}">
+                             <span class="glyphicon glyphicon-plus-sign"></span>
+                             {% trans 'Sign Up' %}
+                         </a></li>
++                        {% endif %}
+                     {% endif %}
+                 </ul>
+             </div>

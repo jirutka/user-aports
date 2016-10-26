@@ -1,0 +1,39 @@
+--- a/hyperkitty/hyperkitty/templates/hyperkitty/base.html
++++ b/hyperkitty/hyperkitty/templates/hyperkitty/base.html
+@@ -109,10 +109,12 @@
+                                 <span class="fa fa-sign-in"></span>
+                                 {% trans "Sign In" %}
+                             </a></li>
++                            {% if registration_open %}
+                             <li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'account_signup' %}?next={{next|default:request.path|urlencode}}">
+                                 <span class="fa fa-user-plus"></span>
+                                 {% trans "Sign Up" %}
+                             </a></li>
++                            {% endif %}
+                         {% endif %}
+                     </ul>
+                 </div>
+@@ -153,10 +155,12 @@
+                             <span class="fa fa-sign-in"></span>
+                             {% trans "Sign In" %}
+                         </a></li>
++                        {% if registration_open %}
+                         <li><a href="{% url 'account_signup' %}?next={{next|default:request.path|urlencode}}">
+                             <span class="fa fa-user-plus"></span>
+                             {% trans "Sign Up" %}
+                         </a></li>
++                        {% endif %}
+                     {% endif %}
+                 </ul>
+ 
+--- a/hyperkitty/hyperkitty/context_processors.py
++++ b/hyperkitty/hyperkitty/context_processors.py
+@@ -31,7 +31,7 @@
+ 
+ 
+ def export_settings(request):
+-    exports = ["USE_MOCKUPS"]
++    exports = ["USE_MOCKUPS", "REGISTRATION_OPEN"]
+     extra_context = dict(
+         (name.lower(), getattr(settings, name, None)) for name in exports)
+     extra_context["HYPERKITTY_VERSION"] = VERSION
