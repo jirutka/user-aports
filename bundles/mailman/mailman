@@ -1,8 +1,0 @@
-#!/bin/sh
-
-BASE_DIR="/usr/lib/bundles/mailman"
-
-export PYTHONPATH="$BASE_DIR/lib/__PYTHON__/site-packages"
-export PATH="$BASE_DIR/bin:$PATH"
-
-exec $BASE_DIR/bin/mailman "$@"
