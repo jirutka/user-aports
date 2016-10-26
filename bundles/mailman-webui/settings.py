@@ -48,7 +48,6 @@ FILTER_VHOST = False
 SITE_ID = 1
 
 INSTALLED_APPS = (
-    # Uncomment the next line to enable the Django admin site:
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -56,6 +55,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'hyperkitty',
     'rest_framework',
     'django_gravatar',
@@ -65,6 +65,11 @@ INSTALLED_APPS = (
     'django_extensions',
     'postorius',
     'django_mailman3',
+
+    # Uncomment the next line to enable integration with Sentry
+    # and set DSN in RAVEN_CONFIG.
+    #'raven.contrib.django.raven_compat',
+
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -451,6 +456,16 @@ LOGGING = {
         'level': 'INFO',
     },
 }
+
+if 'raven.contrib.django.raven_compat' in INSTALLED_APPS:
+    RAVEN_CONFIG = {
+        'dsn': 'https://<key>:<secret>@sentry.io/<project>',
+    }
+    LOGGING['handlers']['sentry'] = {
+        'level': 'ERROR',
+        'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
+    }
+    LOGGING['loggers']['root']['handlers'].append('sentry')
 
 
 try:

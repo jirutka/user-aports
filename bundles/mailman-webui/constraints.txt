@@ -1,3 +1,4 @@
+contextlib2==0.5.4
 cssmin==0.2.0
 decorator==4.0.10
 Django==1.9.10
@@ -20,6 +21,7 @@ python-dateutil==1.5
 python-ldap==2.4.27
 python-openid==2.2.5
 pytz==2016.7
+raven==5.31.0
 rcssmin==1.0.6
 requests==2.11.1
 requests-oauthlib==0.7.0
