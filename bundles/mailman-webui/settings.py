@@ -248,6 +248,7 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
+    # Uncomment to next line to enable LDAP authentication.
     #'django_auth_ldap.backend.LDAPBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 )
@@ -259,7 +260,16 @@ LOGOUT_URL = 'account_logout'
 # Whether registration of new accounts is currently permitted.
 REGISTRATION_OPEN = True
 
-# Django Allauth
+# Password validation
+# https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
+AUTH_PASSWORD_VALIDATORS = [
+    { 'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator' },
+    { 'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator' },
+    { 'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator' },
+    { 'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator' },
+]
+
+## Django Allauth
 
 # Custom AccountAdapter for allauth that respects REGISTRATION_OPEN variable.
 ACCOUNT_ADAPTER = 'custom.CloseableRegistrationAccountAdapter'
@@ -300,14 +310,26 @@ SOCIALACCOUNT_PROVIDERS = {}
 #    },
 #}
 
-# Password validation
-# https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
-AUTH_PASSWORD_VALIDATORS = [
-    { 'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator' },
-    { 'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator' },
-    { 'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator' },
-    { 'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator' },
-]
+## Django LDAP
+if 'allauth.account.auth_backends.AuthenticationBackend' in AUTHENTICATION_BACKENDS:
+    import ldap
+    from django_auth_ldap.config import LDAPSearch
+
+    ldap.set_option(ldap.OPT_X_TLS_CACERTDIR, '/etc/ssl/certs')
+
+    AUTH_LDAP_SERVER_URI = 'ldaps://ldap.example.org'
+
+    AUTH_LDAP_USER_SEARCH = LDAPSearch(
+        'ou=People,dc=example,dc=org',
+        ldap.SCOPE_SUBTREE,
+        '(&(mail=*)(uid=%(user)s))'
+    )
+
+    AUTH_LDAP_USER_ATTR_MAP = {
+        'first_name': 'givenName',
+        'last_name': 'sn',
+        'email': 'mail',
+    }
 
 
 #
