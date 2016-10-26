@@ -3,10 +3,21 @@ set -u
 
 SECRET_KEY="/etc/mailman-webui/secret_key"
 
+random_pass() {
+	local length="$1"
+
+	python2 <<-EOF
+		import random, string
+		chars = string.ascii_letters + string.digits
+		print(''.join(random.SystemRandom().choice(chars) for _ in range($length)))
+	EOF
+}
+
+
 if [ ! -f $SECRET_KEY ]; then
 	echo "* Generating random secret_key..."
 
-	cat /dev/urandom | LC_CTYPE=C tr -dc A-Za-z0-9 | head -c 64 > $SECRET_KEY
+	random_pass 64 > $SECRET_KEY
 	printf '\n' >> $SECRET_KEY
 
 	chown root:mailman $SECRET_KEY
