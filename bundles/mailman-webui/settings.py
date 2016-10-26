@@ -1,6 +1,8 @@
 #-*- coding: utf-8 -*-
 """
 Django settings for HyperKitty + Postorius
+
+Pay attention to settings ALLOWED_HOSTS and DATABASES!
 """
 from os.path import abspath, dirname, join as joinpath
 from ConfigParser import SafeConfigParser
@@ -21,23 +23,8 @@ CONF_DIR = '/etc/mailman-webui'
 DATA_DIR = '/var/lib/mailman-webui'
 LOG_DIR = '/var/log/mailman-webui'
 
-# A secret key used for signing sessions, cookies, password reset tokens etc.
-SECRET_KEY = open(joinpath(CONF_DIR, 'secret_key')).read()
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
-TEMPLATE_DEBUG = DEBUG
-
-# A tuple that lists people who get code error notifications. When DEBUG=False and a view raises an
-# exception, Django will email these people with the full exception information. Each member of the
-# tuple should be a tuple of (Full name, email address).
-ADMINS = (
-     ('Mailman Admin', 'root@localhost'),
-)
-
-SITE_ID = 1
-
-# Hosts/domain names that are valid for this site; required if DEBUG is False
+# Hosts/domain names that are valid for this site.
+# NOTE: You MUST add domain name of your instance of this application here!
 # See https://docs.djangoproject.com/en/1.9/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = ['localhost']
 
@@ -49,10 +36,16 @@ MAILMAN_REST_API_PASS = mailman_cfg('webservice', 'admin_pass')
 MAILMAN_ARCHIVER_KEY = read_cfg('/etc/mailman.d/hyperkitty.cfg', 'general', 'api_key')
 MAILMAN_ARCHIVER_FROM = ('127.0.0.1', '::1', '::ffff:127.0.0.1')
 
+# Only display mailing-lists in HyperKitty from the same virtual host
+# as the webserver.
+FILTER_VHOST = False
+
 
 #
 # Application definition
 #
+
+SITE_ID = 1
 
 INSTALLED_APPS = (
     # Uncomment the next line to enable the Django admin site:
@@ -131,9 +124,18 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'wsgi.application'
 
+# Using the cache infrastructure can significantly improve performance on a
+# production setup. This is an example with a local Memcached server.
+#CACHES = {
+#    'default': {
+#        'BACKEND': 'django.core.cache.backends.memcached.PyLibMCCache',
+#        'LOCATION': '127.0.0.1:11211',
+#    }
+#}
+
 
 #
-# Database
+# Databases
 # See https://docs.djangoproject.com/en/1.9/ref/settings/#databases
 #
 
@@ -152,6 +154,14 @@ DATABASES = {
 #        'HOST': '127.0.0.1',
 #        'PORT': '',
 #    }
+}
+
+# Full-text search engine
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
+        'PATH': joinpath(DATA_DIR, 'fulltext_index'),
+    },
 }
 
 
@@ -175,6 +185,14 @@ EMAIL_USE_TLS = False
 # Whether to use an implicit TLS connection when talking to the SMTP server.
 EMAIL_USE_SSL = False
 
+# A tuple that lists people who get code error notifications. When DEBUG=False
+# and a view raises an exception, Django will email these people with the full
+# exception information. Each member of the tuple should be a tuple of (Full
+# name, email address).
+ADMINS = (
+     ('Mailman Admin', 'root@localhost'),
+)
+
 # If you enable email reporting for error messages, this is where those emails
 # will appear to be coming from. Make sure you set a valid domain name,
 # otherwise the emails may get rejected.
@@ -191,6 +209,9 @@ EMAIL_USE_SSL = False
 #
 # Security settings
 #
+
+# A secret key used for signing sessions, cookies, password reset tokens etc.
+SECRET_KEY = open(joinpath(CONF_DIR, 'secret_key')).read()
 
 CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_HTTPONLY = True
@@ -217,64 +238,6 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 
 #
-# Internationalization
-# https://docs.djangoproject.com/en/1.9/topics/i18n/
-#
-
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
-
-USE_I18N = True
-USE_L10N = True
-USE_TZ = True
-
-
-#
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.9/howto/static-files/
-#
-
-# Absolute path to the directory static files should be collected to.
-# Don't put anything in this directory yourself; store your static files
-# in apps' "static/" subdirectories and in STATICFILES_DIRS.
-# Example: "/var/www/example.com/static/"
-STATIC_ROOT = joinpath(BASE_DIR, 'static')
-
-# URL prefix for static files.
-# Example: "http://example.com/static/", "http://static.example.com/"
-STATIC_URL = '/static/'
-
-
-# Additional locations of static files
-STATICFILES_DIRS = (
-    # Put strings here, like "/home/html/static".
-    # Don't forget to use absolute paths, not relative paths.
-)
-
-# List of finder classes that know how to find static files in
-# various locations.
-STATICFILES_FINDERS = (
-    'django.contrib.staticfiles.finders.FileSystemFinder',
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    'compressor.finders.CompressorFinder',
-)
-
-# django-compressor
-# https://pypi.python.org/pypi/django_compressor
-COMPRESS_PRECOMPILERS = (
-    ('text/x-scss', 'sassc -t compressed {infile} {outfile}'),
-    ('text/x-sass', 'sassc -t compressed {infile} {outfile}'),
-)
-COMPRESS_OFFLINE = True
-
-# Compatibility with Bootstrap 3
-from django.contrib.messages import constants as messages
-MESSAGE_TAGS = {
-    messages.ERROR: 'danger'
-}
-
-
-#
 # Authentication
 #
 
@@ -284,9 +247,9 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
 )
 
-LOGIN_URL          = 'account_login'
+LOGIN_URL = 'account_login'
 LOGIN_REDIRECT_URL = 'hk_root'
-LOGOUT_URL         = 'account_logout'
+LOGOUT_URL = 'account_logout'
 
 # Whether registration of new accounts is currently permitted.
 REGISTRATION_OPEN = True
@@ -341,6 +304,60 @@ AUTH_PASSWORD_VALIDATORS = [
     { 'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator' },
 ]
 
+
+#
+# Internationalization
+# https://docs.djangoproject.com/en/1.9/topics/i18n/
+#
+
+LANGUAGE_CODE = 'en-us'
+TIME_ZONE = 'UTC'
+
+USE_I18N = True
+USE_L10N = True
+USE_TZ = True
+
+
+#
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/1.9/howto/static-files/
+#
+
+# Absolute path to the directory static files should be collected to.
+# Don't put anything in this directory yourself; store your static files
+# in apps' "static/" subdirectories and in STATICFILES_DIRS.
+# Example: "/var/www/example.com/static/"
+STATIC_ROOT = joinpath(BASE_DIR, 'static')
+
+# URL prefix for static files.
+# Example: "http://example.com/static/", "http://static.example.com/"
+STATIC_URL = '/static/'
+
+
+# Additional locations of static files
+STATICFILES_DIRS = (
+    # Put strings here, like "/home/html/static".
+    # Don't forget to use absolute paths, not relative paths.
+)
+
+# List of finder classes that know how to find static files in
+# various locations.
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'compressor.finders.CompressorFinder',
+)
+
+# django-compressor
+COMPRESS_OFFLINE = True
+
+# Compatibility with Bootstrap 3
+from django.contrib.messages import constants as messages
+MESSAGE_TAGS = {
+    messages.ERROR: 'danger'
+}
+
+
 #
 # Gravatar
 # https://github.com/twaddington/django-gravatar
@@ -358,17 +375,6 @@ GRAVATAR_DEFAULT_IMAGE = 'retro'
 #GRAVATAR_DEFAULT_RATING = 'g'
 # True to use https by default, False for plain http.
 GRAVATAR_DEFAULT_SECURE = True
-
-
-#
-# Full-text search engine
-#
-HAYSTACK_CONNECTIONS = {
-    'default': {
-        'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
-        'PATH': joinpath(DATA_DIR, 'fulltext_index'),
-    },
-}
 
 
 #
@@ -445,23 +451,6 @@ LOGGING = {
         'level': 'INFO',
     },
 }
-
-
-# Using the cache infrastructure can significantly improve performance on a
-# production setup. This is an example with a local Memcached server.
-#CACHES = {
-#    'default': {
-#        'BACKEND': 'django.core.cache.backends.memcached.PyLibMCCache',
-#        'LOCATION': '127.0.0.1:11211',
-#    }
-#}
-
-#
-# HyperKitty-specific
-#
-
-# Only display mailing-lists from the same virtual host as the webserver
-FILTER_VHOST = False
 
 
 try:

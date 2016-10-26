@@ -1,5 +1,5 @@
 #!/bin/sh
-set -eu
+set -u
 
 SECRET_KEY="/etc/mailman-webui/secret_key"
 
@@ -15,10 +15,11 @@ fi
 
 cat >&2 <<EOF
 *
-* Adjust settings in /etc/mailman-webui and run:
-*   su mailman -c "mailman-webui-admin migrate"
-*   su mailman -c "mailman-webui-admin update_index"
-*
-* Make sure that cron is enabled!
+* 1. Adjust settings in /etc/mailman-webui (especially ALLOWED_HOSTS).
+* 2. Run the following commands:
+*     su mailman -c "mailman-webui-admin migrate"
+*     su mailman -c "mailman-webui-admin update_index"
+*     su mailman -c "mailman-webui-admin createsuperuser"
+* 3. Make sure that cron is enabled!
 *
 EOF

@@ -7,7 +7,7 @@ pkgver=1.0_git20161024
 _postorius_ref=1c1a759f79f9fe94914d5622289c727dc6ea54ff
 _hyperkitty_ref=b878daecdb5dd54746951438e30e1a838b2769d2
 _mailmanclient_ref=1b25268ba10c921db3668d5d34177b64a0da03ed
-pkgrel=1
+pkgrel=2
 pkgdesc="A web user interface for GNU Mailman (Postorius + HyperKitty)"
 url="http://www.list.org/"
 arch="all"
@@ -23,6 +23,7 @@ source="postorius-$_postorius_ref.tar.gz::https://gitlab.com/mailman/postorius/r
 	mailmanclient-$_mailmanclient_ref.tar.gz::https://gitlab.com/mailman/mailmanclient/repository/archive.tar.gz?ref=$_mailmanclient_ref
 	constraints.txt
 	settings.py
+	settings_build.py
 	custom.py
 	urls.py
 	wsgi.py
@@ -94,11 +95,9 @@ build() {
 
 	## Collect static assets
 
-	sed -E	-e "s|^(STATIC_ROOT =).*|\1 'static'|" \
-		-e "s|^(SECRET_KEY =).*|\1 'top-secret'|" \
-		-e "/^LOGGING/,/^}$/ s|('handlers':) \[.*\],|\1 \['console'\],|g" \
-		-e "/^LOGGING/,/^}$/ s|('filename':) .*,|\1 '/dev/null',|g" \
+	sed -E "s|^(SECRET_KEY =).*|\1 'top-secret'|" \
 		"$srcdir"/settings.py > settings.py || return 1
+	cp "$srcdir"/settings_build.py settings_local.py || return 1
 	cp "$srcdir"/custom.py . || return 1
 
 	bin/django-admin collectstatic --noinput --ignore "*.scss" \
@@ -171,7 +170,8 @@ md5sums="ec8854979677ac3e565b8c435ec2a855  postorius-1c1a759f79f9fe94914d5622289
 4418bd353d16afafbbe834b54776abf3  hyperkitty-b878daecdb5dd54746951438e30e1a838b2769d2.tar.gz
 563e3f3b355ab2e28fa3b99d9e8c43b1  mailmanclient-1b25268ba10c921db3668d5d34177b64a0da03ed.tar.gz
 7d909212bc2ff6a6e7cdd155cfbf8d6d  constraints.txt
-c29d4410378111f3d823cb0d15f0a9c3  settings.py
+ead969a036df0e4ca355a65b97ace201  settings.py
+e3a6308b810da847f72de16138e768b0  settings_build.py
 cf59065b5b47565f5657250a0b702e35  custom.py
 50b27a5bd9f652a176ceb5ca4db71b6e  urls.py
 6fae99b95f61b0ae8387702895c0b4d3  wsgi.py
@@ -185,7 +185,8 @@ sha256sums="ba2aaee49725820b56792a6a37d7a5006a112a21908e3114ddcfebf44f542e18  po
 e0d3436c45fbc9c3fb9e04bbfd5fe9b9ea068587d80bc35f0349d2758b3a0a42  hyperkitty-b878daecdb5dd54746951438e30e1a838b2769d2.tar.gz
 988ab885cbc1db9ad63801080192341a148ac244eee78f67d120e0fb78fafa8e  mailmanclient-1b25268ba10c921db3668d5d34177b64a0da03ed.tar.gz
 02f9994b962090d937c70a9e726611ecade20d0c2187b6f77360334814823a60  constraints.txt
-196dd158a198a5d40357847f4ffcf270a9700baf81b02194cd3294d124fdf4a2  settings.py
+6854e3a59a0687383a063a1792e833bb405388f2521e657eb5571c52a3d34e0e  settings.py
+53c61038dc8804f39a751b3a4f556c1ea21ef377c7ca98cf1b1b678f3852adb0  settings_build.py
 4dce35b1e5ef1de1054e140eaa75f296a4b7eddd3ebfbacc6562f6816fc0f2e8  custom.py
 e373b3a088067e049b40018261a2c219ddea524faa3809674d59860d0b02b57b  urls.py
 0268cead5048b48632d2c7de4051b8a563fa97b667785c14eec96964ee2200f2  wsgi.py
@@ -199,7 +200,8 @@ sha512sums="4416b2ee48ea93ef85627bc40dd3df9d16a674529c87cb21bf1c02423fbbe9902fc7
 560c12c1e8749989611c6e13433aa6375abc930b35eca156c8505e974737c00d9dbe67dd309443faf1bf4dcb7246bc07bfb5cd8181c0cea7af55dee520fe3704  hyperkitty-b878daecdb5dd54746951438e30e1a838b2769d2.tar.gz
 dbfb185cf1ab049d6f91c1f5a998e5b50665d5d09c867f746ef17ae088aa091b4fb193bdd0fe6b30d055c90f0bcb1637a902aa0db708cb354e7d6e2f6b851fd6  mailmanclient-1b25268ba10c921db3668d5d34177b64a0da03ed.tar.gz
 5ec62fdef9f32ae46a7e17bacf4dbf4a996434afbc4e830da08a1aeee05d942a298dc1230a1b307b2ccb58796498d791c900358c8b4571807e39a155ac3ce805  constraints.txt
-c030226ecfce54ec21a7868d27e131aa0e686e94623b25474d2d7ef6ce33ff2b36b0c43f5729b48f817b1f283f8b78dd88c3c8909eadc33ca604a4989e7a5b47  settings.py
+bca9d7d97e57162a3ce69fbeee5eb9b8d9178ae3dea558b50a9b5472e3f41cdd3ccb00b0af058b0645b37d102642252bdc6fed76b39804bbc9718fef5fed6138  settings.py
+8bd3a9bb44c0999ac311359bc2a039316bd9e9fab4f197a8be745b0e8012be798c36329e114d0fc0b27bcff41f2a9b300a617f93352420599780ca833917ffcd  settings_build.py
 b37798f5c7fb8bbf4ca6e4515bb5b3b3c260d6c97f4561f88135a4d1b2bb2b7d3ddd14668fa02562452faf0d32cc16ceacd08bb30b3595442cce216382937e70  custom.py
 4da086029a0e1329a68815ba17e50e9925ffabf9171f219ee8e57b40013b5a40204467f6ce6f0da7bba57e55c99acb0b659e18e7f0c4eb16d2ac249a6cfa628d  urls.py
 52b94c1e58efadda4e78fece7ed8e42079d9fb981ec9916d18a5c8650e5bc27e9face7ed3be1f140c68e411e6725ba6bdcb28b67c4801619a3a4fe7c2e93f564  wsgi.py
