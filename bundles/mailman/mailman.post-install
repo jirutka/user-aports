@@ -1,0 +1,18 @@
+#!/bin/sh
+set -eu
+
+random_pass() {
+	local length="$1"
+
+	python3.4 <<-EOF
+		import random, string
+		chars = string.ascii_letters + string.digits
+		print(''.join(random.SystemRandom().choice(chars) for _ in range($length)))
+	EOF
+}
+
+
+for file in /etc/mailman.cfg /etc/mailman.d/hyperkitty.cfg; do
+	echo "* Changing default password in $file to random one..."
+	sed -i "s/!CHANGE-ME!/$(random_pass 32)/" $file
+done

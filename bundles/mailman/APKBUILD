@@ -4,7 +4,7 @@ pkgname=mailman
 # Note: When bumping pkgver, wipe constraints.txt, run abuild -r, then
 # abuild checksum and commit the updated constraints.txt.
 pkgver=3.0.3
-pkgrel=2
+pkgrel=3
 pkgdesc="The GNU Mailing List Management System"
 url="http://www.list.org/"
 arch="all"
@@ -12,7 +12,7 @@ license="GPLv3"
 depends=""
 _pyver=3.4
 makedepends="python$_pyver-dev postgresql-dev"
-install="$pkgname.pre-install"
+install="$pkgname.pre-install $pkgname.post-install"
 pkgusers="mailman"
 pkggroups="mailman"
 source="https://files.pythonhosted.org/packages/source/${pkgname:0:1}/$pkgname/$pkgname-$pkgver.tar.gz
@@ -20,7 +20,8 @@ source="https://files.pythonhosted.org/packages/source/${pkgname:0:1}/$pkgname/$
 	$pkgname.initd
 	$pkgname.logrotate
 	$pkgname
-	mailman.cfg"
+	mailman.cfg
+	hyperkitty.cfg"
 builddir="$srcdir/$pkgname-$pkgver"
 
 _builddir="$srcdir/build"
@@ -75,7 +76,9 @@ package() {
 
 	install -m 640 -g mailman -D "$srcdir"/mailman.cfg \
 		./etc/mailman.cfg || return 1
-	install -d -m 755 ./etc/mailman.d || return 1
+
+	install -m 640 -g mailman -D "$srcdir"/hyperkitty.cfg \
+		./etc/mailman.d/hyperkitty.cfg || return 1
 
 	install -m 755 -D "$srcdir"/$pkgname.initd \
 		./etc/init.d/$pkgname || return 1
@@ -97,16 +100,19 @@ md5sums="dd1d18cfa82df956a3ca4053d764d805  mailman-3.0.3.tar.gz
 e9d92a89c6b1f3f91f6dbcdfc9b98833  mailman.initd
 219b397b0d9795c190fccb66fdb6af97  mailman.logrotate
 8897948a23c70c096e3896f617513eef  mailman
-a11c724690d5e92416a3a36cc495aa01  mailman.cfg"
+336b185b51041ba7f4a288304537babd  mailman.cfg
+c9ed9d0771cf17b8f5f8e11a7283c2f6  hyperkitty.cfg"
 sha256sums="9b826453e2cb01aeb0d231bc41aeb60012c1bd97964b57a5074e975d23b74d6e  mailman-3.0.3.tar.gz
 2708943dba84e363ce386ed054258a50fe9ef04e5b972796cb90dddacea3db75  constraints.txt
 8e9055f741e8dc7cce1ab51a7cfeeb0a39803dae58df18109712c6a486b5d2ef  mailman.initd
 0914f82c113d19d7690b74556b1b8b244c95f033398da9be16aa5d874b0336c8  mailman.logrotate
 36e9d3ebf11a66244588722425a4b3bb53856d16e58aad34a8057061d9bda5ec  mailman
-fcd4dc5fb9190aa3c045dfb10040de9f092e746d24b59b70cb193d48189b9827  mailman.cfg"
+178f3c6f570befeee19056052d466bfa716324a0f12ec46447598b9e0990879f  mailman.cfg
+eec90c3bedb61493269ec44f727af16ab309412c7a44253fe8b3d3c637f1f2e3  hyperkitty.cfg"
 sha512sums="c1fd3f697768a60f6711a9c1841563b3dcb7bef04f527d95fb40057a841ba509fa46c8c47756196202d6f1f067e5b5a7cd9dbc640c328631475b63a9ec3fe50d  mailman-3.0.3.tar.gz
 ded4c91de4f34ea5b3f8c1b6d0680f42a9e1d6bdd6c94e23ff030e2264e9da87c3b143bfc34cead411ac3d1f800610d2f6c9182debe0e626175c4872dd0cd6d2  constraints.txt
 8e00b4f639a862ac87c1195296cdca22e09d044893d7e3c1b392a9d69e4832f519b2b41f1a58c0c5385ab17adb3461a801d46e18f1152e1228ef3df785a1b50d  mailman.initd
 31e6fd356d9b0e04ab28596828539260995e33688b27baae525b16fb103449c59ea291146f749f51dd1e34bb2b718c785c4828d739896a3ca6fadedc14d67f47  mailman.logrotate
 e8cdec412326ae8758408d3bd8b1a623e388aadd77d0858cfe493d15628ceaec3dc0bc3e4b7749f0680157fdd98d22f1e93a810e94bb1df277810d89593307e2  mailman
-7029d661f2608eceaa8ed7f84749ad099b4d74c9e8d016dcc53dabe4a8909144aff6939f4545c09c8aefa40a3fc70b6812cbf4bbdbd2d4eb955cb0380e789f07  mailman.cfg"
+83b5fc77d54dd7ca07116b73797da4add36be0ac3ade7e328bca6dd4dc4b76c37d81b98d6211ab55a1d5ea4d1af0707730a5d8cb890267244a462c0704530b55  mailman.cfg
+2e3c61d2099ce9233855bc355f655e83e437dccd1188ec4a0b912d5a89050f8b075262cafb15178f63e5ff316cec4ebb7772aec43330b89442fb7302883d1ac5  hyperkitty.cfg"
