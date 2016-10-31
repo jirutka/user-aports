@@ -65,6 +65,7 @@ INSTALLED_APPS = (
     'django_extensions',
     'postorius',
     'django_mailman3',
+    'stronghold',
 
     # Uncomment the next line to enable integration with Sentry
     # and set DSN in RAVEN_CONFIG.
@@ -97,7 +98,7 @@ MIDDLEWARE_CLASSES = (
     'postorius.middleware.PostoriusMiddleware',
 
     # Uncomment to require a user to be authenticated to view any page.
-    #custom.AuthenticationRequiredMiddleware,
+    #'stronghold.middleware.LoginRequiredMiddleware',
 )
 
 # A string representing the full Python import path to your root URLconf.
@@ -272,6 +273,13 @@ AUTH_PASSWORD_VALIDATORS = [
     { 'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator' },
 ]
 
+# URLs which are ignored by LoginRequiredMiddleware, i.e. the middleware
+# does not *force* them to require authentication.
+STRONGHOLD_PUBLIC_URLS = (
+    r'^accounts/.*',
+    r'^archives/api/.*',
+)
+
 ## Django Allauth
 
 # Custom AccountAdapter for allauth that respects REGISTRATION_OPEN variable.
@@ -283,8 +291,8 @@ ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https'
 ACCOUNT_UNIQUE_EMAIL  = True
 
-# Uncomment to disable intermediate logout page.
-#ACCOUNT_LOGOUT_ON_GET = True
+# Whether to disable intermediate logout page.
+ACCOUNT_LOGOUT_ON_GET = False
 
 SOCIALACCOUNT_PROVIDERS = {}
 #SOCIALACCOUNT_PROVIDERS = {
