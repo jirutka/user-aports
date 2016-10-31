@@ -252,7 +252,7 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     # Uncomment to next line to enable LDAP authentication.
-    #'django_auth_ldap.backend.LDAPBackend',
+    #'custom.LDAPBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 )
 
@@ -317,7 +317,7 @@ SOCIALACCOUNT_PROVIDERS = {}
 #}
 
 ## Django LDAP
-if 'allauth.account.auth_backends.AuthenticationBackend' in AUTHENTICATION_BACKENDS:
+if 'custom.LDAPBackend' in AUTHENTICATION_BACKENDS:
     import ldap
     from django_auth_ldap.config import LDAPSearch
 
