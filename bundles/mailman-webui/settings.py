@@ -95,6 +95,9 @@ MIDDLEWARE_CLASSES = (
     #'hyperkitty.middleware.SSLRedirect',
     'django_mailman3.middleware.TimezoneMiddleware',
     'postorius.middleware.PostoriusMiddleware',
+
+    # Uncomment to require a user to be authenticated to view any page.
+    #custom.AuthenticationRequiredMiddleware,
 )
 
 # A string representing the full Python import path to your root URLconf.
@@ -279,6 +282,9 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https'
 ACCOUNT_UNIQUE_EMAIL  = True
+
+# Uncomment to disable intermediate logout page.
+#ACCOUNT_LOGOUT_ON_GET = True
 
 SOCIALACCOUNT_PROVIDERS = {}
 #SOCIALACCOUNT_PROVIDERS = {
