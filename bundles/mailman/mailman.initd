@@ -28,6 +28,7 @@ depend() {
 }
 
 start_pre() {
+	checkpath -d -o $user -m700 /run/lock/mailman
 	checkpath -d -o $user -m755 "${pidfile%/*}"
 }
 
