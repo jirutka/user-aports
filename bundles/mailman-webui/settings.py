@@ -276,8 +276,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # URLs which are ignored by LoginRequiredMiddleware, i.e. the middleware
 # does not *force* them to require authentication.
 STRONGHOLD_PUBLIC_URLS = (
-    r'^accounts/.*',
-    r'^archives/api/.*',
+    r'^/accounts/.*',
+    r'^/archives/api/mailman/.*',
 )
 
 ## Django Allauth
