@@ -29,8 +29,10 @@ class LDAPBackend(ldap_backend.LDAPBackend):
         try:
             email = EmailAddress.objects.get(user=user, email=user.email)
             email.verified = True
-            if not EmailAddress.objects.filter(user=user, primary=True).exists():
-                email.primary = True
-            email.save()
-        except ObjectDoesNotExist as e:
-            ldap_backend.logger.warning(u'EmailAddress %s does not exist' % user.email)
+        except ObjectDoesNotExist:
+            email = EmailAddress(user=user, email=user.email, verified=True)
+
+        if not EmailAddress.objects.filter(user=user, primary=True).exists():
+            email.primary = True
+
+        email.save()
