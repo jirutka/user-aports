@@ -1,0 +1,95 @@
+# Configuration for /etc/init.d/tomcat7
+
+# User to run Tomcat.
+#user="tomcat"
+
+# Path to directory with instance's configuration files.
+#confdir="/etc/$RC_SVCNAME"
+
+# Where to store logs.
+#logdir="/var/log/$RC_SVCNAME"
+
+# Path to temporary working directory.
+#tempdir="/tmp/$RC_SVCNAME"
+
+# You may use rc_need, rc_use, rc_after, rc_before and rc_provide variables to
+# influence the dependencies of the service.
+#rc_use=
+
+
+# The protocol to handle incoming traffic.
+# Note: This is effective only with default server.xml.
+#server_protocol="HTTP/1.1"
+
+# The TCP port number to listen on for incoming connections.
+# Note: This is effective only with default server.xml.
+#server_port="8080"
+
+# The name or IP of the interface to listen on.
+# Note: This is effective only with default server.xml.
+#server_bind_address="0.0.0.0"
+
+
+# The base directory of your Tomcat instance.
+#catalina_base="/var/lib/$RC_SVCNAME"
+
+# Additional options to pass to Catalina (Tomcat).
+#catalina_opts=""
+
+# Path to logging config.
+#tomcat_logging_conf="$catalina_home/conf/logging.properties"
+
+# Tomcat startup
+# - start            Normal start.
+# - jpda start       Start under JPDA debugger
+# - -security start  Start with security manager.
+#tomcat_start="start"
+
+
+# JAVA_HOME
+#java_home="/usr/lib/jvm/default-jvm"
+
+# Initial and maximum size of the heap (in megabytes).
+# Note: This sets parameters -Xms and -Xmx.
+java_heap_size="128"
+
+# Java system properties to pass to the JVM.
+# Define space separated tuples of <name>=<value>; it will be transformed into
+# -D<name>=<value> arguments for java.
+#java_properties=""
+
+# A colon or space separated list of directories, JAR archives, and ZIP
+# archives to search for class files.
+# This sets option -classpath.
+#java_extra_classpath=""
+
+# Additional options to pass to the JVM.
+# Example to tune GC:
+# java_opts="-XX:+UseG1GC -XX:MaxGCPauseMillis=50"
+#java_opts=""
+
+
+# Java Management Extensions (JMX)
+#
+# jmx_ssl Enable/disable secure monitoring via TLS/SSL (enabled by default).
+#
+# jmx_access_file (Optional) Override path of RMI access file. This file
+#   must exist and be in format: <username> <readonly|readwrite>
+#   Example: admin readwrite
+#
+# jmx_passwd_file (Optional) Override path of RMI password file. This file
+#   must exist and be in format: <username> <plain password>
+#
+# rmi_hostname (Optional) Specify your domain name or leave empty to use
+#   your IP address instead.
+#
+#jmx_ssl="enable"
+#jmx_access_file=""
+#jmx_passwd_file=""
+#rmi_hostname="example.org"
+
+# Java Platform Debugger Architecture (JPDA)
+# Override default JPDA address and transport for the "jpda start" command.
+#
+#jpda_address="8000"
+#jpda_transport="dt_socket"

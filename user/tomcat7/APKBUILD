@@ -1,0 +1,60 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+_pkgname=tomcat
+_majorver=7
+pkgname=tomcat$_majorver
+pkgver=$_majorver.0.72
+pkgrel=0
+pkgdesc="Apache Servlet/JSP Engine, RI for Servlet 3.0 and JSP 2.2 API"
+url="https://tomcat.apache.org/"
+arch="noarch"
+license="ASL-2.0"
+depends="openjdk7-jre-base"
+makedepends=""
+install=""
+subpackages=""
+source="http://mirror.hosting90.cz/apache/tomcat/$_pkgname-$_majorver/v$pkgver/bin/apache-$_pkgname-$pkgver.tar.gz
+	$pkgname.initd
+	$pkgname.confd
+	logging.properties
+	server.xml"
+builddir="$srcdir/apache-$_pkgname-$pkgver"
+
+package() {
+	local file
+	local destdir="$pkgdir/usr/share/java/$pkgname"
+	cd "$builddir"
+
+	# dbcp is obsolete
+	rm lib/tomcat-dbcp.jar
+	# Who needs es, fr, and ja locales?
+	rm lib/tomcat-i18n-*.jar
+
+	for path in conf/* lib/* bin/bootstrap.jar bin/tomcat-juli.jar; do
+		install -m 644 -D "$path" "$destdir"/$path || return 1
+	done
+	for path in logging.properties server.xml; do
+		install -m 644 "$srcdir"/$path "$destdir"/conf/$path || return 1
+	done
+
+	install -m 755 -D "$srcdir"/$pkgname.initd \
+		"$pkgdir"/etc/init.d/$pkgname || return 1
+	install -m 644 -D "$srcdir"/$pkgname.confd \
+		"$pkgdir"/etc/conf.d/$pkgname
+}
+
+md5sums="c24bfae15bb9c510451a05582aae634d  apache-tomcat-7.0.72.tar.gz
+55615c31050b405160b4dbe3b738f1df  tomcat7.initd
+6e2346398ef4613f29dfe23967639e51  tomcat7.confd
+a5d7aaa8dacb38592ee6589b341b103c  logging.properties
+59adc559c920d0f8cec1ff99d75b2229  server.xml"
+sha256sums="779c7bba49a9ed3cafc47a87c8f331d2068f2545105fdd1c1076e0357ebda5db  apache-tomcat-7.0.72.tar.gz
+4b043fef6459566f454f3bb5f9b12660598ab23a1a9ca3f3f44aa5d561e3f2de  tomcat7.initd
+ee94d9645015fadbd0a6161a6b44715efac86bf16874080df41dadbd9a5dbb72  tomcat7.confd
+9625c5acd4380b9423045f1810ae5ec12f556c08e198a6eed0319d9206bed081  logging.properties
+56d12f54112a1959b8b80eeda1bcbff8016be004b677553ff97c6c2919fa27e9  server.xml"
+sha512sums="bad1e7ec0035bbf28bcd59b6c9a73e280faa572b27b4fe812470537d984c0901324785525ef7464253fc96b40a0518be63f5dd0abbce91f3dbd91ca65fb7161f  apache-tomcat-7.0.72.tar.gz
+a41026413e1886bde35b5f5ff73369bf81da35190de5abca6c566e5cc10984b829343178f08a0196e36d58951044d157b38892508dc48f16db3d260733e4d53e  tomcat7.initd
+8e6cb252df96bf0e1290f3c0d5fd90bc45f8ec1b60c04faf013c03c43da96c4015cf138c2cb60d4117059425e910a377f3ef3ae67c5e90632fd16ae6a90991f8  tomcat7.confd
+f8dc00538018730b61460337390aad36722908d9869881bc40113004148f14460144767d2248c91c7cc3e5f3d24d3ccfedf3772942ef053faee7ff910affe66f  logging.properties
+a316c7c437ee52154a1b6eb94f49bff0b97148b1c49b3f28d7cc62d0afa48bf0cd17486ec4c30a8ba64b4c7d8129289c3d18c1ae6b845c1d8cb36c485a9b5f7d  server.xml"

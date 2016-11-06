@@ -1,0 +1,59 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!-- Documentation at http://tomcat.apache.org/tomcat-7.0-doc/config/ -->
+
+<Server port="-1" shutdown="disabled">
+
+    <!--APR library loader -->
+    <Listener className="org.apache.catalina.core.AprLifecycleListener" SSLEngine="off" />
+
+    <!--Initialize Jasper prior to webapps are loaded. -->
+    <Listener className="org.apache.catalina.core.JasperListener" />
+
+    <!-- Prevent memory leaks due to use of particular java/javax APIs. -->
+    <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener" />
+    <Listener className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener" />
+    <Listener className="org.apache.catalina.core.ThreadLocalLeakPreventionListener" />
+
+    <!-- Fix ports used by the JMX/RMI Server (for tools like jconsole, VisualVM,...)
+    <Listener className="org.apache.catalina.mbeans.JmxRemoteLifecycleListener" 
+        rmiRegistryPortPlatform="8001" 
+        rmiServerPortPlatform="8002"/>
+    -->
+
+    <!-- Global JNDI resources -->
+    <GlobalNamingResources>
+    </GlobalNamingResources>
+
+    <!--A "Service" is a collection of one or more "Connectors" that share
+        a single "Container". -->
+    <Service name="Catalina">
+
+        <Connector protocol="${server.protocol}"
+            port="${server.port}"
+            address="${server.address}"
+            acceptorThreadCount="2"
+            connectionTimeout="20000"
+            URIEncoding="UTF-8" />
+
+        <Engine name="Catalina" defaultHost="localhost">
+
+            <Host name="localhost"
+                appBase="webapps"
+                unpackWARs="true"
+                autoDeploy="true" />
+
+            <!-- Replace request's remote IP address and protocol with values
+                 resented by a proxy via a request headers. -->
+            <Valve className="org.apache.catalina.valves.RemoteIpValve"
+                remoteIpHeader="X-Forwarded-For"
+                protocolHeader="X-Forwarded-Proto" />
+
+            <!-- Access log
+            <Valve className="org.apache.catalina.valves.AccessLogValve" 
+                directory="logs"
+                prefix="localhost_access." suffix=".log"
+                pattern="%h %l %u %t &quot;%r&quot; %s %b" />
+            -->
+        </Engine>
+    </Service>
+</Server>
