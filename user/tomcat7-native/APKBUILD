@@ -1,0 +1,48 @@
+# Contributor: Sean Summers <seansummers@gmail.com>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=tomcat7-native
+_pkgname=tomcat-native
+pkgver=1.2.10
+pkgrel=0
+pkgdesc="Native resources optional component for Apache Tomcat"
+url="http://tomcat.apache.org/native-doc/"
+arch="all"
+license="ASL-2.0"
+depends="openjdk7-jre-base"
+depends_dev="openssl-dev"
+makedepends="$depends_dev apr-dev chrpath openjdk7"
+subpackages="$pkgname-dev"
+source="http://www-eu.apache.org/dist/tomcat/tomcat-connectors/native/$pkgver/source/$_pkgname-$pkgver-src.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver-src/native"
+
+build() {
+	cd "$builddir"
+
+	./configure --prefix=/usr \
+		--with-apr=/usr/bin/apr-1-config \
+		--with-java-home=/usr/lib/jvm/java-1.7-openjdk \
+		--with-ssl=yes \
+		|| return 1
+	make || return 1
+}
+
+package() {
+	cd "$builddir"
+
+	make DESTDIR="$pkgdir" install || return 1
+
+	# Remove rpath.
+	chrpath --delete "$pkgdir"/usr/lib/libtcnative-1.so || return 1
+
+	rm -f "$pkgdir"/usr/lib/libtcnative-1.la || return 1
+	rmdir "$pkgdir"/usr/bin
+}
+
+dev()  {
+	default_dev || return 1
+	mv "$subpkgdir"/usr/lib/libtcnative-1.so "$pkgdir"/usr/lib/
+}
+
+md5sums="7529a2240f1405f206d2c47dce2f5e6d  tomcat-native-1.2.10-src.tar.gz"
+sha256sums="553a796f1efb9d52a22a24636baca45ae265327f2a2d2f3169436b4012df9c35  tomcat-native-1.2.10-src.tar.gz"
+sha512sums="ab12525e031f4b0221634bde0b3af826c2231a8655032917bd09fe26075cc8b9bce7a7c5de369f525230155d50ec41ff84fb074c45ef9f34319f910e907d66a6  tomcat-native-1.2.10-src.tar.gz"
