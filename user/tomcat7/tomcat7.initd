@@ -74,7 +74,8 @@ forcestop() {
 	start-stop-daemon --stop \
 		--quiet --retry=60 \
 		--pidfile $pidfile \
-		--signal=9
+		--signal=9 \
+		&& mark_service_stopped "$RC_SVCNAME"
 	eend $?
 }
 
