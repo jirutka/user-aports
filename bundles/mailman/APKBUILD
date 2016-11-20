@@ -3,8 +3,10 @@
 pkgname=mailman
 # Note: When bumping pkgver, wipe constraints.txt, run abuild -r, then
 # abuild checksum and commit the updated constraints.txt.
-pkgver=3.0.3
-pkgrel=5
+pkgver=3.1_git20161114
+_mailman_ref=54d32b872ee4e67a64a176077dbc49a4f87b9324  # master/HEAD
+_mmhyperkitty_ref=77cabcea62372a2b2d3533e1d4dba94a766b7428  # 1.0.2 (not tagged)
+pkgrel=0
 pkgdesc="The GNU Mailing List Management System"
 url="http://www.list.org/"
 arch="all"
@@ -15,22 +17,34 @@ makedepends="python$_pyver-dev postgresql-dev"
 install="$pkgname.pre-install $pkgname.post-install"
 pkgusers="mailman"
 pkggroups="mailman"
-source="https://files.pythonhosted.org/packages/source/${pkgname:0:1}/$pkgname/$pkgname-$pkgver.tar.gz
+source="$pkgname-$_mailman_ref.tar.gz::https://gitlab.com/mailman/$pkgname/repository/archive.tar.gz?ref=$_mailman_ref
+	$pkgname-hyperkitty-$_mmhyperkitty_ref.tar.gz::https://gitlab.com/mailman/$pkgname-hyperkitty/repository/archive.tar.gz?ref=$_mmhyperkitty_ref
 	constraints.txt
 	$pkgname.initd
 	$pkgname.logrotate
 	mailman.cfg
 	hyperkitty.cfg"
-builddir="$srcdir/$pkgname-$pkgver"
+builddir="$srcdir/build"
 
-_builddir="$srcdir/build"
+_mailman_dir="$srcdir/$pkgname-$_mailman_ref-$_mailman_ref"
+_mmhyperkitty_dir="$srcdir/$pkgname-hyperkitty-$_mmhyperkitty_ref-$_mmhyperkitty_ref"
 _prefix="/usr/lib/bundles/$pkgname"
 
-build() {
-	local extra_eggs="mailman-hyperkitty psycopg2"
+prepare() {
+	mkdir -p "$builddir"
 
-	mkdir -p "$_builddir"
-	cd "$_builddir"
+	cd "$srcdir"
+	ln -s "$_mailman_dir" mailman || return 1
+	ln -s "$_mmhyperkitty_dir" mailman-hyperkitty || return 1
+
+	local builddir="$srcdir"
+	default_prepare
+}
+
+build() {
+	local extra_eggs="psycopg2"
+
+	cd "$builddir"
 
 	# Create virtualenv.
 	python$_pyver -m venv . || return 1
@@ -41,20 +55,22 @@ build() {
 		--isolated \
 		--no-cache-dir \
 		--constraint "$srcdir"/constraints.txt \
-		"$builddir" $extra_eggs || return 1
+		"$_mailman_dir" "$_mmhyperkitty_dir" \
+		$extra_eggs || return 1
 
 	# Note: This overwrites existing constraints.txt.
 	bin/python -m pip freeze --disable-pip-version-check \
-		| sed '/^mailman==.*/d' > "$srcdir"/constraints.txt
+		| sed -E '/^(mailman|mailman-hyperkitty)==.*/d' \
+		> "$srcdir"/constraints.txt || return 1
 
 	# Remove pip that is not needed in runtime (note: setuptools is needed).
 	bin/python -m pip uninstall --disable-pip-version-check -y pip || return 1
 
 	# Fix shebang to correct destination.
-	find ./bin -type f -exec sed -i "s|$_builddir|$_prefix|g" {} \; || return 1
+	find ./bin -type f -exec sed -i "s|$builddir|$_prefix|g" {} \; || return 1
 
 	# Remove some unnecessary scripts and directories.
-	rm -f bin/activate.* bin/falcon-bench bin/nose*
+	rm -f bin/activate.* bin/easy_install* bin/falcon-bench bin/nose*
 	rm -Rf man include lib64
 
 	# Remove tests.
@@ -68,7 +84,7 @@ package() {
 	mkdir -p "${pkgdir}${_prefix}"
 	cd "$pkgdir" || return 1
 
-	mv "$_builddir"/* .$_prefix/ || return 1
+	mv "$builddir"/* .$_prefix/ || return 1
 
 	mkdir -p ./usr/bin
 	ln -s $_prefix/bin/mailman ./usr/bin/mailman || return 1
@@ -90,24 +106,28 @@ package() {
 		./var/log/mailman || return 1
 
 	install -d -m 700 -o mailman -g mailman \
-		./var/spool/mailman
+		./var/spool/mailman \
+		./var/cache/mailman
 }
 
-md5sums="dd1d18cfa82df956a3ca4053d764d805  mailman-3.0.3.tar.gz
-6d9ce55bab13e30c9fe1bc149f52f949  constraints.txt
+md5sums="75b4f26064aeeaca87b00910ba4929c4  mailman-54d32b872ee4e67a64a176077dbc49a4f87b9324.tar.gz
+5ed4e82fbb8742b445a334eaae375752  mailman-hyperkitty-77cabcea62372a2b2d3533e1d4dba94a766b7428.tar.gz
+dcc24ad96e237d4621401214056b217a  constraints.txt
 1f37b98042d6e926c3e7ccbbbc5bb111  mailman.initd
 219b397b0d9795c190fccb66fdb6af97  mailman.logrotate
-336b185b51041ba7f4a288304537babd  mailman.cfg
+81bad5da04a96c7d4a9a203aa4603228  mailman.cfg
 7d4800b9adf5865c813b10534166d24f  hyperkitty.cfg"
-sha256sums="9b826453e2cb01aeb0d231bc41aeb60012c1bd97964b57a5074e975d23b74d6e  mailman-3.0.3.tar.gz
-2708943dba84e363ce386ed054258a50fe9ef04e5b972796cb90dddacea3db75  constraints.txt
+sha256sums="5946d1a2699505e8a01ef7d462b59ace78da31251ea3c9f592c0a3fc8fdcf008  mailman-54d32b872ee4e67a64a176077dbc49a4f87b9324.tar.gz
+506c7d86cf3d16659740bb429030addbe5c9e3f55bf808600d4dc5ae8198ff9e  mailman-hyperkitty-77cabcea62372a2b2d3533e1d4dba94a766b7428.tar.gz
+4df2be8a033f28b7d996492fec4680baf77e20e813dd92d783f580ea982285fd  constraints.txt
 9ccec1e391c48d22d1ba05a35a9719bc9254bf082767070aac40d3a875b12d8b  mailman.initd
 0914f82c113d19d7690b74556b1b8b244c95f033398da9be16aa5d874b0336c8  mailman.logrotate
-178f3c6f570befeee19056052d466bfa716324a0f12ec46447598b9e0990879f  mailman.cfg
+0e2e5b775cb6068b68d9df84d926b09d690c5e4def5bbef3f3b59677bab84ea8  mailman.cfg
 16166d2a1bd8cc189494a1444f9789a38db455eb8dd5f34e360f65f0477a2891  hyperkitty.cfg"
-sha512sums="c1fd3f697768a60f6711a9c1841563b3dcb7bef04f527d95fb40057a841ba509fa46c8c47756196202d6f1f067e5b5a7cd9dbc640c328631475b63a9ec3fe50d  mailman-3.0.3.tar.gz
-ded4c91de4f34ea5b3f8c1b6d0680f42a9e1d6bdd6c94e23ff030e2264e9da87c3b143bfc34cead411ac3d1f800610d2f6c9182debe0e626175c4872dd0cd6d2  constraints.txt
+sha512sums="16640cc54bebc00b6881ba9be72f9cf119cfd6c383ead683bdfdd0d1c7451da4dc9177d2367ef5e68cf65c26f2b7aeeb4f523a4d4cacc51344b302ec148b09ae  mailman-54d32b872ee4e67a64a176077dbc49a4f87b9324.tar.gz
+f79bedfb05aa732d1ef9048ece23187d66ef2ada752537d0f1240f7efed580953240edf73bfc15a41ae424414b0a64c28d0b4608e93760d33091944acd908b49  mailman-hyperkitty-77cabcea62372a2b2d3533e1d4dba94a766b7428.tar.gz
+cead6ddfa2da394e2fb5e27e8d5b276f2cd6cdbbd534a085d069d4f93c1ded0e0d603b9810ad388e5b65726a96aa1e2a8ee89c6fc24753de1b10726201d2c134  constraints.txt
 006a1cda6bc25742b99d8803a4d5d4ab8cf7f1a066d75559874f2fd5dfa8d0a1b2033c9a288a1b71a090649de372205e0a2c8dea2165f5efd57f5bdeaea2f199  mailman.initd
 31e6fd356d9b0e04ab28596828539260995e33688b27baae525b16fb103449c59ea291146f749f51dd1e34bb2b718c785c4828d739896a3ca6fadedc14d67f47  mailman.logrotate
-83b5fc77d54dd7ca07116b73797da4add36be0ac3ade7e328bca6dd4dc4b76c37d81b98d6211ab55a1d5ea4d1af0707730a5d8cb890267244a462c0704530b55  mailman.cfg
+3c80e1eab46fc10d1322881a57591cc3c691f89d501a8e80a4258965c727b102cce4e0e840e55be181c83510ea2c1311cc1421ecdbcf9e3e27c6897af3215a34  mailman.cfg
 6c5211a48671616b3d700807d7267ddbf7759c219d2ac6b4ccf05a745f0cae29b27f38c4a48f5b9736f451a4665acc4caf56c7bb8b52a497d85100bfdd8f7397  hyperkitty.cfg"
