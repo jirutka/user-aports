@@ -2,7 +2,7 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jeff Bilyk <jbilyk@gmail.com>
 pkgname=nagios-plugins
-pkgver=2.1.1
+pkgver=2.1.4
 pkgrel=0
 pkgdesc="Plugins for Nagios to check services on hosts"
 url="http://nagiosplugins.org"
@@ -110,15 +110,14 @@ _plugin() {
 	if file -bi "$destdir"/* | grep -qw text/x-perl; then
 		depends="$depends perl"
 	fi
-	if ! file -bi "$destdir"/* | grep -qw application/x-sharedlib; then
-		arch="noarch"
-	fi
+#	if ! file -bi "$destdir"/* | grep -qw application/x-sharedlib; then
+#		arch="noarch"
+#	fi
 }
 
 _all() {
 	pkgdesc="Metapackage that installs *all* Nagios plugins from the nagios-plugins package"
 	depends="${subpackages% all}"
-	arch="noarch"
 
 	mkdir -p "$subpkgdir"
 
@@ -133,6 +132,6 @@ _all() {
 	return $retval
 }
 
-md5sums="e199ca874df5723bfaca8c43887b1a79  nagios-plugins-2.1.1.tar.gz"
-sha256sums="c7daf95ecbf6909724258e55a319057b78dcca23b2a6cc0a640b90c90d4feae3  nagios-plugins-2.1.1.tar.gz"
-sha512sums="6ef872a6aca50f4b575cae8b484766103bbeace7118090c81df3e62f9a30f9a156bb2bed4dbfa3e483e22a6b7505816e668b56bf3c91fcef8eafa9038c93dd26  nagios-plugins-2.1.1.tar.gz"
+md5sums="62f4473ed97a548eb7b982c5ff074895  nagios-plugins-2.1.4.tar.gz"
+sha256sums="4355b5daede0fa72bbb55d805d724dfa3d05e7f66592ad71b4e047c6d9cdd090  nagios-plugins-2.1.4.tar.gz"
+sha512sums="33b3f06b1604bcb8cdd35f89924c58118afe8b9cce3de6c473ca4c8b844b0debc2c02a2fdc85176a7093273f76b26934483dab111ef3532efc977d9615038e99  nagios-plugins-2.1.4.tar.gz"
