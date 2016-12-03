@@ -1,0 +1,22 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=prebackup
+pkgver=0.5.2
+pkgrel=0
+pkgdesc="Pre/post backup scripts"
+url="https://github.com/jirutka/prebackup"
+arch="noarch"
+license="MIT"
+depends="bash"
+makedepends="perl"
+source="$pkgname-$pkgver.tar.gz::https://github.com/jirutka/$pkgname/archive/v$pkgver.tar.gz"
+builddir="$srcdir/$pkgname-$pkgver"
+
+package() {
+	cd "$builddir"
+	DESTDIR="$pkgdir" PREFIX="/usr" ./install
+}
+
+md5sums="0a749a91b56f82bedf25b25f31930718  prebackup-0.5.2.tar.gz"
+sha256sums="5c92ac28c0ac35847af67e7347a77f75e487d7a044c93df0a0495bec7eb12a45  prebackup-0.5.2.tar.gz"
+sha512sums="3a915443f5f003b6a88b94ce4bf0444bb7e741881fc7e6501690759f4363fe4cbe2760d5222a45a922cfc6524c506268990c78e92c5c0642e2cd607bfbead579  prebackup-0.5.2.tar.gz"
