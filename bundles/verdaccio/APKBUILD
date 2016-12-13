@@ -1,0 +1,86 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=verdaccio
+pkgver=2.1.0
+pkgrel=0
+pkgdesc="Private npm repository server (fork of Sinopia)"
+url="https://github.com/verdaccio/verdaccio"
+arch="noarch"
+license="WTFPL"
+depends="nodejs"
+makedepends="jq"
+pkgusers="$pkgname"
+pkggroups="$pkgname"
+install="$pkgname.pre-install"
+source="$pkgname-$pkgver.tar.gz::https://github.com/verdaccio/$pkgname/archive/v$pkgver.tar.gz
+	npm-shrinkwrap.json
+	config.yaml
+	$pkgname.initd
+	$pkgname.logrotate"
+builddir="$srcdir/$pkgname-$pkgver"
+
+_prefix="/usr/lib/bundles/$pkgname"
+
+prepare() {
+	default_prepare || return 1
+	cd "$builddir"
+
+	# Add sinopia-ldap to dependencies.
+	mv package.json package.json.orig
+	jq '.dependencies["sinopia-ldap"] = "^0.5.1"' \
+		package.json.orig > package.json || return 1
+
+	local oldver="$(jq -r '.version' "$srcdir"/npm-shrinkwrap.json)"
+	if [ "$oldver" = "$pkgver" ]; then
+		cp "$srcdir"/npm-shrinkwrap.json "$builddir"/
+	fi
+}
+
+build() {
+	cd "$builddir"
+
+	export NPM_CONFIG_CACHE="$srcdir/.npm"
+	npm install --production || return 1
+
+	npm shrinkwrap || return 1
+	cp -f npm-shrinkwrap.json "$startdir"/
+}
+
+package() {
+	cd "$builddir"
+
+	mkdir -p "$pkgdir"/$_prefix
+	mv bin lib node_modules index.js package.json "$pkgdir"/$_prefix/ || return 1
+
+	mkdir -p "$pkgdir"/usr/bin
+	ln -s $_prefix/bin/verdaccio "$pkgdir"/usr/bin/$pkgname || return 1
+
+	install -m 640 -g $pkggroups -D "$srcdir"/config.yaml \
+		"$pkgdir"/etc/$pkgname/config.yaml || return 1
+
+	install -m 755 -D "$srcdir"/$pkgname.initd \
+		"$pkgdir"/etc/init.d/$pkgname || return 1
+
+	install -m 644 -D "$srcdir"/$pkgname.logrotate \
+		"$pkgdir"/etc/logrotate.d/$pkgname || return 1
+
+	install -d -m 750 -o $pkgusers -g $pkggroups \
+		"$pkgdir"/var/lib/$pkgname \
+		"$pkgdir"/var/lib/$pkgname/storage
+}
+
+md5sums="93f659505e2eef07903ed4172fec2419  verdaccio-2.1.0.tar.gz
+73b342cf2bc200d93fed44b6b15c54f4  npm-shrinkwrap.json
+2e74ef4d9cef2b8449a25a143afbacfb  config.yaml
+db08bdcdbb6f1f3c801ec255ddd0f8df  verdaccio.initd
+ce345b1586d975f1e9bf70caf5f11188  verdaccio.logrotate"
+sha256sums="1d2102bbbe8f0e8fc658a3618df46652df69ed2781f7f2c666d6dbd7ab2a8b4a  verdaccio-2.1.0.tar.gz
+13d052280695c163ba095d4a3bf3b1bacd6e8e708a3a43e3f6412355aa823e01  npm-shrinkwrap.json
+3b5a5aaab26fa68745d6c3992bcceda6713fc99c395631d06ca972020e030fbd  config.yaml
+ebd5e2711d8add41f63d9d8e785929000afb7189c1330527aa6bbd28cfb8f9d1  verdaccio.initd
+8c581fcd41e3f93e6b261efecd59b9ca6caceacce984fd1b2df7f3fbdfaa3639  verdaccio.logrotate"
+sha512sums="0f7684447e80290e8b966df76fb1828916d1dcc4a7ff9321c5bb32dc9e04d372b8c1d4e2568383c0fc99270089a2783f45d1b82a1c6329cd60104d4757ca3ec6  verdaccio-2.1.0.tar.gz
+3a42b7e103113f974f9583304d83af56f2fc712d67272cf79134535a7d5b8589e579858a9c5f4cade91bdc0d595781612c0b66ae30bc6e1d5ddf9f8692b5e7ab  npm-shrinkwrap.json
+12db1c0bee3585c3c73cd5ad57febac7d3c6fb78fbcadfa5e1ed1db476ce133e20eda3ebfa601b0ef9d134fb24afb5b6a1ac5afc53d70036fe422e6fef6193ff  config.yaml
+536ef4fefa209deeab138cf8d60d2dea83886f322d6e780bea983ff14217c196c5693343ad369f4304f79ffff2fc91a94b7ec4c978d7e146e710b8bb04ee262b  verdaccio.initd
+76a32f483717271eaa407143221cfaefb7da8b9d8062795304ff870a08dd7411e1d4d5b29807f3f927fb8f6e34dc2a123f19ea9c4b4069031e526f33c6f9d11c  verdaccio.logrotate"

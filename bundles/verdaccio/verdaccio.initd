@@ -1,0 +1,28 @@
+#!/sbin/openrc-run
+
+name="verdaccio"
+description="Private npm repository server (fork of Sinopia)"
+
+: ${user:="verdaccio"}
+: ${conffile:="/etc/verdaccio/config.yaml"}
+: ${logfile:="/var/log/verdaccio/verdaccio.log"}
+
+command="/usr/bin/verdaccio"
+command_args="--config $conffile"
+command_background=true
+
+pidfile="/run/$RC_SVCNAME.pid"
+start_stop_daemon_args="
+	--user $user
+	--stdout $logfile
+	--stderr $logfile"
+
+required_files="$conffile"
+
+depend() {
+	use net
+}
+
+start_pre() {
+	checkpath -d -o $user "$(dirname "$logfile")"
+}

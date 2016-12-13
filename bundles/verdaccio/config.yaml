@@ -1,0 +1,99 @@
+# Look here for more config file examples:
+# https://github.com/verdaccio/verdaccio/tree/master/conf
+
+# Path to a directory with all packages.
+storage: /var/lib/verdaccio/storage
+
+web:
+  title: Verdaccio
+
+# A map of authentication plugins with settings.
+auth:
+  htpasswd:
+    file: /var/lib/verdaccio/htpasswd
+
+    # Maximum amount of users allowed to register, defaults to "+inf".
+    # You can set this to -1 to disable registration.
+    max_users: -1
+
+# Uncomment and modify to enable authentication via LDAP.
+#  ldap:
+#    type: ldap 
+#    client_options:
+#      url: 'ldaps://ldap.example.org'
+#      searchBase: 'ou=People,dc=example,dc=org'
+#      searchFilter: '(uid={{username}})'
+#      cache: false
+#      searchAttributes:
+#        - '*'
+#      tlsOptions:
+#        rejectUnauthorized: true
+
+# A map of other known repositories we can talk to.
+uplinks:
+  npmjs:
+    url: https://registry.npmjs.org/
+
+    # Amount of time to wait for repository to respond
+    # before giving up and use the local cached copy.
+    timeout: 5s
+
+# A map of packages patterns for managing access.
+packages:
+
+  # Uncomment this for packages with "local-" prefix to be available
+  # for authenticated users only.
+  #'local-*':
+  #  access: $authenticated
+  #  publish: $authenticated
+  #  # You can override storage directory for a group of packages this way:
+  #  storage: '/var/lib/verdaccio/local_storage'
+
+  '@*/*':
+    # Scoped packages.
+    access: $all
+    publish: $authenticated
+    proxy: npmjs
+
+  '**':
+    # Allow all users (including non-authenticated users) to read and
+    # publish all packages.
+    #
+    # You can specify usernames/groupnames (depending on your auth plugin)
+    # and three keywords: "$all", "$anonymous", "$authenticated".
+    access: $all
+
+    # Allow all known users to publish packages.
+    publish: $authenticated
+
+    # If package is not available locally, proxy requests to 'npmjs' registry.
+    proxy: npmjs
+
+
+#####################################################################
+# Advanced settings
+#####################################################################
+
+# If you use nginx with custom path, use this to override links.
+#url_prefix: https://npm.example.org
+
+# A list of addresses the Verdaccio should listen on. Address may be a port,
+# optionally with an IP address or domain (ex. 127.0.0.1:4873), or an absolute
+# path of the UNIX socket (ex. unix:/run/verdaccio/server.sock).
+listen:
+  - localhost:4873
+
+# type: file | stdout | stderr
+# level: trace | debug | info | http (default) | warn | error | fatal
+#
+# parameters for file: name is filename
+#  {type: 'file', path: 'sinopia.log', level: 'debug'},
+#
+# parameters for stdout and stderr: format: json | pretty
+#  {type: 'stdout', format: 'pretty', level: 'debug'},
+logs:
+  - { type: stderr, format: pretty, level: warn }
+
+# Maximum size of uploaded JSON document.
+# Increase it if you have "request entity too large" errors.
+max_body_size: 8mb
