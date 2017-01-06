@@ -1,6 +1,6 @@
 = My aports
 :source-language: sh
-:gh-name: jirutka/aports
+:gh-name: jirutka/user-aports
 :gh-branch: v3.4
 :key-file: jakub@jirutka.cz-56d0d9fd.rsa.pub
 :repos-uri: https://alpine.geeknet.cz/packages
