@@ -11,7 +11,7 @@ arch="noarch"
 license="ASL-2.0"
 depends="openjdk7-jre-base"
 makedepends=""
-source="http://mirror.hosting90.cz/apache/tomcat/$_pkgname-$_majorver/v$pkgver/bin/apache-$_pkgname-$pkgver.tar.gz
+source="http://archive.apache.org/dist/tomcat/$_pkgname-$_majorver/v$pkgver/bin/apache-$_pkgname-$pkgver.tar.gz
 	$pkgname.initd
 	$pkgname.confd
 	logging.properties
