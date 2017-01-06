@@ -3,7 +3,7 @@
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
 pkgver=8.11.11
-pkgrel=0
+pkgrel=1
 pkgdesc="A version control for your server"
 url="https://github.com/gitlabhq/gitlabhq"
 arch="all"
@@ -22,7 +22,7 @@ depends="$pkgname-assets ca-certificates git>=2.7.3 gitlab-shell>=3.4.0
 	ruby$_rubyslot-bundler
 	"
 makedepends="icu-dev libgcrypt-dev libgit2-dev>=0.24 libxml2-dev libxslt-dev
-	linux-headers openssl-dev postgresql-dev>=9.1 nodejs ruby$_rubyslot-dev
+	linux-headers libressl-dev postgresql-dev>=9.1 nodejs ruby$_rubyslot-dev
 	"
 pkgusers="git"
 pkggroups="git"
