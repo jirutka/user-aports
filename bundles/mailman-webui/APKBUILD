@@ -14,7 +14,7 @@ url="http://www.list.org/"
 arch="all"
 license="GPLv3"
 depends="$pkgname-assets uwsgi-python uwsgi-http"
-makedepends="python-dev py-pip py-virtualenv postgresql-dev openldap-dev sassc"
+makedepends="python2-dev py2-pip py-virtualenv postgresql-dev openldap-dev sassc"
 install="$pkgname.post-install"
 pkgusers="mailman"
 pkggroups="mailman"
@@ -61,7 +61,7 @@ build() {
 	cd "$builddir"
 
 	# Create virtualenv.
-	python -m virtualenv --no-download --no-wheel . || return 1
+	python2 -m virtualenv --no-download --no-wheel . || return 1
 
 	# Install projects and their dependencies.
 	bin/pip install \
@@ -95,7 +95,7 @@ build() {
 	# Remove tests.
 	find lib/python*/ -name "test_*.py" -delete
 
-	python -m compileall -f -d $_prefix/lib lib || return 1
+	python2 -m compileall -f -d $_prefix/lib lib || return 1
 
 
 	## Collect static assets
