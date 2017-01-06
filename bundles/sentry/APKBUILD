@@ -7,9 +7,9 @@ pkgdesc="Sentry provides real-time crash reporting for your web apps, mobile app
 url="https://github.com/getsentry/sentry"
 arch="all"
 license="BSD"
-depends="libpq libxslt python redis uwsgi-python>2.0.0"
+depends="libpq libxslt python2 redis uwsgi-python>2.0.0"
 makedepends="ca-certificates libffi-dev libxml2-dev libxslt-dev libzip-dev
-	linux-headers libressl-dev postgresql-dev python-dev py-pip"
+	linux-headers libressl-dev postgresql-dev python2-dev py2-pip"
 install="$pkgname.pre-install $pkgname.post-install $pkgname.post-upgrade"
 source="https://github.com/getsentry/sentry/releases/download/$pkgver/$pkgname-$pkgver.tar.gz
 	$pkgname
@@ -42,7 +42,7 @@ build() {
 	# Remove useless scripts.
 	rm -f usr/bin/easy_install*
 
-	python -m compileall -f -d "$_prefix" usr/ || return 1
+	python2 -m compileall -f -d "$_prefix" usr/ || return 1
 }
 
 package() {
