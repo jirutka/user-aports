@@ -9,7 +9,7 @@ url="https://github.com/Banno/getsentry-ldap-auth"
 arch="all"
 license="ASL"
 depends="libldap>=2.4 python sentry>=8"
-makedepends="openldap-dev>=2.4 python-dev py-pip"
+makedepends="openldap-dev>=2.4 python2-dev py2-pip"
 source="saveas-https://github.com/Banno/$_pkgname/archive/$pkgver.tar.gz/$pkgname-$pkgver.tar.gz
 	constraints.txt"
 
@@ -28,7 +28,7 @@ build() {
 		--constraint="$srcdir/constraints.txt" \
 		. || return 1
 
-	python -m compileall -fqd "$_prefix" usr/ || return 1
+	python2 -m compileall -fqd "$_prefix" usr/ || return 1
 }
 
 package() {
