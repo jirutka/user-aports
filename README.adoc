@@ -19,7 +19,7 @@ Packages are automatically build on Travis CI for x86_64 architecture and synchr
 
 * {repos-uri}/{gh-branch}/backports
 
-Aports from the official Alpine repositories backported from edge to :gh-branch:.
+Aports from the official Alpine repositories backported from edge to {gh-branch}.
 
 
 === Bundles
