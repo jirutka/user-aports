@@ -11,6 +11,7 @@ cd "$CLONE_DIR"
 REMOTE_DIR='/mnt/remote'
 PACKAGES_DIR="$REMOTE_DIR/packages/$TRAVIS_BRANCH"
 MOUNT_DIR="${ALPINE_ROOT}${REMOTE_DIR}"
+REPOS='backports user bundles'
 
 chmod 0600 .travis/deploy-key
 
@@ -37,8 +38,14 @@ echo '\n==> Building packages'
 
 key_name="$(ls "$MOUNT_DIR"/.secret/*.rsa | head -n 1 | xargs basename)"
 packager_privkey="$REMOTE_DIR/.secret/$key_name"
-repos="$(find * -maxdepth 0 -type d ! -name '.*' | xargs)"
 
+# Filter repositories which actually contain some APKBUILDs.
+repos=''
+for repo in $REPOS; do
+	if [ -n "$(find $repo -maxdepth 2 -name APKBUILD)" ]; then
+		repos="$repos $repo"
+	fi
+done
 [ -n "$repos" ] || { echo 'No repositories found'; exit 0; }
 
 alpine_run $ALPINE_USER <<-EOF
