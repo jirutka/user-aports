@@ -3,14 +3,13 @@
 pkgname=tomcat7-native
 _pkgname=tomcat-native
 pkgver=1.2.10
-pkgrel=0
+pkgrel=1
 pkgdesc="Native resources optional component for Apache Tomcat"
 url="http://tomcat.apache.org/native-doc/"
 arch="all"
 license="ASL-2.0"
 depends="openjdk7-jre-base"
-depends_dev="openssl-dev"
-makedepends="$depends_dev apr-dev chrpath openjdk7"
+makedepends="apr-dev chrpath openjdk7"
 subpackages="$pkgname-dev"
 source="http://www-eu.apache.org/dist/tomcat/tomcat-connectors/native/$pkgver/source/$_pkgname-$pkgver-src.tar.gz"
 builddir="$srcdir/$_pkgname-$pkgver-src/native"
@@ -21,7 +20,8 @@ build() {
 	./configure --prefix=/usr \
 		--with-apr=/usr/bin/apr-1-config \
 		--with-java-home=/usr/lib/jvm/java-1.7-openjdk \
-		--with-ssl=yes \
+		--with-ssl=no \
+		--disable-openssl \
 		|| return 1
 	make || return 1
 }
