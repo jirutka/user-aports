@@ -3,14 +3,14 @@
 pkgname=bacula5-client
 _pkgname=bacula
 pkgver=5.2.13
-pkgrel=1
+pkgrel=2
 pkgdesc="Client (File Daemon) of Bacula, a network based backup program"
 url="http://www.bacula.org"
 arch="all"
 license="AGPL3"
 depends=""
 makedepends="autoconf automake libcap-dev libstdc++ lzo-dev ncurses-dev
-	openssl-dev zlib-dev"
+	libressl-dev zlib-dev"
 install="$pkgname.pre-install"
 subpackages="$pkgname-doc"
 replaces="bacula-client"
