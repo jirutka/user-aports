@@ -10,7 +10,7 @@
 #logdir="/var/log/$RC_SVCNAME"
 
 # Path to temporary working directory.
-#tempdir="/tmp/$RC_SVCNAME"
+#tmpdir="/tmp/$RC_SVCNAME"
 
 # You may use rc_need, rc_use, rc_after, rc_before and rc_provide variables to
 # influence the dependencies of the service.
