@@ -1,0 +1,33 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=go-bindata
+pkgver=3.1_git20151023
+_gitrev=a0ff2567cfb70903282db057e799fd826784d41d
+pkgrel=0
+pkgdesc="Some shitty utility which generates Go code from any file"
+url="https://github.com/jteeuwen/go-bindata"
+arch="all"
+license="CC0"
+makedepends="go"
+source="$pkgname-$pkgver.tar.gz::https://github.com/jteeuwen/$pkgname/archive/$_gitrev.tar.gz"
+builddir="$srcdir/src/github.com/jteeuwen/$pkgname/$pkgname"
+
+prepare() {
+	mkdir -p "${builddir%/*/*}"
+	mv "$srcdir"/$pkgname-$_gitrev "${builddir%/*}" || return 1
+
+	default_prepare
+}
+
+build() {
+	cd "$builddir"
+	GOPATH="$srcdir" go build -v -o bin/$pkgname
+}
+
+package() {
+	install -D -m 755 "$builddir"/bin/$pkgname "$pkgdir"/usr/bin/$pkgname
+}
+
+md5sums="d630353abae8c73adf2ed2af3d0e74a0  go-bindata-3.1_git20151023.tar.gz"
+sha256sums="65cf65ac422fb8072abfaabec86c20a74e448a93b489e896a36642e7049f5d32  go-bindata-3.1_git20151023.tar.gz"
+sha512sums="ed1d2fd1c5a833b6efdc731eb43f72fc072a701c447a926ad6c1f9be3c0f1ed92c689639d02a288230a49d53795f41092deab132389871a5b9f79abdc525fc43  go-bindata-3.1_git20151023.tar.gz"
