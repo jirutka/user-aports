@@ -1,0 +1,29 @@
+package: github.com/OpenNebula/docker-machine-opennebula
+import:
+- package: github.com/OpenNebula/goca
+  version: 12ac22a6c745ec7bf7745174698ca068781fa589
+- package: github.com/docker/docker
+  version: 675e6224329dd46a8e5e52d7035da88fc97def94
+  subpackages:
+  - pkg/term
+- package: github.com/docker/machine
+  version: 91e368eb7422665278b1d5665139ee0f9980b588
+  subpackages:
+  - libmachine/drivers
+  - libmachine/log
+  - libmachine/mcnflag
+  - libmachine/mcnutils
+  - libmachine/ssh
+  - libmachine/state
+  - version
+  - libmachine/drivers/plugin
+- package: github.com/kolo/xmlrpc
+  version: 0826b98aaa29c0766956cb40d45cf7482a597671
+- package: golang.org/x/crypto
+  version: 1f22c0103821b9390939b6776727195525381532
+  subpackages:
+  - curve25519
+  - ssh
+  - ssh/terminal
+- package: launchpad.net/xmlpath
+  version: gustavo@niemeyer.net-20130614043138-kasci7s9kddz0e5v

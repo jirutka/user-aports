@@ -1,0 +1,65 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+# Note: Godep is somehow fucked up, so we use glide instead.
+pkgname=docker-machine-opennebula
+pkgver=0.2.0
+pkgrel=0
+pkgdesc="Docker Machine Plugin for OpenNebula"
+url="https://github.com/OpenNebula/docker-machine-opennebula"
+arch="all"
+license="ASL-2.0"
+depends="docker-machine"
+makedepends="bzr go glide"
+source="$pkgname-$pkgver.tar.gz::https://github.com/OpenNebula/$pkgname/archive/release-$pkgver.tar.gz
+	glide.yaml
+	glide.lock"
+builddir="$srcdir/src/github.com/OpenNebula/$pkgname"
+
+_binname=docker-machine-driver-opennebula
+
+export GLIDE_HOME="$srcdir/glide"
+export GOPATH="$srcdir"
+
+prepare() {
+	mkdir -p "${builddir%/*}"
+	mv "$srcdir"/$pkgname-release-$pkgver "$builddir" || return 1
+
+	cd "$builddir"
+
+	cp "$srcdir"/glide.* .
+	glide install --skip-test || return 1
+
+	default_prepare
+}
+
+build() {
+	cd "$builddir"
+	go build -v -o ./bin/$_binname ./bin
+}
+
+package() {
+	install -D -m 755 "$builddir"/bin/$_binname "$pkgdir"/usr/bin/$_binname
+}
+
+glide_init() {
+	abuild clean deps fetch unpack prepare || return 1
+
+	cd "$builddir"
+
+	glide init --non-interactive || return 1
+	glide up --skip-test || return 1
+	cp glide.yaml glide.lock "$startdir"/ || return 1
+
+	cd $startdir
+	abuild checksum undeps
+}
+
+md5sums="4c5cef6fe028a2edc27740b646a70a03  docker-machine-opennebula-0.2.0.tar.gz
+51c51afec7e09be6e1e619c2c8dc2fd6  glide.yaml
+dd511925bb23d233c57d46a9c583bdff  glide.lock"
+sha256sums="249a165ba864873c90039907337be462c5dc6bd7e8a707b798ea81b521c426e8  docker-machine-opennebula-0.2.0.tar.gz
+f7c5960b5e6eeef39a93b37d64ba5dacff45dc4c0e3fac5ffb7a3380f685c907  glide.yaml
+1f0c388555f918056df814f754671d86ec3efda054e0a097862ee4eecedfe389  glide.lock"
+sha512sums="d268ab0c51a23227b432d8e8c55be4a5ca576f17fc7c9c8bde2a01e093cc31c8ed08c6133aa206a4d4b12386bf88a41d2a517b57de6507ca406752bc55d2b938  docker-machine-opennebula-0.2.0.tar.gz
+42eb151fbe9433ff853ff1c3b75a973f8ec2b1c1f4c1e06ad7b1a36c58187e2155ee3f0451859cef07717dcd5ea32b6bedb5234212fb0ae9c48ce4aa831c21a3  glide.yaml
+2f785a3d8e3d9e11b6c672a288f89f34c79ca1395ef74a25d7f1afa0c7d1736ddcd5a51929eb319d43e8a5455a54c7755b44702d1fe51d403b9eec4fd48f9c00  glide.lock"
