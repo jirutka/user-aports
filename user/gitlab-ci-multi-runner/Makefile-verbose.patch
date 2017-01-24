@@ -1,0 +1,18 @@
+--- a/Makefile
++++ b/Makefile
+@@ -157,13 +157,14 @@
+ build: executors/docker/bindata.go
+ 	# Building $(NAME) in version $(VERSION) for $(BUILD_PLATFORMS)
+ 	gox $(BUILD_PLATFORMS) \
++		-verbose \
+ 		-ldflags "$(GO_LDFLAGS)" \
+ 		-output="out/binaries/$(NAME)-{{.OS}}-{{.Arch}}"
+ 
+ build_simple:
+ 	# Building $(NAME) in version $(VERSION) for current platform
+ 	go build \
+-		-ldflags "$(GO_LDFLAGS)" \
++		-v -ldflags "$(GO_LDFLAGS)" \
+ 		-o "out/binaries/$(NAME)"
+ 
+ build_current: executors/docker/bindata.go build_simple

@@ -1,0 +1,95 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=gitlab-ci-multi-runner
+pkgver=1.10.1
+pkgrel=0
+pkgdesc="Official GitLab Runner written in Go"
+url="https://gitlab.com/gitlab-org/gitlab-ci-multi-runner"
+arch="all"
+license="MIT"
+pkgusers="gitlab-runner"
+pkggroups="$pkgusers"
+makedepends="docker go go-bindata"
+install="$pkgname.pre-install"
+source="$pkgname-$pkgver.tar.gz::https://gitlab.com/gitlab-org/$pkgname/repository/archive.tar.gz?ref=v$pkgver
+	$pkgname-$pkgver-prebuilt-x86_64.tar.xz.bin::https://$pkgname-downloads.s3.amazonaws.com/v$pkgver/docker/prebuilt-x86_64.tar.xz
+	$pkgname-$pkgver-prebuilt-arm.tar.xz.bin::https://$pkgname-downloads.s3.amazonaws.com/v$pkgver/docker/prebuilt-arm.tar.xz
+	$pkgname.initd
+	$pkgname.logrotate
+	Makefile-verbose.patch"
+builddir="$srcdir/src/gitlab.com/gitlab-org/$pkgname"
+
+_shortname="gitlab-ci-runner"
+
+prepare() {
+	cd "$srcdir"
+
+	local dirname=$(basename $pkgname-v$pkgver-*)
+	_gitrev=${dirname##*-}
+
+	mkdir -p "${builddir%/*}"
+	mv $pkgname-v$pkgver-* "$builddir" || return 1
+
+	mkdir -p "$builddir"/out/docker
+	local arch; for arch in x86_64 arm; do
+		mv *-prebuilt-$arch.* "$builddir"/out/docker/prebuilt-$arch.tar.xz || return 1
+	done
+
+	default_prepare
+}
+
+build() {
+	cd "$builddir"
+
+	local branch=${pkgver%.*}
+	branch="${branch/./-}-stable"
+
+	GOPATH="$srcdir" make \
+		RELEASE="true" \
+		VERSION="$pkgver" \
+		REVISION="$_gitrev" \
+		BRANCH="$branch" \
+		build_current
+}
+
+package() {
+	cd "$builddir"
+
+	install -D -m 755 out/binaries/$pkgname \
+		"$pkgdir"/usr/bin/$pkgname || return 1
+
+	install -D -m 755 "$srcdir"/$pkgname.initd \
+		"$pkgdir"/etc/init.d/$pkgname || return 1
+
+	install -D -m 644 "$srcdir"/$pkgname.logrotate \
+		"$pkgdir"/etc/logrotate.d/$pkgname || return 1
+
+	local dir; for dir in etc var/lib var/log; do
+		install -d -m 750 -o $pkgusers -g $pkggroups \
+			"$pkgdir"/$dir/$_shortname || return 1
+	done
+
+	install -m 640 -o root -g $pkggroups config.toml.example \
+		"$pkgdir"/etc/$_shortname/config.toml || return 1
+
+	ln -s /etc/$_shortname "$pkgdir"/var/lib/$_shortname/.gitlab-runner
+}
+
+md5sums="c20680e6b1e1b25f96a829dd716bcfd4  gitlab-ci-multi-runner-1.10.1.tar.gz
+85787a10288eb3eb4e4832496f16fb1e  gitlab-ci-multi-runner-1.10.1-prebuilt-x86_64.tar.xz.bin
+a5d50ab8ea8c9df56bf0fd1eec9d70b9  gitlab-ci-multi-runner-1.10.1-prebuilt-arm.tar.xz.bin
+7d64c1b0ed8bf3a946fb50aa29a4a09f  gitlab-ci-multi-runner.initd
+e8f79dd4e00c8300f94ec673a47163de  gitlab-ci-multi-runner.logrotate
+9a6d1f1b1fb4821d5974c283e04b118f  Makefile-verbose.patch"
+sha256sums="ceeb4b2c4cda3f8e8dba18ffb621a1c413e9bbc360d6eb858cbd2c259da8f39d  gitlab-ci-multi-runner-1.10.1.tar.gz
+df86ee6ecd2cbcf86d68e9edbcb860531e6aef4ef80dbdc9747cd9dab6536b90  gitlab-ci-multi-runner-1.10.1-prebuilt-x86_64.tar.xz.bin
+1f1563293f82830ce54dcc1d40c4b1d152e015a2aaf1b2eee709815b8bd2a816  gitlab-ci-multi-runner-1.10.1-prebuilt-arm.tar.xz.bin
+480c14d8d1b8123cedf03e6458cd927d25fa10084c1761d9ab016d4a4b850537  gitlab-ci-multi-runner.initd
+7fe8e1fa8512cec395cfc2834d647ad6a0d9f65465afe1f56e6882e3f5b8b83f  gitlab-ci-multi-runner.logrotate
+8ef5c97ef223783b172bae9f4ea30ed8aa11ca0d5eacb0fc12834d843a214026  Makefile-verbose.patch"
+sha512sums="f0725e338cbbba588c60a974b79903573356dba312577e69d018b17645b358c5e5e1635c88977ef81a7f332228c8c4e1cfc7e124b7b12a3d3d9ebaf29bc38db4  gitlab-ci-multi-runner-1.10.1.tar.gz
+61882811a6e74257f6d6e15efb12ecb4c36228b99b6dc789687cb7c98c1a6e81f2115cd6e65ea5590deef52fe8787440ae1202b6c424bd06497a74fe90206f90  gitlab-ci-multi-runner-1.10.1-prebuilt-x86_64.tar.xz.bin
+0f28cf4d8e630b7b2601a3f2d5a4562426311ab61c6d22dd14b145e96ec8fe84e424405f8006016359bded410f57a1f16c3b75f3b3ba0781f6b2ef3234699284  gitlab-ci-multi-runner-1.10.1-prebuilt-arm.tar.xz.bin
+d45d8ac5b74f46fd6db4f1871617efa52652a22634b3b1a20cce52edd400d6e19ba97768bf58e74fef6a7bd9b27cdafaf2c666921608584f65f1d16b3b181631  gitlab-ci-multi-runner.initd
+b0ce853f2a0bc79495b3713baec06b9a37a88672bd57401339518e95c33bb750316e744fdf86bca3a04d8b8c63fb061447654a32e4fee704c1f74853b1a1a327  gitlab-ci-multi-runner.logrotate
+95d4add06c080ac6e3a68b9ff9e2d16b01cc59d5b0b184f617c03d62e2ba686a7a246c2a53934413dadbbb7d3086de64a1dd08518f33443ee24c50bc94501453  Makefile-verbose.patch"
