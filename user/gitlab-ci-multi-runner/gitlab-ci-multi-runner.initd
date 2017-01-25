@@ -2,8 +2,8 @@
 
 : ${command_args:="run"}
 : ${user:="gitlab-runner"}
-: ${logfile:="/var/log/gitlab-ci-runner/$RC_SVCNAME.log"}
-: ${datadir:="/var/lib/gitlab-ci-runner"}
+: ${logfile:="/var/log/gitlab-runner/$RC_SVCNAME.log"}
+: ${datadir:="/var/lib/gitlab-runner"}
 
 command="/usr/bin/gitlab-ci-multi-runner"
 command_background="yes"
