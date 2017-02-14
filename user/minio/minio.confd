@@ -13,7 +13,7 @@ bind_port="9000"
 config_dir="/etc/minio"
 
 # A list of space separated directories where to store data.
-data_dirs="/var/lib/minio"
+data_dirs="/var/lib/minio/data"
 
 # To disable web browser access, set this value to "off".
 browser="on"
