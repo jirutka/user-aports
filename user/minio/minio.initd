@@ -1,0 +1,34 @@
+#!/sbin/openrc-run
+
+: ${user:="minio"}
+: ${logfile:="/var/log/minio.log"}
+
+: ${bind_address:=}
+: ${bind_port:="9000"}
+: ${config_dir:="/etc/minio"}
+: ${data_dirs:="/var/lib/minio/data"}
+: ${browser:="on"}
+: ${access_key:=}
+: ${secret_key:=}
+
+command="/usr/bin/minio"
+command_args="server
+	--quiet
+	--address $bind_address:$bind_port
+	--config-dir $config_dir
+	$data_dirs"
+command_background="yes"
+
+pidfile="/run/$RC_SVCNAME.pid"
+start_stop_daemon_args="
+	--user $user
+	--chdir $config_dir
+	--stdout $logfile
+	--stderr $logfile
+	--env MINIO_BROWSER=$browser
+	${access_key:+"--env MINIO_ACCESS_KEY=$access_key"}
+	${secret_key:+"--env MINIO_SECRET_KEY=$secret_key"}"
+
+start_pre() {
+	checkpath -f -m 644 -o $user "$logfile"
+}

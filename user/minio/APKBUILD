@@ -1,0 +1,64 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=minio
+_goname=github.com/minio/$pkgname
+pkgver=20170125
+_srcver="${pkgver:0:4}-${pkgver:4:2}-${pkgver:6:2}T03:14:52Z"
+_srctag="RELEASE.${_srcver//:/-}"
+pkgrel=0
+pkgdesc="An open source object storage server compatible with Amazon S3 APIs"
+url="https://minio.io"
+arch="all"
+license="ASL-2.0"
+makedepends="go"
+pkgusers="minio"
+pkggroups="$pkgusers"
+install="$pkgname.pre-install"
+source="$pkgname-$pkgver.tar.gz::https://github.com/minio/$pkgname/archive/$_srctag.tar.gz
+	$pkgname.initd
+	$pkgname.confd
+	$pkgname.logrotate
+	remove-update-cmd.patch"
+builddir="$srcdir/src/$_goname"
+
+prepare() {
+	mkdir -p "${builddir%/*}"
+	mv "$srcdir"/$pkgname-$_srctag "$builddir" || return 1
+
+	default_prepare
+}
+
+build() {
+	local ldflags="-X $_goname/cmd.Version=$_srcver
+		-X $_goname/cmd.ReleaseTag=$_srctag"
+
+	cd "$builddir"
+	GOPATH="$srcdir" go build -v \
+		-buildmode=pie \
+		--ldflags "$ldflags" \
+		-o bin/$pkgname
+}
+
+package() {
+	install -D -m 755 "$builddir"/bin/$pkgname \
+		"$pkgdir"/usr/bin/$pkgname || return 1
+
+	install -D -m 755 "$srcdir"/$pkgname.initd \
+		"$pkgdir"/etc/init.d/$pkgname || return 1
+	install -D -m 644 "$srcdir"/$pkgname.confd \
+		"$pkgdir"/etc/conf.d/$pkgname || return 1
+
+	install -D -m 644 "$srcdir"/$pkgname.logrotate \
+		"$pkgdir"/etc/logrotate.d/$pkgname || return 1
+
+	install -d -m 750 -o $pkgusers -g $pkggroups \
+		"$pkgdir"/etc/$pkgname || return 1
+	install -d -m 700 -o $pkgusers -g $pkggroups \
+		"$pkgdir"/var/lib/$pkgname
+}
+
+sha512sums="3e547d59f6218ea85aebf404751c1afe4ea066f726290c143371a2be9ac4778431318ab47c2a73875cc829684342efb46031932a518ff7854c1477899466efd0  minio-20170125.tar.gz
+2eab23752e941f6e90365e9f88a22ec2a6b842bc62019790ada1b034a1caa458f443276ac6b17619242e60cb2b951fbe50c80f13a8519aec4300595f65905397  minio.initd
+f383d93af380f6672f111f542b42becb106ca0b25cf0fbfa051d29164b0d6c250feaa7f937cb4575bdc1c32d45fca7687c74aa06bda9d03e6f9d89d14bbb7eb3  minio.confd
+3bca81d1601bd5af20e803ca033a777d83fe62bc90f876b27d1b7e7b98eeb62a0dd52ec2a957f64737edb1c289d73f81824169b054e2c88a52b6e99c3868df1c  minio.logrotate
+80227166fe33ae975b32488b388458495e08ccf47032fae83654baa4e8b9c5162315b67f09df7068a6af0d50ae496ab898243e3600e4d4759bdcee43e97218cf  remove-update-cmd.patch"

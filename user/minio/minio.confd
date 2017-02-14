@@ -1,0 +1,25 @@
+# Configuration for /etc/init.d/minio
+
+# File to redirect stdout/stderr into.
+logfile="/var/log/minio.log"
+
+# The address to listen on.
+#bind_address=""
+
+# The port to listen on.
+bind_port="9000"
+
+# Directory where to store configuration.
+config_dir="/etc/minio"
+
+# A list of space separated directories where to store data.
+data_dirs="/var/lib/minio"
+
+# To disable web browser access, set this value to "off".
+browser="on"
+
+# Custom username or access key of 5 to 20 characters in length.
+#access_key=""
+
+# Custom password or secret key of 8 to 40 characters in length.
+#secret_key=""

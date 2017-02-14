@@ -1,0 +1,10 @@
+--- a/cmd/main.go
++++ b/cmd/main.go
+@@ -111,7 +111,6 @@
+ 	// Register all commands.
+ 	registerCommand(serverCmd)
+ 	registerCommand(versionCmd)
+-	registerCommand(updateCmd)
+ 
+ 	// Set up app.
+ 	app := cli.NewApp()
