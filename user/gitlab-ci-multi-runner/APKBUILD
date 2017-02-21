@@ -32,7 +32,7 @@ prepare() {
 
 	mkdir -p "$builddir"/out/docker
 	local arch; for arch in x86_64 arm; do
-		mv *-prebuilt-$arch.* "$builddir"/out/docker/prebuilt-$arch.tar.xz || return 1
+		cp -L *-prebuilt-$arch.* "$builddir"/out/docker/prebuilt-$arch.tar.xz || return 1
 	done
 
 	default_prepare
