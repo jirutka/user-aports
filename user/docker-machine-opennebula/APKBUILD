@@ -3,7 +3,7 @@
 # Note: Godep is somehow fucked up, so we use glide instead.
 pkgname=docker-machine-opennebula
 pkgver=0.2.0
-pkgrel=1
+pkgrel=2
 pkgdesc="Docker Machine Plugin for OpenNebula"
 url="https://github.com/OpenNebula/docker-machine-opennebula"
 arch="all"
@@ -11,6 +11,7 @@ license="ASL-2.0"
 depends="docker-machine"
 makedepends="bzr go glide"
 source="$pkgname-$pkgver.tar.gz::https://github.com/OpenNebula/$pkgname/archive/release-$pkgver.tar.gz
+	fix-unsupported-protocol-scheme-bug.patch
 	glide.yaml
 	glide.lock"
 builddir="$srcdir/src/github.com/OpenNebula/$pkgname"
@@ -55,5 +56,6 @@ glide_init() {
 }
 
 sha512sums="d268ab0c51a23227b432d8e8c55be4a5ca576f17fc7c9c8bde2a01e093cc31c8ed08c6133aa206a4d4b12386bf88a41d2a517b57de6507ca406752bc55d2b938  docker-machine-opennebula-0.2.0.tar.gz
+b522ed092517f683f19ddf28c1e0b650fc79fa7d21a0a1501db31ccb3db6bd79c7ad69ed7a0fc3eb7a1f60d6730b4e7380ee47bf12066dd131fc8fc96814a9a5  fix-unsupported-protocol-scheme-bug.patch
 462b2dded48800bd0843e1618b17feee1b8cf672f096f9e8119230d59c1e324189fcf78d208d576308e1efff941544505b47d50ea30e5ff02272fb2ed516c72b  glide.yaml
 a5d059276d14e70aff6af2de2b9837d43c1f08ce799f949ec9a0f8c7d56fe703d86679a4c93d3f0a839e5784bdcc0950f4fe3bd1250b957ca20b0c8c75e468e9  glide.lock"
