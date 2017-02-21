@@ -1,0 +1,17 @@
+--- a/opennebula.go
++++ b/opennebula.go
+@@ -694,7 +694,13 @@
+ 	d.setClient()
+ 	vm, err := goca.NewVMFromName(d.MachineName)
+ 	if err != nil {
+-		return err
++		switch err.Error() {
++		case "Resource not found.":
++			log.Warnf("Host %s is already gone, removing just local configuration")
++			return nil
++		default:
++			return err
++		}
+ 	}
+ 
+ 	err = vm.TerminateHard()
