@@ -1,17 +1,12 @@
-hash: f7c5960b5e6eeef39a93b37d64ba5dacff45dc4c0e3fac5ffb7a3380f685c907
-updated: 2017-01-24T23:48:02.715799721+01:00
+hash: f216100cd54a84ce6cf423de55e2013d98e14719afd762608677140cdc7b6401
+updated: 2017-02-21T01:59:41.354544033+01:00
 imports:
-- name: github.com/Azure/go-ansiterm
-  version: fa152c58bc15761d0200cb75fe958b89a9d4888e
-  subpackages:
-  - winterm
 - name: github.com/docker/docker
-  version: 675e6224329dd46a8e5e52d7035da88fc97def94
+  version: a8a31eff10544860d2188dddabdee4d727545796
   subpackages:
   - pkg/term
-  - pkg/term/windows
 - name: github.com/docker/machine
-  version: 91e368eb7422665278b1d5665139ee0f9980b588
+  version: 15fd4c70403bab784d91031af02d9e169ce66412
   subpackages:
   - libmachine/drivers
   - libmachine/drivers/plugin
@@ -27,20 +22,13 @@ imports:
 - name: github.com/kolo/xmlrpc
   version: 0826b98aaa29c0766956cb40d45cf7482a597671
 - name: github.com/OpenNebula/goca
-  version: 12ac22a6c745ec7bf7745174698ca068781fa589
-- name: github.com/Sirupsen/logrus
-  version: 61e43dc76f7ee59a82bdf3d71033dc12bea4c77d
+  version: ddb457fbffaa40f88eb768456afe5978c6f0e18a
 - name: golang.org/x/crypto
-  version: 1f22c0103821b9390939b6776727195525381532
+  version: beef0f4390813b96e8e68fd78570396d0f4751fc
   subpackages:
   - curve25519
   - ssh
   - ssh/terminal
-- name: golang.org/x/sys
-  version: d9157a9621b69ad1d8d77a1933590c416593f24f
-  subpackages:
-  - unix
-  - windows/registry
 - name: launchpad.net/xmlpath
   version: "4"
 testImports: []
