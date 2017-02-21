@@ -1,4 +1,4 @@
-/var/log/gitlab-runner/*.log {
+/var/log/gitlab-ci-multi-runner.log {
 	compress
 	copytruncate
 	delaycompress

@@ -67,7 +67,7 @@ package() {
 	install -D -m 644 "$srcdir"/$pkgname.logrotate \
 		"$pkgdir"/etc/logrotate.d/$pkgname || return 1
 
-	local dir; for dir in etc var/lib var/log; do
+	local dir; for dir in etc var/lib; do
 		install -d -m 750 -o $pkgusers -g $pkggroups \
 			"$pkgdir"/$dir/$_shortname || return 1
 	done
@@ -81,8 +81,8 @@ package() {
 sha512sums="e58ed63da4710e26c179408a15f55adf7fbe5116793bcc0695fe222888033a8ced1ce8cc9e0b34e4c0a909de3ca2d2af5a4fd8dfee060cb6027766a192cac580  gitlab-ci-multi-runner-1.10.5.tar.gz
 91c7845a31251644c9f208acee1d5495b6b89f26218cbff23ccd5a88fe4b6baddfb5d634bc71861f199111358d62dccbd1a98e90220349ad00891371a071e361  gitlab-ci-multi-runner-1.10.5-prebuilt-x86_64.tar.xz.bin
 ba31aeefd791b54c0cc80b22d590a5bd1724063b32aca64cda364ba1df47dec39684300542d756acb2c93c75f548d88eae264608581e195cd6e2ff8aa0d072d4  gitlab-ci-multi-runner-1.10.5-prebuilt-arm.tar.xz.bin
-a18f6b052c3c7c3829e2b75c6cbfae1aef7348021ff04eeba4130edb4bc8899774b3bf7026d215001202fb17419bbfe8daab0bf0c57e0022c2b053bee7664b28  gitlab-ci-multi-runner.initd
-958e522ed517f524a0804f9ad2ed08fcf340ecc958f160a1ea11fb069cb29ff86ce9705072fafb364254a7fa2dca7d8dcc66ac30c1a4eac6fa76363703e45cbf  gitlab-ci-multi-runner.logrotate
+9b9e09af635aebd4b682a12b671b22c786862394e85a57519e0f1c3d9ae97a173ee0a8526e81394c2a2d9f51527f8b264e5ebeff2d479513213c8114305c2441  gitlab-ci-multi-runner.initd
+194440d43e1796f35ae61cae8f76874435e03dc3977af47bde0056ec37a631f4e13b0014f91d9dbf06b37d606bf47629d6e55d013eb7a289df1d5cd0f7848dff  gitlab-ci-multi-runner.logrotate
 95d4add06c080ac6e3a68b9ff9e2d16b01cc59d5b0b184f617c03d62e2ba686a7a246c2a53934413dadbbb7d3086de64a1dd08518f33443ee24c50bc94501453  Makefile-verbose.patch
 a0c808f39a5dca4fa6885b80ecb10e4a09302330bd4aedb9c799fc8a4888c42e5045961b60659ff98bd4264b9ddc2ad9f242b1175755d4bc3c438c6c19b980ff  log-timestamp.patch
 2dcbcc7d0999ad84eb407c5f74b6dfb60ec91fad1a0feb4e4ee2758e177bd0004d9766ebb8b59b8dbb8413f28f339b7696ebcedbdb17c30ebb2e96fc6d0a71a9  log-without-colors.patch"

@@ -2,7 +2,7 @@
 
 : ${command_args:="run"}
 : ${user:="gitlab-runner"}
-: ${logfile:="/var/log/gitlab-runner/$RC_SVCNAME.log"}
+: ${logfile:="/var/log/$RC_SVCNAME.log"}
 : ${datadir:="/var/lib/gitlab-runner"}
 
 command="/usr/bin/gitlab-ci-multi-runner"
@@ -18,4 +18,8 @@ start_stop_daemon_args="
 depend() {
 	after sshd
 	need localmount net
+}
+
+start_pre() {
+	checkpath -f -m 644 -o $user "$logfile"
 }
