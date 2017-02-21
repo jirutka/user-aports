@@ -1,0 +1,19 @@
+--- a/helpers/formatter/runner_text_formatter.go
++++ b/helpers/formatter/runner_text_formatter.go
+@@ -4,6 +4,7 @@
+ 	"bytes"
+ 	"fmt"
+ 	"sort"
++	"time"
+ 
+ 	"github.com/Sirupsen/logrus"
+ 	"gitlab.com/gitlab-org/gitlab-ci-multi-runner/helpers"
+@@ -64,7 +65,7 @@
+ 
+ 	indentLength := 50 - len(levelText)
+ 
+-	fmt.Fprintf(b, "%s%s%-*s%s ", levelColor, levelText, indentLength, entry.Message, resetColor)
++	fmt.Fprintf(b, "%s %s%s%-*s%s ", entry.Time.Format(time.RFC3339), levelColor, levelText, indentLength, entry.Message, resetColor)
+ 	for _, k := range keys {
+ 		v := entry.Data[k]
+ 		fmt.Fprintf(b, " %s%s%s=%v", levelColor, k, resetColor, v)
