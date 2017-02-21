@@ -7,7 +7,7 @@
 -		return err
 +		switch err.Error() {
 +		case "Resource not found.":
-+			log.Warnf("Host %s is already gone, removing just local configuration")
++			log.Warnf("Host %s is already gone, removing just local configuration", d.MachineName)
 +			return nil
 +		default:
 +			return err
