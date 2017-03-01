@@ -3,7 +3,7 @@
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
 pkgver=8.11.11
-pkgrel=1
+pkgrel=2
 pkgdesc="A version control for your server"
 url="https://github.com/gitlabhq/gitlabhq"
 arch="all"
@@ -43,6 +43,7 @@ source="$pkgname-$pkgver.tar.gz::https://github.com/gitlabhq/gitlabhq/archive/v$
 	0006-replace-sys-filesystem.patch
 	0007-add-mathjax-support.patch
 	0008-fix-asciidoc-headers.patch
+	0009-gitlab-revision.patch
 	"
 builddir="$srcdir/gitlabhq-$pkgver"
 
@@ -232,36 +233,6 @@ assets() {
 	mv "${pkgdir}$_prefix"/public/assets "$destdir"/public/
 }
 
-md5sums="d25cbca563941a1e31493972c9a36d25  gitlab-ce-8.11.11.tar.gz
-39123c546b87b8383442efe542d85556  gitlab.initd
-5cd94a6ac7e92b02d65126bfcaf6eb05  gitlab.mailroom.initd
-c46dd56334ec024ecfcc7e7ec69f4808  gitlab.sidekiq.initd
-91756c0664396ab9f76829c6567bdb94  gitlab.confd
-ec823fda257d0e183f4c67e3b3f79d79  gitlab.logrotate
-d3bb4776f8ecdd01d6ee3fee1d63395c  bin-wrapper
-d1a1e53daa822ed7b7fc7b53afff14b0  0001-Gemfile.patch
-1df8e86284e9bfcd871e0bf6d44a7755  0002-default-configs.patch
-9ec230f02a0aa7350605dd8d2802d924  0003-dont-dump-schema.patch
-fae44c0a7da22724a907a87c4199c300  0004-fix-setup-task.patch
-ac9cb7da3cdeb056922d05b86b1df6d7  0005-fix-check-task.patch
-56f86baa8b855e893fe35a833410ad85  0006-replace-sys-filesystem.patch
-428d76f8bc1a1a734c481ec389c38e8c  0007-add-mathjax-support.patch
-ff429447e0e19efc8c4b5f15e3010696  0008-fix-asciidoc-headers.patch"
-sha256sums="e94fb3eea5718a8efd6c3d2b76452e05ba20dcce113932a02e64503fa597f29a  gitlab-ce-8.11.11.tar.gz
-9f0666c4632a8a4672a58bb4b5f8b6221db342b7c4f344c03dac627d3b168658  gitlab.initd
-7b1a785762dbdd5fa755ff4eeb3e2b52d6c8668833bd520ccef0561c5d497322  gitlab.mailroom.initd
-952f2ce3b9c8463582acb72c0e5a1f67d2a3829086112aa81ec0dfed6524f1fe  gitlab.sidekiq.initd
-ca303d9ef5a2ebc9c193f418a0e096677d5fa2ce8dead3c48075ea01bf1c71cb  gitlab.confd
-13cb9f7a9f260e10d992dba4dc1b272ce9629af779cede349c059b80ef2416c1  gitlab.logrotate
-2fa2992a4dfe5e07713b520751554a0b69cec499674e3a65688979b8e30e83b7  bin-wrapper
-8923c383386c5d8e8b65f1731d8630329112d4c7ad04bce17830b2e0a0e3c6f0  0001-Gemfile.patch
-30e58897b89645c077e8870ed9bc97fca9ba060cd14759b22cb9d798aa4a7250  0002-default-configs.patch
-c84cb62eebe4784afc715bfbbbe51494261f9495c6d72e15aa4a66b132745559  0003-dont-dump-schema.patch
-29e37d0d76a1e66f0ebe607e843ccd46f3b7b380619cea9ffe29a0da2b638429  0004-fix-setup-task.patch
-d2ae2c2c8229606ca109b39e5f43bce528534a8d50babe1ec77bbedc5799d20c  0005-fix-check-task.patch
-5668c541eb85f21d9d6cae027425b657e3d31a65d433452199c51f141aa43ed0  0006-replace-sys-filesystem.patch
-4417bf34d3b63a0c2e31b2fdce4cd13ee5677c355c3ad231cbd04c79597d142d  0007-add-mathjax-support.patch
-174bec2f4eee20ca5001c25c39b04d8824e129f221c7ee23b42822d2266608d3  0008-fix-asciidoc-headers.patch"
 sha512sums="1a94765fdd24d1f7b3cc56baa20ad2dc5866f186d8d7bdc922a2c9850a9b79bdea7f0fbfd07667e3c22ae1c52c4b5932977752ba0a4d60df44835d4c5aea9c93  gitlab-ce-8.11.11.tar.gz
 a043a21660611ea94bb59a67399a2f84fd4ca2afd8d2ae12f375c32b774c8329b714904430c0772e8844348bdae6b1338e92606e8b9baad8956a255b54b09250  gitlab.initd
 d56587e94db0f607d4d37dbc1952914e2d6628405b3c2fe9f7548f27ca70f5393bf4fdebc7fa192b9bad7d07706a55cd77a910bd127236422f0f6d4a5a46be25  gitlab.mailroom.initd
@@ -276,4 +247,5 @@ ae798cdbc5e3292cc874a4bb8aee56f489abd2de1d33333fe2638f7a6bca768be08151d492532d60
 7378b4d1745ba75111e3c11218f7f89c047ecd4b663a85484095448daacc991ec1df924177261e286abafc02c39894bceafc2a0aad97c99dea63ec342610255b  0005-fix-check-task.patch
 7a2745d21d9d00dd60f9e22010d2417a2b561b93540581c411ee64592a55154f59259ef7e1969b548100e26b2d55ce2e4e4c698f630c1f27439898afd12e5d1e  0006-replace-sys-filesystem.patch
 b4381a9ab5e92c786624860216ae40ce1c344331ff778850f17c3cc28761623ed2ffacd6c405b09e7811d91c9dd5f742da07ed60fd0235005a97d4e351d8e226  0007-add-mathjax-support.patch
-5a8e9c77e9c06043b130cc14b6654653c95d9b99f6d755aba6f007a96d3181f287e7039dcf3f758555e9514ae18a1164ede0496fe8b267bbb2f538cd4582a9d1  0008-fix-asciidoc-headers.patch"
+5a8e9c77e9c06043b130cc14b6654653c95d9b99f6d755aba6f007a96d3181f287e7039dcf3f758555e9514ae18a1164ede0496fe8b267bbb2f538cd4582a9d1  0008-fix-asciidoc-headers.patch
+7a1eab9b09e123e3130ca4ff90e20ab1d422694efd2c8e7d087afe3d6585d7df702c53759b4770aab5ea276f06aca5358e04b5594a588ec3d6f3e9d896d818e7  0009-gitlab-revision.patch"
