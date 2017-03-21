@@ -1,0 +1,23 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=ngx-oauth
+pkgver=0.0_git20151212
+_gitrev=f50acede9a7cef8abe44d57f8a797a46794ed388
+pkgrel=0
+pkgdesc="OAuth 2.0 proxy for nginx written in Lua"
+url="https://github.com/jirutka/ngx-oauth"
+arch="noarch"
+license="MIT"
+depends="luajit lua5.1-cjson lua5.1-ossl lua5.1-resty-http"
+source="$pkgname-$_gitrev.tar.gz::https://github.com/jirutka/$pkgname/archive/$_gitrev.tar.gz"
+builddir="$srcdir/$pkgname-$_gitrev"
+
+package() {
+	local destdir="$pkgdir/usr/share/lua/5.1"
+	cd "$builddir"
+
+	mkdir -p "$destdir"
+	cp -r lib/* "$destdir"/
+}
+
+sha512sums="7d09a6f4466a24075bedb1cd2b59738255bcbf0d9e25ffe8f0c11cc366cfc73acd3f38294129cabc21fdb1d48b04d0234a5d72b8ec4fa88ea06c8b79225a8aef  ngx-oauth-f50acede9a7cef8abe44d57f8a797a46794ed388.tar.gz"
