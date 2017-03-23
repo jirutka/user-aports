@@ -1,14 +1,14 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitlab-shell
-pkgver=3.5.0
+pkgver=4.1.1
 pkgrel=0
 pkgdesc="GitLab Shell handles git commands for GitLab."
 url="https://github.com/gitlabhq/gitlab-shell"
 arch="noarch"
 license="MIT"
 _rubyslot=""
-depends="git>=2.7.4 openssh redis>=2.8 ruby$_rubyslot ruby$_rubyslot-json"
+depends="git>=2.8.4 openssh redis>=2.8 ruby$_rubyslot ruby$_rubyslot-json"
 makedepends=""
 pkgusers="git"
 pkggroups="git"
@@ -50,12 +50,6 @@ package() {
 	install -m644 -D config.yml.example "$pkgdir"/etc/gitlab/gitlab-shell.yml
 }
 
-md5sums="acae7a33355a3f5488e1fdcbebde79ef  gitlab-shell-3.5.0.tar.gz
-e95b4dfd9e791e66e8d3a452cfebc557  gitconfig
-2da1cb0c5dc5ee8c4d7af1531f9cb210  0001-fix-paths.patch"
-sha256sums="fc843a91b3ac1d78b4cb3e669c734fdba02e57494e78c743dd0992230eb4dd1c  gitlab-shell-3.5.0.tar.gz
-b2bb5c2835e346c2a7b58a3fb97abac98a2a1086e7616930a9047b247c12b4fa  gitconfig
-0970eed91a7a180c0c178461c691dd0bbbf894882a658db5439a513b0ab63c0c  0001-fix-paths.patch"
-sha512sums="fc26bce13ddf7b989b02338a012bce0f24fb11fce9c3b7785a10043cc2d22542194fdb2387ac87a1b6f900cda41f47031a6408a60a00694e31a0614ae06654e8  gitlab-shell-3.5.0.tar.gz
-ff5932f83df5e456c84998b7301341a17a11d06333961564bdcc1b9ec7d2154e27647cf9c7da24cc7ceda7831c442616d8e7a541d3cb3a79a8062f0bfdaa78a8  gitconfig
-c01c69f1f449dd7484d9c03253a668e3c538e76284a866734816476be6bab22392070e00ee652a85f51be972dc8c992d509b4834b973abd7ce8db110bf3ec508  0001-fix-paths.patch"
+sha512sums="8d1b03a7b67aa83f1332cd287c89417075e3fc9f250e72fbfa7d57aa5455550b6a6df1144b61e20087e7b158951a3464ad40adeb6d820b364167ab435caf0d25  gitlab-shell-4.1.1.tar.gz
+d2f0740bccc5ff19d36a83c61ebb8e5f110662d3f5ddd3520cd5f59d4c65bbaf3f980512f49a841f153a446a3501f79606a263c892ecf1954fd3549143dcf7f9  gitconfig
+defe783daeac051ad31e81d4b6912bdcf5810deb06b89f771eaf056c3caac005b6f628f4aaac47e1b8ac46bb0e4c1f32346d87d4577c1089bf1334954393cf0f  0001-fix-paths.patch"

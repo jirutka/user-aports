@@ -4,8 +4,18 @@ autocrlf = input
 [gc]
 auto = 0
 
+[pack]
+threads = 2
+
+[receive]
+fsckObjects = true
+
 [repack]
 writeBitmaps = true
 
 [user]
 name = GitLab
+
+[transfer]
+hideRefs = ^refs/tmp/
+hideRefs = ^refs/keep-around/

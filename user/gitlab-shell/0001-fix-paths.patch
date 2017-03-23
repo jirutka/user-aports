@@ -14,7 +14,7 @@ diff --git a/config.yml.example b/config.yml.example
  
  # See installation.md#using-https for additional HTTPS configuration details.
  http_settings:
-@@ -25,11 +25,11 @@
+@@ -25,15 +25,15 @@
    self_signed_cert: false
  
  # File used as authorized_keys for gitlab user
@@ -22,13 +22,18 @@ diff --git a/config.yml.example b/config.yml.example
 +auth_file: "/var/lib/gitlab/.ssh/authorized_keys"
  
  # File that contains the secret key for verifying access to GitLab.
- # Default is .gitlab_shell_secret in the root directory.
+ # Default is .gitlab_shell_secret in the gitlab-shell directory.
 -# secret_file: "/home/git/gitlab-shell/.gitlab_shell_secret"
 +secret_file: "/etc/gitlab/gitlab-shell.secret"
  
+ # Parent directory for global custom hook directories (pre-receive.d, update.d, post-receive.d)
+ # Default is hooks in the gitlab-shell directory.
+-# custom_hooks_dir: "/home/git/gitlab-shell/hooks"
++custom_hooks_dir: "/usr/share/gitlab-shell/hooks"
+ 
  # Redis settings used for pushing commit notices to gitlab
  redis:
-@@ -38,7 +38,7 @@
+@@ -42,7 +42,7 @@
    # port: 6379
    # pass: redispass # Allows you to specify the password for Redis
    database: 0
@@ -37,7 +42,7 @@ diff --git a/config.yml.example b/config.yml.example
    namespace: resque:gitlab
    # sentinels:
    #   -
-@@ -51,7 +51,7 @@
+@@ -55,7 +55,7 @@
  
  # Log file.
  # Default is gitlab-shell.log in the root directory.
