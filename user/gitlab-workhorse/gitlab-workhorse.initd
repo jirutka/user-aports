@@ -1,36 +1,29 @@
 #!/sbin/openrc-run
 
-name="GitLab (workhorse)"
+name="GitLab Workhorse"
 description="A reverse proxy for GitLab."
 
 : ${gitlab_base:="/usr/lib/bundles/gitlab"}
-: ${gitlab_public_dir:="$gitlab_base/public"}
-: ${unicorn_listen_tcp:="127.0.0.1:8181"}
-
 : ${workhorse_listen:="0.0.0.0:8080"}
-: ${workhorse_listen_umask:="000"}
-: ${workhorse_proxy_header_timeout:="1m0s"}
 : ${workhorse_logfile:="/var/log/gitlab/workhorse.log"}
 
 command="/usr/bin/gitlab-workhorse"
+# Note: The rest of the options is set in start_pre().
 command_args="
-	-authBackend=http://$unicorn_listen_tcp
-	${unicorn_listen_unix:+"-authSocket=$unicorn_listen_unix"}
-	-documentRoot=$gitlab_public_dir
+	-authBackend=http://${unicorn_listen_tcp:="127.0.0.1:8181"}
+	-documentRoot=${gitlab_public_dir:="$gitlab_base/public"}
 	-listenAddr=$workhorse_listen
-	-listenUmask=$workhorse_listen_umask
-	-proxyHeadersTimeout=$workhorse_proxy_header_timeout
-	"
-command_background="true"
+	-listenUmask=${workhorse_listen_umask:="000"}
+	-secretPath=${workhorse_secret_path:="/etc/gitlab/gitlab-workhorse.secret"}"
+command_background="yes"
 
 user="git"
 start_stop_daemon_args="
 	--chdir $gitlab_base
 	--user $user
 	--stdout $workhorse_logfile
-	--stderr $workhorse_logfile
-	"
-pidfile="/run/gitlab/workhorse.pid"
+	--stderr $workhorse_logfile"
+pidfile="/run/gitlab-workhorse.pid"
 
 
 depend() {
@@ -38,11 +31,23 @@ depend() {
 }
 
 start_pre() {
-	checkpath -m 755 -o $user -d "$(dirname "$pidfile")"
-	checkpath -m 640 -o $user -f "$workhorse_logfile"
-
 	local listen_net="tcp"
 	[ "${workhorse_listen:0:1}" = '/' ] && listen_net="unix"
 
-	command_args="$command_args -listenNetwork=$listen_net"
+	command_args="$command_args
+		-listenNetwork=$listen_net
+		$(optif -apiLimit "$workhorse_api_limit")
+		$(optif -apiQueueDuration "$workhorse_api_queue_duration")
+		$(optif -apiQueueLimit "$workhorse_api_queue_limit")
+		$(optif -authSocket "$unicorn_listen_unix")
+		$(optif -proxyHeadersTimeout "$workhorse_proxy_header_timeout")"
+
+	start_stop_daemon_args="$start_stop_daemon_args
+		$(optif '--env GITLAB_WORKHORSE_SENTRY_DSN' "$workhorse_sentry_dns")"
+
+	checkpath -m 640 -o $user -f "$workhorse_logfile"
+}
+
+optif() {
+	test -n "$2" && printf '%s/n' "$1=$2" || true
 }
