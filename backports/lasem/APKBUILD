@@ -1,7 +1,8 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=lasem
-pkgver=0.4.3
+pkgver=0.5.0
+_apiver=0.6
 pkgrel=0
 pkgdesc="A library for rendering SVG and Mathml, implementing a DOM like API"
 url="https://wiki.gnome.org/Projects/Lasem"
@@ -9,9 +10,9 @@ arch="all"
 license="LGPL2 GPL2"
 makedepends="intltool gdk-pixbuf-dev gobject-introspection-dev libxml2-dev
 	pango-dev"
-#checkdepends="gettext"
 subpackages="$pkgname-dev $pkgname-doc $pkgname-lang $pkgname-render"
-source="http://download.gnome.org/sources/lasem/${pkgver%.*}/lasem-$pkgver.tar.xz"
+source="http://download.gnome.org/sources/lasem/${pkgver%.*}/lasem-$pkgver.tar.xz
+	install-mathml-headers.patch"
 builddir="$srcdir/$pkgname-$pkgver"
 
 build() {
@@ -28,15 +29,14 @@ build() {
 	make
 }
 
-check() {
-	cd "$builddir"
-	make check
-}
-
 package() {
 	cd "$builddir"
 
 	make DESTDIR="$pkgdir" install || return 1
+
+	# Some software expect pkg-config name without a version.
+	test -e "$pkgdir"/usr/lib/pkgconfig/$pkgname-$_apiver.pc
+	ln -s $pkgname-$_apiver.pc "$pkgdir"/usr/lib/pkgconfig/$pkgname.pc
 
 	rm -r "$pkgdir"/usr/share/gtk-doc \
 		"$pkgdir"/usr/doc
@@ -51,7 +51,9 @@ render() {
 	mv usr/bin/lasem-render* "$subpkgdir"/usr/bin/
 	rmdir usr/bin || true
 
-	ln -s lasem-render-${pkgver%.*} "$subpkgdir"/usr/bin/lasem-render
+	test -e "$subpkgdir"/usr/bin/lasem-render-$_apiver
+	ln -s lasem-render-$_apiver "$subpkgdir"/usr/bin/lasem-render
 }
 
-sha512sums="60023c23389128dc1f49dc31fb1fd661624f69495ec8c1b2a8f8182273eb3c343b06bebd0a74c75d1a63d5de6428368839cfaca630ef2dce4a6e858e0165c398  lasem-0.4.3.tar.xz"
+sha512sums="1ee92ea73550ee7b23394976c91e63d9dccbd76ba414d01a06cb75f65da0decf57c56a9121e4e120f1cf2311dc217d462ac361ca16f6b0d7410e1b886b6f4cd8  lasem-0.5.0.tar.xz
+bdfa5cd2b108d40ec77cee70f5bf2664a003b75249078fe57a8ddffb51a01f0ac8194fbec1ebc000a0aa4a65b08647874ed317bfa4523e24db59f49ca66d34eb  install-mathml-headers.patch"
