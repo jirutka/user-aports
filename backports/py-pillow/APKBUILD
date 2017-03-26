@@ -1,0 +1,61 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py-pillow
+_pkgname=Pillow
+pkgver=4.0.0
+pkgrel=1
+pkgdesc="A Python Imaging Library"
+url="http://python-pillow.org/"
+arch="all"
+license="PSF"
+depends=""
+makedepends="python2-dev python3-dev py-setuptools freetype-dev jpeg-dev libwebp-dev
+	tiff-dev libpng-dev lcms2-dev openjpeg-dev zlib-dev"
+subpackages="py2-${pkgname#py-}:_py2 py3-${pkgname#py-}:_py3 $pkgname-doc::noarch"
+source="https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+build() {
+	cd "$builddir"
+
+	# zlib resides in lib
+	export CFLAGS="$CFLAGS -L/lib"
+	python2 setup.py build || return 1
+	python3 setup.py build || return 1
+}
+
+package() {
+	mkdir -p "$pkgdir"
+}
+
+_py2() {
+	replaces="$pkgname py-imaging"
+	_py python2
+}
+
+_py3() {
+	_py python3
+}
+
+_py() {
+	local python="$1"
+	pkgdesc="$pkgdesc (for $python)"
+	install_if="$pkgname=$pkgver-r$pkgrel $python"
+
+	cd "$builddir"
+	$python setup.py install --prefix=/usr --root="$subpkgdir" || return 1
+
+	# The scripts are packages in -doc, they should not be here.
+	rm -r "$subpkgdir"/usr/bin
+}
+
+doc() {
+	pkgdesc="$pkgdesc (documentation)"
+	local destdir="$subpkgdir/usr/share/doc/$pkgname"
+
+	cd "$builddir"
+	install -d "$destdir"/Scripts
+	install -m 644 Scripts/* "$destdir"/Scripts/
+}
+
+sha512sums="61d4f5d0264289074b073ba2f531a9d94d5de4cbec1bfe12606454076dacd50c926934d364d6fb2336ab74d59a09a37b88a47620d7b76db565b3637db09a5b04  Pillow-4.0.0.tar.gz"
