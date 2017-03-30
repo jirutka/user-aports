@@ -13,7 +13,7 @@ https://github.com/djberg96/sys-filesystem/issues/17
 @@ -350,4 +350,5 @@
  
  # System information
- gem 'vmstat', '~> 2.2'
+ gem 'vmstat', '~> 2.3.0'
 -gem 'sys-filesystem', '~> 1.1.6'
 +# Uses Ruby FFI which Grsecurity/PaX doesn't like.
 +gem 'sys-filesystem', '~> 1.1.6', group: :exclude

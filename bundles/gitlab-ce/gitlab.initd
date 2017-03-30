@@ -10,6 +10,7 @@ description_stop_all="Stop all GitLab services"
 : ${gitlab_base:="/usr/lib/bundles/gitlab"}
 : ${gitlab_config:="/etc/gitlab/gitlab.yml"}
 : ${mailroom_enabled:="no"}
+: ${pages_enabled:="yes"}
 : ${unicorn_listen_tcp:="127.0.0.1:8181"}
 : ${unicorn_listen_unix:="/run/gitlab/unicorn.sock"}
 : ${unicorn_workers:="2"}
@@ -31,6 +32,8 @@ start_stop_daemon_args="
 	--stdout $unicorn_logfile
 	--stderr $unicorn_logfile
 	--env RAILS_ENV=production
+	--env NODE_ENV=production
+	--env EXECJS_RUNTIME=Disabled
 	--env GITLAB_BASE=$gitlab_base
 	--env UNICORN_LISTEN_TCP=$unicorn_listen_tcp
 	--env UNICORN_LISTEN_UNIX=$unicorn_listen_unix
@@ -46,6 +49,9 @@ required_files="$gitlab_config $unicorn_config"
 subservices="gitlab.sidekiq gitlab.workhorse"
 if yesno "$mailroom_enabled"; then
 	subservices="$subservices gitlab.mailroom"
+fi
+if yesno "$pages_enabled" && [ -e /etc/init.d/gitlab.pages ]; then
+	subservices="$subservices gitlab.pages"
 fi
 
 depend() {

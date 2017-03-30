@@ -2,6 +2,8 @@
 
 BUNDLE_DIR='/usr/lib/bundles/gitlab'
 export RAILS_ENV='production'
+export NODE_ENV='production'
+export EXECJS_RUNTIME='Disabled'
 
 cd $BUNDLE_DIR
 install -m 700 -o git -g git -d "$(readlink ./tmp)"

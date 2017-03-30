@@ -1,5 +1,20 @@
-# Enable mail_room to handle incoming mails?
-#mailroom_enabled="no"
+# Configuration file for /etc/init.d/gitlab and
+# /etc/init.d/gitlab.{workhorse,sidekiq,pages,mailroom}
+
+
+# Base directory of the GitLab app.
+#gitlab_base="/usr/lib/bundles/gitlab"
+
+# Path for the GitLab document root (public).
+#gitlab_public_dir="$gitlab_base/public"
+
+# Path to the gitlab.yml config file.
+#gitlab_config="/etc/gitlab/gitlab.yml"
+
+
+#
+# GitHub Rails (Unicorn server)
+#
 
 # IP address and port where the Unicorn server should listen on.
 # This is used just for communication with Workhorse.
@@ -17,6 +32,17 @@
 # time period will be forcibly killed.
 #unicorn_timeout="60"
 
+# The minimum memory threshold (in MiB) for the Unicorn worker killer.
+#unicorn_memory_min="400"
+
+# The maximum memory threshold (in MiB) for the Unicorn worker killer.
+#unicorn_memory_max="650"
+
+
+#
+# GitLab Workhorse
+#
+
 # IP address and port, or absolute path of the unix socket, where should
 # Workhorse listen on for connections from a web server.
 #workhorse_listen="0.0.0.0:8080"
@@ -24,25 +50,88 @@
 # How long to wait for response headers when proxying the request.
 #workhorse_proxy_header_timeout="1m0s"
 
+# Number of API requests allowed at single time.
+#workhorse_api_limit=
 
-# Base directory of the GitLab app.
-#gitlab_base="/usr/lib/bundles/gitlab"
+# Maximum queueing duration of requests (default 30s).
+#workhorse_api_queue_duration=
 
-# Path fo the GitLab document root (public).
-#gitlab_public_dir="$gitlab_base/public"
+# Number of API requests allowed to be queued.
+#workhorse_api_queue_limit=
 
-# Path to the gitlab.yml config file.
-#gitlab_config="/etc/gitlab/gitlab.yml"
-
-# Path to the unicorn.rb config file.
-#unicorn_config="$gitlab_base/config/unicorn.rb"
-
+# Sentry DSN for Workhorse.
+#workhorse_sentry_dsn=
 
 # Path to the Workhorse log file.
 #workhorse_logfile="/var/log/gitlab/workhorse.log"
 
+
+#
+# Sidekiq
+#
+
+# Memory limit (in MiB) for the Sidekiq process. If the RSS (Resident Set Size)
+# of the Sidekiq process exceeds this limit, a delayed shutdown is triggered.
+#sidekiq_memkiller_max_rss=976
+
+# Number of seconds how long the Sidekiq process will keep working normally
+# after shutdown is triggered. Default is 900s.
+#sidekiq_memkiller_grace_time=
+
+# Number of seconds to get existing jobs to finish after the grace time has
+# expired. After that, the MemoryKiller tells Sidekiq to shut down, and the
+# OpenRC daemon supervisor will restart Sidekiq. Default is 30s.
+#sidekiq_memkiller_shutdown_wait=
+
 # Path to the Sidekiq log file.
 #sidekiq_logfile="/var/log/gitlab/sidekiq.log"
+
+
+#
+# GitLab Pages
+#
+
+# Enable GitLab Pages? This option is ignored if /etc/init.d/gitlab.pages
+# does not exist.
+#pages_enabled="yes"
+
+# The domain to serve static pages (required).
+pages_domain=
+
+# The address(es) to listen on for HTTP requests for Pages.
+#pages_listen_http=
+
+# The address(es) to listen on for HTTPS requests for Pages.
+#pages_listen_https=
+
+# The address(es) to listen on for proxy requests for Pages.
+pages_listen_proxy="0.0.0.0:8081"
+
+# Enable HTTP2 support for Pages (default true).
+#pages_use_http2="true"
+
+# Serve the pages under HTTP (default true).
+#pages_redirect_http="true"
+
+# The default path to file certificate to serve static pages.
+#pages_root_cert=
+
+# The default path to file certificate to serve static pages.
+#pages_root_key=
+
+# Path to the directory where pages are stored.
+#pages_root=/var/lib/gitlab/pages
+
+# Path to the Pages log file.
+#pages_logfile="/var/log/gitlab/pages.log"
+
+
+#
+# GitLab Mailroom
+#
+
+# Enable mail_room to handle incoming mails?
+#mailroom_enabled="no"
 
 # Path to the mail_room log file.
 #mailroom_logfile="/var/log/gitlab/mail_room.log"

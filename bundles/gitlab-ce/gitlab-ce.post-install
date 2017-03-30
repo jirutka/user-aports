@@ -3,22 +3,51 @@ set -eu
 
 group='git'
 secrets_file='/etc/gitlab/secrets.yml'
+shell_secret_file='/etc/gitlab/gitlab-shell.secret'
+workhorse_secret_file='/etc/gitlab/gitlab-workhorse.secret'
 
-secure_random() {
-	ruby -e 'require "securerandom"; puts SecureRandom.hex(64)'
+gen_random_hex() {
+	local bits="$1"
+	ruby -e "require 'securerandom'; puts SecureRandom.hex($bits)"
+}
+
+gen_random_b64() {
+	local bits="$1"
+	ruby <<-EOF
+		require 'securerandom'
+		require 'base64'
+		puts Base64.strict_encode64(SecureRandom.random_bytes($bits))
+	EOF
 }
 
 if [ ! -f "$secrets_file" ]; then
-	echo "* Generating random secrets in $secrets_file" 1>&2
+	echo "* Generating random secrets in $secrets_file" >&2
 
 	cat > "$secrets_file" <<-EOF
 	production:
-	  secret_key_base: $(secure_random)
-	  otp_key_base: $(secure_random)
-	  db_key_base: $(secure_random)
+	  secret_key_base: $(gen_random_hex 64)
+	  otp_key_base: $(gen_random_hex 64)
+	  db_key_base: $(gen_random_hex 64)
 	EOF
 	chown root:$group "$secrets_file"
 	chmod 0640 "$secrets_file"
+fi
+
+if [ ! -f "$shell_secret_file" ]; then
+	echo "* Generating random secret in $shell_secret_file" >&2
+
+	gen_random_hex 16 > "$shell_secret_file"
+	chown root:$group "$shell_secret_file"
+	chmod 0640 "$shell_secret_file"
+fi
+
+if [ ! -f "$workhorse_secret_file" ]; then
+	echo "* Generating random secret in $workhorse_secret_file" >&2
+
+	# Sync with lib/gitlab/workhorse.rb.
+	gen_random_b64 32 > "$workhorse_secret_file"
+	chown root:$group "$workhorse_secret_file"
+	chmod 0640 "$workhorse_secret_file"
 fi
 
 cat >&2 <<-EOF
@@ -29,7 +58,7 @@ cat >&2 <<-EOF
 *
 * 3. Create database for GitLab:
 *
-*     psql -c "CREATE ROLE gitlab PASSWORD 'top-secret';"
+*     psql -c "CREATE ROLE gitlab PASSWORD 'top-secret' INHERIT LOGIN;"
 *     psql -c "CREATE DATABASE gitlab OWNER gitlab ENCODING 'UTF-8';"
 *     psql -d gitlab -c "CREATE EXTENSION pg_trgm;"
 *

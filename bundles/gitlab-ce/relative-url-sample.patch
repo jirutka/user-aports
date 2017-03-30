@@ -1,0 +1,12 @@
+--- a/config/initializers/relative_url.rb.sample
++++ b/config/initializers/relative_url.rb.sample
+@@ -5,6 +5,6 @@
+ # Copy this file to relative_url.rb and customize it to run in a non-root path
+ #
+ 
+-Rails.application.configure do
+-  config.relative_url_root = "/gitlab"
+-end
++#Rails.application.configure do
++#  config.relative_url_root = "/gitlab"
++#end

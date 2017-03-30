@@ -2,24 +2,24 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
-pkgver=8.11.11
-pkgrel=2
+pkgver=8.17.5
+pkgrel=0
 pkgdesc="A version control for your server"
 url="https://github.com/gitlabhq/gitlabhq"
 arch="all"
 license="MIT"
 _rubyslot=""
 # ruby-irb is needed only for Rails console (gitlab-rails console)
-depends="$pkgname-assets
-	gitlab-shell>=3.4.0
-	gitlab-workhorse>=0.7.10
+depends="$pkgname-assets=$pkgname-$pkgver-r$pkgrel
+	gitlab-shell>=4.1.1
+	gitlab-workhorse>=1.3.0
 	ca-certificates
-	git>=2.7.3
+	git>=2.8.3
 	http-parser
 	libgit2>=0.24
-	nodejs
 	procps
 	py-docutils
+	python3
 	redis>=2.8
 	tzdata
 	ruby$_rubyslot
@@ -28,7 +28,7 @@ depends="$pkgname-assets
 	ruby$_rubyslot-json
 	ruby$_rubyslot-rake
 	ruby$_rubyslot-irb
-	ruby$_rubyslot-bundler
+	ruby$_rubyslot-bundler>=1.5.2
 	"
 makedepends="
 	icu-dev
@@ -38,9 +38,10 @@ makedepends="
 	libxslt-dev
 	linux-headers
 	libressl-dev
-	postgresql-dev>=9.1
-	nodejs
+	postgresql-dev
+	nodejs>=4.3.0
 	ruby$_rubyslot-dev
+	yarn
 	"
 pkgusers="git"
 pkggroups="git"
@@ -52,16 +53,16 @@ source="$pkgname-$pkgver.tar.gz::https://github.com/gitlabhq/gitlabhq/archive/v$
 	$_pkgname.sidekiq.initd
 	$_pkgname.confd
 	$_pkgname.logrotate
-	bin-wrapper
+	bin-wrapper.in
 	0001-Gemfile.patch
+	dont-hardcode-gitlab_workhorse_secret-path.patch
 	0002-default-configs.patch
 	0003-dont-dump-schema.patch
 	0004-fix-setup-task.patch
 	0005-fix-check-task.patch
 	0006-replace-sys-filesystem.patch
-	0007-add-mathjax-support.patch
-	0008-fix-asciidoc-headers.patch
 	0009-gitlab-revision.patch
+	relative-url-sample.patch
 	"
 builddir="$srcdir/gitlabhq-$pkgver"
 
@@ -88,16 +89,19 @@ prepare() {
 
 	# Remove some useless configs.
 	rm config/aws.yml.example \
+		config/database.yml.env \
 		config/database.yml.mysql \
+		config/karma.config.js \
 		config/newrelic.yml \
-		config/unicorn.rb.example.development
+		config/unicorn.rb.example.development \
+		config/environments/development.rb \
+		config/environments/test.rb
 }
 
 build() {
 	local bundle="bundle$_rubyslot"
-	local cpus="$(grep -c ^processor /proc/cpuinfo || echo 1)"
-	local bundle_opts="--deployment --jobs=$cpus --no-cache
-		--without exclude auth-ext fog development kerberos metrics mysql test"
+	local bundle_opts="--deployment --jobs=${JOBS:-2} --no-cache
+		--without exclude auth_ext backups_ext development kerberos metrics mysql test"
 
 	cd "$builddir"
 
@@ -108,6 +112,14 @@ build() {
 
 	$bundle $bundle_opts || return 1
 
+	# Patch installed gem gitlab-markup to use python3.
+	sed -i 's/python2/python3/g' \
+		vendor/bundle/ruby/*/gems/gitlab-markup-*/lib/github/markups.rb || return 1
+
+	msg "Installing npm modules..."
+
+	yarn install --production --pure-lockfile || return 1
+
 	msg "Compiling assets (this will take few minutes)..."
 
 	# Since we have moved assets gems into a group, they are not implicitly
@@ -115,21 +127,20 @@ build() {
 	sed -i.bak '/Bundler.require(:default, Rails.env/s/)/, :assets)/' \
 		config/application.rb || return 1
 
-	# assets:precompile bootstraps the app, so it needs a config file.
+	# assets:precompile bootstraps the app, so it needs configs.
 	cp config/gitlab.yml.example config/gitlab.yml || return 1
+	cp config/database.yml.postgresql config/database.yml || return 1
 
 	# The configured path is not readable for the user building
 	# the package, so we must remove it; GitLab will use the default path.
 	sed -i '/^\s*secret_file:.*/d' config/gitlab.yml || return 1
 
-	# We must set database URL, but it's not needed to be actually
-	# accessible, so just provide some dummy URL.
-	DATABASE_URL="postgres://user:pass@127.0.0.1/dummy" \
+	$bundle exec rake gitlab:assets:compile \
+		NODE_ENV=production \
 		RAILS_ENV=production \
 		SECRET_KEY_BASE="top-secret" \
 		SKIP_STORAGE_VALIDATION=true \
-		USE_DB=false \
-		$bundle exec rake assets:precompile || return 1
+		USE_DB=false || return 1
 
 	mv config/application.rb.bak config/application.rb || return 1
 
@@ -153,9 +164,13 @@ build() {
 	#done
 
 	# Cleanup
-	rm config/gitlab.yml config/secrets.yml
-	rm -R vendor/bundle/ruby/*/cache/
+	rm config/database.yml config/gitlab.yml config/secrets.yml
+	rm -R app/assets
 	rm -R vendor/bundle/ruby/*/build_info
+	rm -R vendor/bundle/ruby/*/cache/
+	rm -R vendor/assets
+	rm vendor/bundle/ruby/*/gems/grape-*/pkg/*.gem
+	find vendor/bundle/ruby/*/gems -name "doc" -type d -delete
 }
 
 package() {
@@ -170,7 +185,8 @@ package() {
 	install -d -m755 -o git -g git \
 		"$datadir" \
 		"$pkgdir"/etc/gitlab \
-		"$pkgdir"/var/log/gitlab || return 1
+		"$pkgdir"/var/log/gitlab \
+		"$datadir"/pages || return 1
 
 	install -d -m700 -o git -g git \
 		"$datadir"/artifacts \
@@ -183,7 +199,7 @@ package() {
 		"$datadir"/repositories || return 1
 
 	# Remove some useless files before copying.
-	rm -r lib/support db/fixtures/development db/fixtures/test
+	rm -r lib/support db/fixtures/development
 	find lib/tasks -maxdepth 1 -type f ! -name cache.rake ! -name setup.rake -delete
 	find lib/tasks/gitlab -name generate_docs.* -o -name shell.* -o -name test.* -delete
 
@@ -192,20 +208,25 @@ package() {
 	# Install application files.
 	# Note: *VERSION files and doc directory are required (Help in GitLab
 	# menu refers to the doc directory).
-	cp -rl .bundle config.ru Gemfile* GITLAB_SHELL_VERSION GITLAB_WORKHORSE_VERSION \
-		Rakefile VERSION app db doc fixtures config lib public vendor \
+	cp -rl .bundle config.ru Gemfile* GITLAB_* Rakefile VERSION app db doc \
+		fixtures config lib public vendor \
 		"$destdir"/ || return 1
 
 	install -m755 -t "$destdir"/bin \
 		bin/bundle bin/mail_room bin/rails bin/rake \
 		bin/sidekiq bin/unicorn_rails || return 1
 
+	# Just to unify the next for loop...
+	mv config/sidekiq_queues.yml config/sidekiq_queues.yml.orig || return 1
+
 	# Install and symlink config files.
 	for file in database.yml.postgresql \
 			gitlab.yml.example \
 			resque.yml.example \
 			sidekiq.yml.example \
+			sidekiq_queues.yml.orig \
 			initializers/rack_attack.rb.example \
+			initializers/relative_url.rb.sample \
 			initializers/smtp_settings.rb.sample; do
 		dest="$(basename "${file%.*}")"
 		install -m640 -g git -D config/$file "$pkgdir"/etc/gitlab/$dest || return 1
@@ -215,7 +236,11 @@ package() {
 	# This file will be generated by the post-install script, just prepare symlink.
 	ln -sf /etc/gitlab/secrets.yml "$destdir"/config/secrets.yml || return 1
 
-	echo "export RAILS_ENV=production" > "$datadir"/.profile
+	cat > "$datadir"/.profile <<-EOF
+		export RAILS_ENV=production
+		export NODE_ENV=production
+		export EXECJS_RUNTIME=Disabled
+	EOF
 
 	# Some paths are hard-coded in GitLab, so we must make symlinks. :(
 	ln -sf /var/lib/gitlab/uploads "$destdir"/public/uploads || return 1
@@ -227,7 +252,7 @@ package() {
 
 	# Install wrapper scripts to /usr/bin.
 	local name; for name in rake rails; do
-		sed "s/__COMMAND__/$name/g" "$srcdir"/bin-wrapper > gitlab-$name || return 1
+		sed "s/__COMMAND__/$name/g" "$srcdir"/bin-wrapper.in > gitlab-$name || return 1
 		install -m755 -D gitlab-$name "$pkgdir"/usr/bin/gitlab-$name || return 1
 	done
 
@@ -250,19 +275,51 @@ assets() {
 	mv "${pkgdir}$_prefix"/public/assets "$destdir"/public/
 }
 
-sha512sums="1a94765fdd24d1f7b3cc56baa20ad2dc5866f186d8d7bdc922a2c9850a9b79bdea7f0fbfd07667e3c22ae1c52c4b5932977752ba0a4d60df44835d4c5aea9c93  gitlab-ce-8.11.11.tar.gz
-a043a21660611ea94bb59a67399a2f84fd4ca2afd8d2ae12f375c32b774c8329b714904430c0772e8844348bdae6b1338e92606e8b9baad8956a255b54b09250  gitlab.initd
+md5sums="a8fb97758feddda77d9df28d1edbc2fc  gitlab-ce-8.17.5.tar.gz
+d124eb46ca0d57b5287333bfee7f8ec7  gitlab.initd
+5cd94a6ac7e92b02d65126bfcaf6eb05  gitlab.mailroom.initd
+c0af4429c9da9c313b41925cbefefafc  gitlab.sidekiq.initd
+0f6bd0e731025ab6f87c9c57b1d5bde4  gitlab.confd
+ec823fda257d0e183f4c67e3b3f79d79  gitlab.logrotate
+eb7cb58375b6c4f58f8aabd8a9bd79d2  bin-wrapper.in
+bc3d9db8cffc1c4b235fb2211baf79ee  0001-Gemfile.patch
+a23a69d5c61ac7521b1412504ff78bc5  dont-hardcode-gitlab_workhorse_secret-path.patch
+8c2310a8f23f3ba35adf34fc0ba32814  0002-default-configs.patch
+9ec230f02a0aa7350605dd8d2802d924  0003-dont-dump-schema.patch
+fae44c0a7da22724a907a87c4199c300  0004-fix-setup-task.patch
+ac9cb7da3cdeb056922d05b86b1df6d7  0005-fix-check-task.patch
+a1d32fa537fe878e74f01ca50df0e2f1  0006-replace-sys-filesystem.patch
+d5eaa8ce1e5f12619891994b2d0a97fa  0009-gitlab-revision.patch
+f174956e5da7f66cbbed43a71a08e8af  relative-url-sample.patch"
+sha256sums="e3b8ac2a1234171bf700a7f07de845a440cc6b31d88b087bfa87cc4f4dc3a898  gitlab-ce-8.17.5.tar.gz
+c7aa5b95b3c025f5675247c881d19a200ce924ef89fc1deab15c51b0e062d5bc  gitlab.initd
+7b1a785762dbdd5fa755ff4eeb3e2b52d6c8668833bd520ccef0561c5d497322  gitlab.mailroom.initd
+ef8d7e9fcbc0844c01edb4ffb7e0aa0b42b0fd80d37bacc3b752b54f9ae3f395  gitlab.sidekiq.initd
+49c1f235d55c02f0395b18282522448a08c45001ba32fee369ed2be99f3424bb  gitlab.confd
+13cb9f7a9f260e10d992dba4dc1b272ce9629af779cede349c059b80ef2416c1  gitlab.logrotate
+8cc33fb6d56864759d064f7b7f52d547b099cb4f1fd254f5de0068b7358667fc  bin-wrapper.in
+e95d02f7f4c5bffcd8dd86e78ea55903e4cdf75fc223f1f0ed5eadc9a8061b54  0001-Gemfile.patch
+c710ecdfd5884e506456a38eccb91a36bf41f7dbf73ed15c0482da73bcf8fef0  dont-hardcode-gitlab_workhorse_secret-path.patch
+a8caef55193ebd715ae206506c4f234daf0aee976ca0a61f37d3157ce5bd9eb5  0002-default-configs.patch
+c84cb62eebe4784afc715bfbbbe51494261f9495c6d72e15aa4a66b132745559  0003-dont-dump-schema.patch
+29e37d0d76a1e66f0ebe607e843ccd46f3b7b380619cea9ffe29a0da2b638429  0004-fix-setup-task.patch
+d2ae2c2c8229606ca109b39e5f43bce528534a8d50babe1ec77bbedc5799d20c  0005-fix-check-task.patch
+251b43279cf02caf6453e16ab1acc8e72bacf78b9aff1331e9523a4ce49a0e6e  0006-replace-sys-filesystem.patch
+8cd06457b32dda57178157859740ffa370a521906a2b3aa40bb5d698acf52af1  0009-gitlab-revision.patch
+336b8066a9d898d777948059d7e09df939570442ff6cc8ee574d08a65f52387a  relative-url-sample.patch"
+sha512sums="56930cd82021082be0f7ebcce1a187e2328d150782575294712f91dc15cd4d764fd14534bde65f0beeae6b70a3f76e679ff6c94e129640a78ffde1263381752c  gitlab-ce-8.17.5.tar.gz
+0997e2454f389f8218e764054f63aaf6fa5a0663b23d86e1141fe48a02ac6952305b36730827e615dd4efc310a2abb7e0f26fb3ae52a7759a0e30c4850134998  gitlab.initd
 d56587e94db0f607d4d37dbc1952914e2d6628405b3c2fe9f7548f27ca70f5393bf4fdebc7fa192b9bad7d07706a55cd77a910bd127236422f0f6d4a5a46be25  gitlab.mailroom.initd
-705a05d7a1e1d01a83845d483d65ffd2bf1c5c9f3186f78bfe8cd515efda7452f74a5ce92be9373be5a1cf6bedb583ba545821cecdb43f42859644cf8fab78b2  gitlab.sidekiq.initd
-a162412e9df709ab48cb223097c0f39dd58735a4a6f93c97686bc73727834f7ff437a573a24ff6229e4447fff0c0398d362281f3274ad28426f7054bfe3c5ba1  gitlab.confd
+4dee153c5d9aafb10d310baa9cc5950cdcb23e32210682827c258423b9a268e9b92ee979f23ac37e9de7d175a4fccb036bd51dbd88bf45fec472bd2d81e020e6  gitlab.sidekiq.initd
+f8bbf8eca453d4221820fbda36488873f1ef9a50321af863d7e9eaccf75ba7509a0767291fd2ec6cd42332ebb27811b957ae8f639ad1b5345754dd5f6f97888c  gitlab.confd
 d711d9c0a17a8a6f862f5505da1eb65a701917155207b5864b40e8acfaf958c68a2d8f9b01a92871b3d630e00c78df38b24701e4adcba8f1d35cdc69dedf2df6  gitlab.logrotate
-aff81967c19213a79f752fc3b79fac63d5ca8b68716c09542fda776355b12b85cae166966b96d64c8085254b9dc85e19d0b664cd93e1aaa01f7da89b0a4b6a8e  bin-wrapper
-7d7c4b2503ed4d77912d4b6ce3a8dd57c04c28ff5d82d02efc89f094b54f5c76fb57f19bae60792450aac55f2f7d61927083ad06c8380110d925746ee2e14e4d  0001-Gemfile.patch
-f003339ef3041398b8e240deac4fbffdd71cf280ed9ad1d2b2a4943096d425864891d9cf7deeb7a9d57798b7f25b04f21fc06558062e41ee0f9ab0705a6f6b5f  0002-default-configs.patch
+a944c3886388ba1574bf8c96b6de4d9f24ef4a83f553c31a224e17a3b01f2a5c65b60c59b7ed7ca4b25670c60ea8dd41b96a8a623d909d2bb09bdf2520ed7f23  bin-wrapper.in
+eb5a9de97422515cf309448af27b76f63d21e02f6c756390fb2a371254836e61245c2586b017705937c7a81332ef96fe5257f3f95fc19ebad2aa0bebb8b71859  0001-Gemfile.patch
+ca651676cb4b44182078af2e8e078e40e79cadafc069a5699617a4e96106dc1e83da99d1847c9799e9b02e90e2a2b1caa0242a701aa943293bbbeb0876edbed8  dont-hardcode-gitlab_workhorse_secret-path.patch
+b3bd726fbad0b28a377cf20ee98d16baa54175ee403d4f8d9b7fca5275e5bdff44a98c240355f6db9a9539a101f03fd622cee06dd9176eb5895f22d2dc443668  0002-default-configs.patch
 5fe15dae9b27641dafdefa44e8a31a0b9fbcb2b3485fe0691fe60016e7bc646edf79d204068555699e18e9b643f9ea05dec0919333a3c4999381eff62df00a75  0003-dont-dump-schema.patch
 ae798cdbc5e3292cc874a4bb8aee56f489abd2de1d33333fe2638f7a6bca768be08151d492532d606ee65de2931687b4ada164890efb670e91e84fbdc5098a91  0004-fix-setup-task.patch
 7378b4d1745ba75111e3c11218f7f89c047ecd4b663a85484095448daacc991ec1df924177261e286abafc02c39894bceafc2a0aad97c99dea63ec342610255b  0005-fix-check-task.patch
-7a2745d21d9d00dd60f9e22010d2417a2b561b93540581c411ee64592a55154f59259ef7e1969b548100e26b2d55ce2e4e4c698f630c1f27439898afd12e5d1e  0006-replace-sys-filesystem.patch
-b4381a9ab5e92c786624860216ae40ce1c344331ff778850f17c3cc28761623ed2ffacd6c405b09e7811d91c9dd5f742da07ed60fd0235005a97d4e351d8e226  0007-add-mathjax-support.patch
-5a8e9c77e9c06043b130cc14b6654653c95d9b99f6d755aba6f007a96d3181f287e7039dcf3f758555e9514ae18a1164ede0496fe8b267bbb2f538cd4582a9d1  0008-fix-asciidoc-headers.patch
-7a1eab9b09e123e3130ca4ff90e20ab1d422694efd2c8e7d087afe3d6585d7df702c53759b4770aab5ea276f06aca5358e04b5594a588ec3d6f3e9d896d818e7  0009-gitlab-revision.patch"
+af32919422bbbfdf58d2a3403a3b5455e50b25be4e6f3e396e7ffb473cd118cd6e2ef075a6f058681371962c5390d1e7e2f4e87a538bfa53177291898966c65b  0006-replace-sys-filesystem.patch
+7a1eab9b09e123e3130ca4ff90e20ab1d422694efd2c8e7d087afe3d6585d7df702c53759b4770aab5ea276f06aca5358e04b5594a588ec3d6f3e9d896d818e7  0009-gitlab-revision.patch
+6af80dd113a330e5a5b73ceae214ebbadd0ae9c89db10963a973a35f348096adf2edaf3aac14f065560efddda0be4da83e247442896f57a2de8edfbfa55e4fdb  relative-url-sample.patch"

@@ -1,25 +1,30 @@
 #!/sbin/openrc-run
 
+supervisor=supervise-daemon
+
 name="GitLab (sidekiq)"
 description="GitLab backgroud workers"
 
 : ${gitlab_base:="/usr/lib/bundles/gitlab"}
+: ${sidekiq_config:="/etc/gitlab/sidekiq_queues.yml"}
 : ${sidekiq_logfile:="/var/log/gitlab/sidekiq.log"}
-: ${sidekiq_queues:="post_receive mailers archive_repo system_hook project_web_hook \
-	gitlab_shell incoming_email runner common default"}
+: ${sidekiq_memkiller_max_rss:="976"}  # default per Omnibus
+: ${sidekiq_memkiller_grace_time:=}
+: ${sidekiq_memkiller_shutdown_wait:=}
 
 command="$gitlab_base/bin/sidekiq"
-command_args="$(printf ' -q %s' $sidekiq_queues)"
-command_background="yes"
+command_args="-C $sidekiq_config"
 
 user="git"
-start_stop_daemon_args="
+supervise_daemon_args="
 	--chdir $gitlab_base
 	--user $user
-	--interpreted
 	--stdout $sidekiq_logfile
 	--stderr $sidekiq_logfile
 	--env RAILS_ENV=production
+	--env SIDEKIQ_MEMORY_KILLER_MAX_RSS=$(( sidekiq_memkiller_max_rss * 1024 ))
+	--env SIDEKIQ_MEMORY_KILLER_GRACE_TIME=$sidekiq_memkiller_grace_time
+	--env SIDEKIQ_MEMORY_KILLER_SHUTDOWN_WAIT=$sidekiq_memkiller_shutdown_wait
 	"
 pidfile="/run/gitlab/sidekiq.pid"
 
@@ -29,6 +34,10 @@ depend() {
 }
 
 start_pre() {
-	checkpath -d -m 755 -o $user "$(dirname "$pidfile")"
+	checkpath -d -m 755 -o $user "${pidfile%/*}"
 	checkpath -f -m 644 -o $user "$sidekiq_logfile"
+}
+
+optif() {
+	test -n "$2" && printf '%s/n' "$1=$2" || true
 }

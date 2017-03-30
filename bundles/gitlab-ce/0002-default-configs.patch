@@ -77,7 +77,7 @@ index d9c15f8..f687e2b 100644
  # How to use:
  # 1. Copy file as gitlab.yml
  # 2. Update gitlab -> host with your fully qualified domain name
-@@ -107,7 +98,7 @@
+@@ -108,7 +99,7 @@
      ## Repository downloads directory
      # When a user clicks e.g. 'Download zip' on a project, a temporary zip file is created in the following directory.
      # The default is 'shared/cache/archive/' relative to the root of the Rails app.
@@ -86,7 +86,7 @@ index d9c15f8..f687e2b 100644
  
    ## Reply by email
    # Allow users to comment on issues and merge requests by replying to notification emails.
-@@ -142,13 +133,13 @@
+@@ -145,19 +136,19 @@
    artifacts:
      enabled: true
      # The location where build artifacts are stored (default: shared/artifacts).
@@ -100,9 +100,16 @@ index d9c15f8..f687e2b 100644
 -    # storage_path: shared/lfs-objects
 +    storage_path: /var/lib/gitlab/lfs-objects
  
-   ## Gravatar
-   ## For Libravatar see: http://doc.gitlab.com/ce/customization/libravatar.html
-@@ -185,7 +176,7 @@
+   ## GitLab Pages
+   pages:
+     enabled: false
+     # The location where pages are stored (default: shared/pages).
+-    # path: shared/pages
++    path: /var/lib/gitlab/pages
+ 
+     # The domain under which the pages are served:
+     # http://group.example.com/project
+@@ -209,7 +200,7 @@
      # port: 5005
      # api_url: http://localhost:5000/ # internal address to the registry, will be used by GitLab to directly communicate with API
      # key: config/registry.key
@@ -111,7 +118,7 @@ index d9c15f8..f687e2b 100644
      # issuer: gitlab-issuer
  
    #
-@@ -202,7 +193,7 @@
+@@ -226,7 +217,7 @@
      # add_pusher: true
  
      # The location where build traces are stored (default: builds/). Relative paths are relative to Rails.root
@@ -120,7 +127,7 @@ index d9c15f8..f687e2b 100644
  
    #
    # 3. Auth settings
-@@ -247,7 +247,7 @@
+@@ -271,7 +262,7 @@
          # This setting specifies if LDAP server is Active Directory LDAP server.
          # For non AD servers it skips the AD specific queries.
          # If your LDAP server is not AD, set this to false.
@@ -129,7 +136,7 @@ index d9c15f8..f687e2b 100644
  
          # If allow_username_or_email_login is enabled, GitLab will ignore everything
          # after the first '@' in the LDAP username submitted by the user on login.
-@@ -322,7 +313,7 @@
+@@ -346,7 +337,7 @@
      # This allows users to login without having a user account first. Define the allowed providers
      # using an array, e.g. ["saml", "twitter"], or as true/false to allow all providers or none.
      # User accounts will be created automatically when authentication was successful.
@@ -138,7 +145,7 @@ index d9c15f8..f687e2b 100644
  
      # Locks down those users until they have been cleared by the admin (default: true).
      block_auto_created_users: true
-@@ -330,11 +321,6 @@
+@@ -354,11 +345,6 @@
      # link the omniauth identity with the LDAP account. (default: false)
      auto_link_ldap_user: false
  
@@ -150,7 +157,7 @@ index d9c15f8..f687e2b 100644
      # Set different Omniauth providers as external so that all users creating accounts
      # via these providers will not be able to have access to internal projects. You
      # will need to use the full name of the provider, like `google_oauth2` for Google.
-@@ -350,15 +336,6 @@
+@@ -374,94 +360,22 @@
      # arguments, followed by optional 'args' which can be either a hash or an array.
      # Documentation for this is available at http://doc.gitlab.com/ce/integration/omniauth.html
      providers:
@@ -163,13 +170,29 @@ index d9c15f8..f687e2b 100644
 -      #             login_url: '/cas/login',
 -      #             service_validate_url: '/cas/p3/serviceValidate',
 -      #             logout_url: '/cas/logout'} }
+-      # - { name: 'authentiq',
+-      #     # for client credentials (client ID and secret), go to https://www.authentiq.com/
+-      #     app_id: 'YOUR_CLIENT_ID',
+-      #     app_secret: 'YOUR_CLIENT_SECRET',
+-      #     args: {
+-      #             scope: 'aq:name email~rs address aq:push'
+-      #             # redirect_uri parameter is optional except when 'gitlab.host' in this file is set to 'localhost'
+-      #             # redirect_uri: 'YOUR_REDIRECT_URI'
+-      #           }
+-      #   }
        # - { name: 'github',
        #     app_id: 'YOUR_APP_ID',
        #     app_secret: 'YOUR_APP_SECRET',
-@@ -372,98 +349,38 @@
-       #     app_id: 'YOUR_APP_ID',
-       #     app_secret: 'YOUR_APP_SECRET',
-       #     args: { scope: 'api' } }
+       #     url: "https://github.com/",
+       #     verify_ssl: true,
+       #     args: { scope: 'user:email' } }
+-      # - { name: 'bitbucket',
+-      #     app_id: 'YOUR_APP_ID',
+-      #     app_secret: 'YOUR_APP_SECRET' }
+-      # - { name: 'gitlab',
+-      #     app_id: 'YOUR_APP_ID',
+-      #     app_secret: 'YOUR_APP_SECRET',
+-      #     args: { scope: 'api' } }
 -      # - { name: 'google_oauth2',
 -      #     app_id: 'YOUR_APP_ID',
 -      #     app_secret: 'YOUR_APP_SECRET',
@@ -230,7 +253,9 @@ index d9c15f8..f687e2b 100644
    ## Repositories settings
    repositories:
      # Paths where repositories can be stored. Give the canonicalized absolute pathname.
-     # NOTE: REPOS PATHS MUST NOT CONTAIN ANY SYMLINK!!!
+@@ -469,37 +383,23 @@
+     # gitlab-shell invokes Dir.pwd inside the repository path and that results
+     # real path not the symlink.
      storages: # You must have at least a `default` storage path.
 -      default: /home/git/repositories/
 +      default: /var/lib/gitlab/repositories/
@@ -238,7 +263,7 @@ index d9c15f8..f687e2b 100644
    ## Backup settings
    backup:
 -    path: "tmp/backups"   # Relative paths are relative to Rails.root (default: tmp/backups/)
-+    path: "/var/tmp/gitlab/backups"   # Relative paths are relative to Rails.root (default: tmp/backups/)
++    path: /var/tmp/gitlab/backups   # Relative paths are relative to Rails.root (default: tmp/backups/)
      # archive_permissions: 0640 # Permissions for the resulting backup.tar file (default: 0600)
      # keep_time: 604800   # default: 0 (forever) (in seconds)
      # pg_schema: public     # default: nil, it means that all schemas will be backed up
@@ -271,7 +296,33 @@ index d9c15f8..f687e2b 100644
  
      # Git over HTTP
      upload_pack: true
-@@ -512,53 +429,3 @@
+@@ -511,7 +411,7 @@
+   workhorse:
+     # File that contains the secret key for verifying access for gitlab-workhorse.
+     # Default is '.gitlab_workhorse_secret' relative to Rails.root (i.e. root of the GitLab app).
+-    # secret_file: /home/git/gitlab/.gitlab_workhorse_secret
++    secret_file: /etc/gitlab/gitlab-workhorse.secret
+ 
+   ## Git settings
+   # CAUTION!
+@@ -520,16 +420,6 @@
+     # Git timeout to read a commit, in seconds
+     timeout: 10
+ 
+-  ## Webpack settings
+-  # If enabled, this will tell rails to serve frontend assets from the webpack-dev-server running
+-  # on a given port instead of serving directly from /assets/webpack. This is only indended for use
+-  # in development.
+-  webpack:
+-    # dev_server:
+-    #   enabled: true
+-    #   host: localhost
+-    #   port: 3808
+-
+   #
+   # 5. Extra customization
+   # ==========================
+@@ -558,57 +448,3 @@
        #
        # Ban an IP for one hour (3600s) after too many auth attempts
        # bantime: 3600
@@ -309,6 +360,10 @@ index d9c15f8..f687e2b 100644
 -      project_url: "http://redmine/projects/:issues_tracker_id"
 -      issues_url: "http://redmine/:project_id/:issues_tracker_id/:id"
 -      new_issue_url: "http://redmine/projects/:issues_tracker_id/issues/new"
+-    jira:
+-      title: "JIRA"
+-      url: https://sample_company.atlasian.net
+-      project_key: PROJECT
 -  ldap:
 -    enabled: false
 -    servers:
@@ -325,6 +380,7 @@ index d9c15f8..f687e2b 100644
 -
 -staging:
 -  <<: *base
+\ No newline at end of file
 --- a/config/initializers/smtp_settings.rb.sample
 +++ b/config/initializers/smtp_settings.rb.sample
 @@ -1,16 +1,9 @@
