@@ -1,0 +1,55 @@
+#!/sbin/openrc-run
+
+name="GitLab Pages"
+description="A daemon used to serve static websites for GitLab users"
+
+: ${pages_user:=${user:-"git"}}
+: ${pages_root:="/var/lib/gitlab/pages"}
+: ${pages_logfile:="/var/log/gitlab/pages.log"}
+
+command="/usr/bin/gitlab-pages"
+# Note: The rest of the options is set in start_pre().
+command_args="
+	-pages-domain=$pages_domain
+	-pages-root=$pages_root
+	-redirect-http=${pages_redirect_http:-true}
+	-use-http2=${pages_use_http2:-true}
+	"
+command_background="yes"
+
+start_stop_daemon_args="
+	--chdir $pages_root
+	--user $pages_user
+	--stdout $pages_logfile
+	--stderr $pages_logfile"
+pidfile="/run/gitlab-pages.pid"
+
+
+depend() {
+	use net
+}
+
+start_pre() {
+	local item
+
+	for item in $pages_listen_http; do
+		command_args="$command_args -listen-http=$item"
+	done
+	for item in $pages_listen_https; do
+		command_args="$command_args -listen-https=$item"
+	done
+	for item in $pages_listen_proxy; do
+		command_args="$command_args -listen-proxy=$item"
+	done
+
+	command_args="$command_args
+		$(optif -metrics-address "$pages_metrics_address")
+		$(optif -root-cert "$pages_root_cert")
+		$(optif -root-key "$pages_root_key")"
+
+	checkpath -m 640 -o $pages_user -f "$pages_logfile"
+}
+
+optif() {
+	test -n "$2" && printf '%s/n' "$1=$2" || true
+}
