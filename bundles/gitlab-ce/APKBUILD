@@ -3,7 +3,7 @@
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
 pkgver=8.17.5
-pkgrel=0
+pkgrel=1
 pkgdesc="A version control for your server"
 url="https://github.com/gitlabhq/gitlabhq"
 arch="all"
@@ -165,12 +165,10 @@ build() {
 
 	# Cleanup
 	rm config/database.yml config/gitlab.yml config/secrets.yml
-	rm -R app/assets
 	rm -R vendor/bundle/ruby/*/build_info
 	rm -R vendor/bundle/ruby/*/cache/
-	rm -R vendor/assets
 	rm vendor/bundle/ruby/*/gems/grape-*/pkg/*.gem
-	find vendor/bundle/ruby/*/gems -name "doc" -type d -delete
+	find vendor/bundle/ruby/*/gems -name "doc" -type d -exec rm -vrf "{}" +
 }
 
 package() {
@@ -211,6 +209,10 @@ package() {
 	cp -rl .bundle config.ru Gemfile* GITLAB_* Rakefile VERSION app db doc \
 		fixtures config lib public vendor \
 		"$destdir"/ || return 1
+
+	# Not needed in runtime since we have already compiled all assets.
+	rm -R "$destdir"/app/assets \
+		"$destdir"/vendor/assets || return 1
 
 	install -m755 -t "$destdir"/bin \
 		bin/bundle bin/mail_room bin/rails bin/rake \
