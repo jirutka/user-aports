@@ -191,7 +191,9 @@ package() {
 		"$datadir"/builds \
 		"$datadir"/lfs-objects \
 		"$datadir"/registry \
-		"$datadir"/uploads || return 1
+		"$datadir"/uploads \
+		"$pkgdir"/var/tmp/gitlab \
+		"$pkgdir"/var/tmp/backups || return 1
 
 	install -d -m02770 -o git -g git \
 		"$datadir"/repositories || return 1
@@ -286,7 +288,7 @@ ec823fda257d0e183f4c67e3b3f79d79  gitlab.logrotate
 eb7cb58375b6c4f58f8aabd8a9bd79d2  bin-wrapper.in
 bc3d9db8cffc1c4b235fb2211baf79ee  0001-Gemfile.patch
 a23a69d5c61ac7521b1412504ff78bc5  dont-hardcode-gitlab_workhorse_secret-path.patch
-8c2310a8f23f3ba35adf34fc0ba32814  0002-default-configs.patch
+f34fcf64d3397f29e9ffc7e6fe99d33b  0002-default-configs.patch
 9ec230f02a0aa7350605dd8d2802d924  0003-dont-dump-schema.patch
 fae44c0a7da22724a907a87c4199c300  0004-fix-setup-task.patch
 ac9cb7da3cdeb056922d05b86b1df6d7  0005-fix-check-task.patch
@@ -302,7 +304,7 @@ ef8d7e9fcbc0844c01edb4ffb7e0aa0b42b0fd80d37bacc3b752b54f9ae3f395  gitlab.sidekiq
 8cc33fb6d56864759d064f7b7f52d547b099cb4f1fd254f5de0068b7358667fc  bin-wrapper.in
 e95d02f7f4c5bffcd8dd86e78ea55903e4cdf75fc223f1f0ed5eadc9a8061b54  0001-Gemfile.patch
 c710ecdfd5884e506456a38eccb91a36bf41f7dbf73ed15c0482da73bcf8fef0  dont-hardcode-gitlab_workhorse_secret-path.patch
-a8caef55193ebd715ae206506c4f234daf0aee976ca0a61f37d3157ce5bd9eb5  0002-default-configs.patch
+14aa0f023e0aebb701f95392eda58867ca263cfcbc3dd6f9ef7cc39134b07e26  0002-default-configs.patch
 c84cb62eebe4784afc715bfbbbe51494261f9495c6d72e15aa4a66b132745559  0003-dont-dump-schema.patch
 29e37d0d76a1e66f0ebe607e843ccd46f3b7b380619cea9ffe29a0da2b638429  0004-fix-setup-task.patch
 d2ae2c2c8229606ca109b39e5f43bce528534a8d50babe1ec77bbedc5799d20c  0005-fix-check-task.patch
@@ -318,7 +320,7 @@ d711d9c0a17a8a6f862f5505da1eb65a701917155207b5864b40e8acfaf958c68a2d8f9b01a92871
 a944c3886388ba1574bf8c96b6de4d9f24ef4a83f553c31a224e17a3b01f2a5c65b60c59b7ed7ca4b25670c60ea8dd41b96a8a623d909d2bb09bdf2520ed7f23  bin-wrapper.in
 eb5a9de97422515cf309448af27b76f63d21e02f6c756390fb2a371254836e61245c2586b017705937c7a81332ef96fe5257f3f95fc19ebad2aa0bebb8b71859  0001-Gemfile.patch
 ca651676cb4b44182078af2e8e078e40e79cadafc069a5699617a4e96106dc1e83da99d1847c9799e9b02e90e2a2b1caa0242a701aa943293bbbeb0876edbed8  dont-hardcode-gitlab_workhorse_secret-path.patch
-b3bd726fbad0b28a377cf20ee98d16baa54175ee403d4f8d9b7fca5275e5bdff44a98c240355f6db9a9539a101f03fd622cee06dd9176eb5895f22d2dc443668  0002-default-configs.patch
+13c83a2e65eb04d5fd59c8866c571cc511dc1a02c2d66d77ec39f9aa407bae437ab6dc2fdf3bfecae157622c9ff21b8db73232ece85725f8232b08b48690d0bc  0002-default-configs.patch
 5fe15dae9b27641dafdefa44e8a31a0b9fbcb2b3485fe0691fe60016e7bc646edf79d204068555699e18e9b643f9ea05dec0919333a3c4999381eff62df00a75  0003-dont-dump-schema.patch
 ae798cdbc5e3292cc874a4bb8aee56f489abd2de1d33333fe2638f7a6bca768be08151d492532d606ee65de2931687b4ada164890efb670e91e84fbdc5098a91  0004-fix-setup-task.patch
 7378b4d1745ba75111e3c11218f7f89c047ecd4b663a85484095448daacc991ec1df924177261e286abafc02c39894bceafc2a0aad97c99dea63ec342610255b  0005-fix-check-task.patch
