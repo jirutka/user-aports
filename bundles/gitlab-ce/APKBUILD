@@ -3,7 +3,7 @@
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
 pkgver=8.17.5
-pkgrel=2
+pkgrel=3
 pkgdesc="A version control for your server"
 url="https://github.com/gitlabhq/gitlabhq"
 arch="all"

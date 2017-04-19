@@ -1,9 +1,1 @@
-#!/bin/sh
-
-cat <<-EOF 1>&2
-*
-* To finish GitLab upgrade run:
-*
-*     gitlab-rake gitlab:db:configure
-*
-EOF
+gitlab-ce.post-install
