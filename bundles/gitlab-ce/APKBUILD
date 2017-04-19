@@ -3,7 +3,7 @@
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
 pkgver=8.17.5
-pkgrel=3
+pkgrel=4
 pkgdesc="A version control for your server"
 url="https://github.com/gitlabhq/gitlabhq"
 arch="all"
@@ -113,7 +113,8 @@ build() {
 	$bundle $bundle_opts || return 1
 
 	# Patch installed gem gitlab-markup to use python3.
-	sed -i 's/python2/python3/g' \
+	# Option "-S" causes that Python cannot find docutils module.
+	sed -i 's/python2 -S/python3/g' \
 		vendor/bundle/ruby/*/gems/gitlab-markup-*/lib/github/markups.rb || return 1
 
 	msg "Installing npm modules..."
