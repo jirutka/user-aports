@@ -3,7 +3,7 @@
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
 pkgver=8.17.5
-pkgrel=4
+pkgrel=5
 pkgdesc="A version control for your server"
 url="https://github.com/gitlabhq/gitlabhq"
 arch="all"
@@ -193,8 +193,8 @@ package() {
 		"$datadir"/lfs-objects \
 		"$datadir"/registry \
 		"$datadir"/uploads \
-		"$pkgdir"/var/tmp/gitlab \
-		"$pkgdir"/var/tmp/backups || return 1
+		"$pkgdir"/var/tmp/gitlab/downloads \
+		"$pkgdir"/var/tmp/gitlab/backups || return 1
 
 	install -d -m02770 -o git -g git \
 		"$datadir"/repositories || return 1
