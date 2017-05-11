@@ -8,7 +8,7 @@ _postorius_ref=059c07a9c0283a81d0ca9b00cafba9f692e6d2bf  # master/HEAD
 _hyperkitty_ref=8e5f0c6be1290ae6a6a9da7c22bbcbfa3e0f55f0
 _mailmanclient_ref=15195ac6d66abe53c0d00bc2932e1e1d7dc4a12e  # master/HEAD
 _djangomailman3_ref=21de913faf3416c1562427fc7d407cfe308ab3aa  # master/HEAD
-pkgrel=1
+pkgrel=2
 pkgdesc="A web user interface for GNU Mailman (Postorius + HyperKitty)"
 url="http://www.list.org/"
 arch="all"
@@ -33,6 +33,8 @@ source="postorius-$_postorius_ref.tar.gz::https://gitlab.com/mailman/postorius/r
 	$pkgname.cron
 	$pkgname.logrotate
 	django-version-lt-1.11.patch
+	django_mailman3-default-results-per-page-50.patch
+	hyperkitty-default-sort-by-name.patch
 	hyperkitty-allow-to-hide-signup.patch
 	postorius-allow-to-hide-signup.patch"
 builddir="$srcdir/build"
@@ -193,6 +195,8 @@ e3a6308b810da847f72de16138e768b0  settings_build.py
 f6c946ca11cc61da1430c3725a8cb99c  mailman-webui.cron
 482999831fb2c1482ef61a7efb2e6667  mailman-webui.logrotate
 b9e4495516187f8c20e514e0a8ecf192  django-version-lt-1.11.patch
+29f84ddd70bd98f48cb4db6b89402232  django_mailman3-default-results-per-page-50.patch
+3b605a3ee9c4ded68627a76a8fa58ef1  hyperkitty-default-sort-by-name.patch
 58b2567ced31bef6a8406cdf78a98d04  hyperkitty-allow-to-hide-signup.patch
 44f7abaf47f905bf56d31bd9eea4b5e3  postorius-allow-to-hide-signup.patch"
 sha256sums="8a79ec227dd6ebfe38acfcbd468e443a8816cf84ab387a50e5a831169d1db53f  postorius-059c07a9c0283a81d0ca9b00cafba9f692e6d2bf.tar.gz
@@ -209,6 +213,8 @@ aebe73f05a84b568ca955f1ecd8a40eca217818ba8874d6883b0ec17d83b5a5e  constraints.tx
 d5e10216167862c4922b0a0f8faf1a261b4bb29f44d77646fe957ef5e095e9ba  mailman-webui.cron
 bb3c5d67a739f085f9f8f7fd9f68e6bca3ef65eb63c5c55f7b7aedf70482e0c0  mailman-webui.logrotate
 78c5626c87b7fc7947aa33a357f96a2367ceccbbe782e5f1b3af992f646ef641  django-version-lt-1.11.patch
+0594cb625f5571b3698db726a214583cc974c2fd2b1992beec89f4d7e317b6f5  django_mailman3-default-results-per-page-50.patch
+7a310fde6c2356d23b5363446c003681d2d81ca84b0724b3d7b735c0a71bd5c1  hyperkitty-default-sort-by-name.patch
 36d4f13848923a5241579dd3246629d9d791910d51b5261eb6a0ce188830bc66  hyperkitty-allow-to-hide-signup.patch
 17a75fcb26dd4f65675b668b339b2d0345b28e225dae6ce4a70e0e4ffbc89a0c  postorius-allow-to-hide-signup.patch"
 sha512sums="8e77e50e6bd0d03489995670bca668fcf7555868a47a9f5ccebaea23431758dac34968f22b60c58c193842da2e05c64b10bdce787785349b676541ed63477d6c  postorius-059c07a9c0283a81d0ca9b00cafba9f692e6d2bf.tar.gz
@@ -225,5 +231,7 @@ be201a7889cc3043032288cd78a68dc309dd836f5f57eab49794df565d3175f908a3bdf219f5aef3
 7fb26557be7bb89a8a0ce4bbf1dce55fc03a48f3400b261b26469f8e44de1a31182572754ae81a955462e495cc0dab0dc4928969cd0ddbff98b4692002b694ea  mailman-webui.cron
 ddb6af06966f284e38e8f76689fecf4423f352cd2af0ad928e07c82c0c852220399e579383fcf707fe244bd925ded0d5745ce7a93feaad71f5d7ce0b1c5d3da5  mailman-webui.logrotate
 55bd1b1b470dcc84f0049fbbff565ff6e695da34136ed0b863fe5e3d6ed00f2235e31a7e41d22b4abbee64be7bc290af19429f7261411bc711378ea8407e3585  django-version-lt-1.11.patch
+891346c37f1cc2effd1d8ae7a11cfdaf88199fecb1fce87be7648514f660da24874b381a46a8d2f7f6cd4a9ce1540010b9993d247dd0846b93302e587bd65c7c  django_mailman3-default-results-per-page-50.patch
+100734003867a73ba6ce8b327d8ef84f425e86dbd3f303aab6273bcc6262d635056826758cc6ecbdb86f934407f0e4a90c4dcc6c7d6957a057e34da63ed8ee3e  hyperkitty-default-sort-by-name.patch
 34adadc73101e0dfd84fb82c5f74d13f094ffa0beddc4dc92ba8c33ce37420345b1a11aee25089ed62b43f4ef6ca035731417d0eedad8cc43192e5879702b57f  hyperkitty-allow-to-hide-signup.patch
 0b7cd8ac8a85bf8ff38bad697bcc9e6d34fd4f658ae438f6d45d77029409659e74b37173035b875910e3ef5b2334308731ba3237ee1195f4f19b18a9466ca562  postorius-allow-to-hide-signup.patch"

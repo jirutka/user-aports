@@ -1,0 +1,13 @@
+Change the main Hyperkitty page to show all lists sorted alphabetically
+by name by default.
+--- a/hyperkitty/hyperkitty/views/index.py
++++ b/hyperkitty/hyperkitty/views/index.py
+@@ -36,7 +36,7 @@
+ 
+ def index(request):
+     mlists = MailingList.objects.all()
+-    sort_mode = request.GET.get("sort", "popular")
++    sort_mode = request.GET.get("sort", "name")
+ 
+     # Domain filtering
+     if settings.FILTER_VHOST:
