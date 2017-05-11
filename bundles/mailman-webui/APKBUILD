@@ -53,7 +53,15 @@ prepare() {
 	ln -s "$_djangomailman3_dir" django-mailman3 || return 1
 
 	local builddir="$srcdir"
-	default_prepare
+	default_prepare || return 1
+
+	local file; for file in postorius/setup.py \
+		django-mailman3/setup.py \
+		hyperkitty/hyperkitty/__init__.py
+	do
+		sed -Ei "s/(version\s*=\s*)['\"]?[^'\"]+['\"]?/\1'${pkgver/_git/.dev}'/i" \
+			$file || return 1
+	done
 }
 
 build() {
