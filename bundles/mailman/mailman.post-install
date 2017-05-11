@@ -4,7 +4,7 @@ set -eu
 random_pass() {
 	local length="$1"
 
-	python3.4 <<-EOF
+	python3 <<-EOF
 		import random, string
 		chars = string.ascii_letters + string.digits
 		print(''.join(random.SystemRandom().choice(chars) for _ in range($length)))
