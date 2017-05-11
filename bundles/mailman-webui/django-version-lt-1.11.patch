@@ -1,0 +1,23 @@
+Upstream-Issue: https://gitlab.com/mailman/hyperkitty/issues/128
+--- a/hyperkitty/setup.py
++++ b/hyperkitty/setup.py
+@@ -21,7 +21,7 @@
+ 
+ # Requirements
+ REQUIRES = [
+-    "Django>=1.8",
++    "Django>=1.8,<1.11",
+     "django_mailman3>=1.0.0",
+     "django-gravatar2>=1.0.6",
+     "djangorestframework>=3.0.0",
+--- a/django-mailman3/setup.py
++++ b/django-mailman3/setup.py
+@@ -38,7 +38,7 @@
+     packages=find_packages(),
+     include_package_data=True,
+     install_requires=[
+-        'Django >= 1.8',
++        'Django >= 1.8, < 1.11',
+         'mailmanclient',
+         'django-allauth',
+         'django-gravatar2 >= 1.0.6',

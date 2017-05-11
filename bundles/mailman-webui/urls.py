@@ -8,7 +8,7 @@ from django.views.generic import RedirectView
 
 urlpatterns = [
     url(r'^$', RedirectView.as_view(
-        url=reverse_lazy('hyperkitty.views.index.index'),
+        url=reverse_lazy('hk_root'),
         permanent=True)),
     url(r'^admin/', include('postorius.urls')),
     url(r'^archives/', include('hyperkitty.urls')),

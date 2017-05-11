@@ -36,6 +36,11 @@ MAILMAN_REST_API_PASS = mailman_cfg('webservice', 'admin_pass')
 MAILMAN_ARCHIVER_KEY = read_cfg('/etc/mailman.d/hyperkitty.cfg', 'general', 'api_key')
 MAILMAN_ARCHIVER_FROM = ('127.0.0.1', '::1', '::ffff:127.0.0.1')
 
+# REST API
+REST_FRAMEWORK = {
+    'PAGE_SIZE': 10,
+}
+
 # Only display mailing-lists in HyperKitty from the same virtual host
 # as the webserver.
 FILTER_VHOST = False
@@ -93,7 +98,6 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    #'hyperkitty.middleware.SSLRedirect',
     'django_mailman3.middleware.TimezoneMiddleware',
     'postorius.middleware.PostoriusMiddleware',
 
