@@ -50,7 +50,7 @@ prepare() {
 	ln -s "$_postorius_dir" postorius || return 1
 	ln -s "$_hyperkitty_dir" hyperkitty || return 1
 	ln -s "$_mailmanclient_dir" mailmanclient || return 1
-	ln -s "$_djangomailman3_ref" django-mailman3 || return 1
+	ln -s "$_djangomailman3_dir" django-mailman3 || return 1
 
 	local builddir="$srcdir"
 	default_prepare
