@@ -8,12 +8,13 @@ _postorius_ref=059c07a9c0283a81d0ca9b00cafba9f692e6d2bf  # master/HEAD
 _hyperkitty_ref=8e5f0c6be1290ae6a6a9da7c22bbcbfa3e0f55f0
 _mailmanclient_ref=15195ac6d66abe53c0d00bc2932e1e1d7dc4a12e  # master/HEAD
 _djangomailman3_ref=21de913faf3416c1562427fc7d407cfe308ab3aa  # master/HEAD
-pkgrel=2
+pkgrel=3
 pkgdesc="A web user interface for GNU Mailman (Postorius + HyperKitty)"
 url="http://www.list.org/"
 arch="all"
 license="GPLv3"
-depends="$pkgname-assets uwsgi-python uwsgi-http"
+# XXX: Remove uwsgi-corerouter after update to v3.6.
+depends="$pkgname-assets uwsgi-python uwsgi-http uwsgi-corerouter"
 makedepends="python2-dev py2-pip py-virtualenv postgresql-dev openldap-dev sassc"
 install="$pkgname.post-install"
 pkgusers="mailman"
