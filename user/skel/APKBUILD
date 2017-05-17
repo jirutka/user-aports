@@ -1,17 +1,16 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=skel
-pkgver=1.0
+pkgver=1.1
 pkgrel=0
 pkgdesc="Base dotfiles into /etc/skel"
-url="https://alpine.geeknet.cz"
+url="https://github.com/jirutka/user-aports"
 arch="noarch"
 license="MIT"
-depends=""
-makedepends=""
 install="$pkgname.post-install"
 source=".gitconfig
-	.profile"
+	.profile
+	.vimrc"
 
 package() {
 	mkdir -p "$pkgdir"
@@ -26,9 +25,6 @@ package() {
 	chmod 600 etc/skel/.ssh/authorized_keys
 }
 
-md5sums="04da8ee29e0fbb9b36afaa7cff2a4723  .gitconfig
-bfd0042a7a86c6fcc0626ff3b02f2b7b  .profile"
-sha256sums="c99b4daa4643fd88c038a30c499c298dfc2ff60655118aedc81bda29c559958f  .gitconfig
-a794a76a0075b8a8064df90788051d7a160e33bfc938b076c48764156ac4c46b  .profile"
 sha512sums="b4b294e9a4dcd3e1563326a928eb5e7735ab35f825ed00bc133c94daa9e306aa3a69d3a5be094d3a432e676afbd10759fd9a1c22645d67b5e5a7e76bb2539c06  .gitconfig
-62aa45ce3825f712bfb3d845251ceb40881bcd5c55efbc24ea1e5541b2c9e4066573b3b02712247b5570df5c753b83abe284a399570cf92467226a0b7c6e4db6  .profile"
+62aa45ce3825f712bfb3d845251ceb40881bcd5c55efbc24ea1e5541b2c9e4066573b3b02712247b5570df5c753b83abe284a399570cf92467226a0b7c6e4db6  .profile
+5943ed017f9f79ac1e801e54470deff77b67126eb001e35066bf5e06b50f3dbe84f66f8b5021d37fe0189f08ae500bb511e294609d8912e0e813b0028c2ab763  .vimrc"
