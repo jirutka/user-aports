@@ -1,7 +1,7 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitlab-workhorse
-pkgver=1.3.0
+pkgver=1.4.3
 pkgrel=0
 pkgdesc="A reverse proxy for GitLab."
 pkgusers="git"
@@ -10,7 +10,7 @@ arch="all"
 license="MIT"
 makedepends="go>=1.5"
 source="$pkgname-$pkgver.tar.gz::https://gitlab.com/gitlab-org/$pkgname/repository/archive.tar.gz?ref=v$pkgver
-	makefile-dont-clean-before-test.patch
+	workhorse.toml
 	$pkgname.initd"
 builddir="$srcdir/$pkgname-$pkgver"
 
@@ -32,16 +32,13 @@ package() {
 
 	make install PREFIX="$pkgdir/usr" || return 1
 
+	install -m644 -D "$srcdir"/workhorse.toml \
+		"$pkgdir"/etc/gitlab/workhorse.toml || return 1
+
 	install -m755 -D "$srcdir"/$pkgname.initd \
 		"$pkgdir"/etc/init.d/gitlab.workhorse
 }
 
-md5sums="6344292d59b357c0db5368590a33dc14  gitlab-workhorse-1.3.0.tar.gz
-e86873894041ed065f6dd0cc5f4bf7ae  makefile-dont-clean-before-test.patch
-1b708098fc99592e4c446b2cf3a19b55  gitlab-workhorse.initd"
-sha256sums="e70803d561356c8c985de47cc798be24358d320c315b49d59c58812fcc94dc41  gitlab-workhorse-1.3.0.tar.gz
-b9922b572b8bb156be14266ef39acedbf05a3827ae770ae7312143cc27a7b0f9  makefile-dont-clean-before-test.patch
-2c47c609ee8c803a2acab95108ae45928ef212fb97095400aec8bc471e6e3cb2  gitlab-workhorse.initd"
-sha512sums="cdbd4a3887b19115d2da33079f9f8c25d7880deabed4b5a7cf52ac4c20776bfc4c81e1cc672d99ba3b823a2eca6e91e01d9a58ce00010b8d02be08bd62a1b0e1  gitlab-workhorse-1.3.0.tar.gz
-1f8662e3f29cca9890e8dff50ff345da637cc9a460f2a0baf34cbbc7e8110fefd357e14b4b5c12c6ab78ccd4eef84835304dddcbd7fc8e4cd96980f4c2e40a66  makefile-dont-clean-before-test.patch
-c526f7da26f6a66af6571b4337327b8fe71d8646f93d3f800c95492bd676771d77ea87b730780c8da65df827cfb963cdf3f8487663c859c937e4e0277e6269e3  gitlab-workhorse.initd"
+sha512sums="fb1835ef8e56040b191ae01c8c3024704aba9217f79169c1b46b70b3c4d39327800ad6ca01cc08fb006aa778c7a14e8eacf7805cde7d72eaff04d995bca2dbb4  gitlab-workhorse-1.4.3.tar.gz
+303847382fc973c92dd951ee43f7e06ecd3c7c6655752877cd2171e4c267a2dbbeed1faa45814d4bcc2a41a2a9f57d7a62366f0082612d50a5b935d9493ace52  workhorse.toml
+cbbb805e31711713a7a279f08f1a22a3c1e56ce0e4ea27ccdb7bb0290b4747f86dd3f62a94cae8cf608d7700df2088bf0777eb3898866b939d47775839d76b59  gitlab-workhorse.initd"

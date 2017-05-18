@@ -36,10 +36,12 @@ start_pre() {
 
 	command_args="$command_args
 		-listenNetwork=$listen_net
+		$(optif -apiCiLongPollingDuration "$workhorse_ci_long_polling_duration")
 		$(optif -apiLimit "$workhorse_api_limit")
 		$(optif -apiQueueDuration "$workhorse_api_queue_duration")
 		$(optif -apiQueueLimit "$workhorse_api_queue_limit")
 		$(optif -authSocket "$unicorn_listen_unix")
+		$(optif -config "$workhorse_config")
 		$(optif -proxyHeadersTimeout "$workhorse_proxy_header_timeout")"
 
 	start_stop_daemon_args="$start_stop_daemon_args
