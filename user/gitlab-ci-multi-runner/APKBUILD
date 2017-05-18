@@ -1,7 +1,7 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitlab-ci-multi-runner
-pkgver=1.11.1
+pkgver=1.11.2
 pkgrel=0
 pkgdesc="Official GitLab Runner written in Go"
 url="https://gitlab.com/gitlab-org/gitlab-ci-multi-runner"
@@ -78,25 +78,25 @@ package() {
 	ln -s /etc/$_shortname "$pkgdir"/var/lib/$_shortname/.gitlab-runner
 }
 
-md5sums="f76e10e059f04117fd40891b0dc46fb3  gitlab-ci-multi-runner-1.11.1.tar.gz
-c07cd1cede1f8154e85bd35d6815f38a  gitlab-ci-multi-runner-1.11.1-prebuilt-x86_64.tar.xz.bin
-9504f4ea023cea0a1a5b4c3781158c6c  gitlab-ci-multi-runner-1.11.1-prebuilt-arm.tar.xz.bin
+md5sums="3ec18dcd0b3ea3e1a9529d4d596ec6e5  gitlab-ci-multi-runner-1.11.2.tar.gz
+2b8f032610f253500b2853456197d299  gitlab-ci-multi-runner-1.11.2-prebuilt-x86_64.tar.xz.bin
+435694e8466864e5210478ef69ba1d9c  gitlab-ci-multi-runner-1.11.2-prebuilt-arm.tar.xz.bin
 56f4440a0bb05d097f7365175a8cbdfd  gitlab-ci-multi-runner.initd
 4242a5cd4650e84fdb07691866f0bfe2  gitlab-ci-multi-runner.logrotate
 9a6d1f1b1fb4821d5974c283e04b118f  Makefile-verbose.patch
 7076beb9ee5dcd2c840534860bc0dd9d  log-timestamp.patch
 24e68a44d7e8ca66be8010cbf27d6eff  log-without-colors.patch"
-sha256sums="0aa1886aa57b61a8b2c29849e0c8bc322c6989303c32d00ab3087647d89e914d  gitlab-ci-multi-runner-1.11.1.tar.gz
-1581e1534e80e8fa72ede15171269728f8123a18a0654975a7cf44daf8e650b9  gitlab-ci-multi-runner-1.11.1-prebuilt-x86_64.tar.xz.bin
-fc0bfbd4f5289b738ce73a27e6ab65687187c01b2709d6c50dd92c868f500d5b  gitlab-ci-multi-runner-1.11.1-prebuilt-arm.tar.xz.bin
+sha256sums="4e094e16a3517ebaaf36ff74d875f01c6db70946c488765149743a4b145394a7  gitlab-ci-multi-runner-1.11.2.tar.gz
+9f40dbc3886d225cf7c3e78ec266929874b0c01472722bfdf125a47345638a22  gitlab-ci-multi-runner-1.11.2-prebuilt-x86_64.tar.xz.bin
+fc79cd397bea744a1e974574e146d44f0e55ea9b47aff9111e8920efe4e8fb53  gitlab-ci-multi-runner-1.11.2-prebuilt-arm.tar.xz.bin
 3264259286093436e7b75104ad989c9ec541a99d2d4c4fd5b15c2af1b258db66  gitlab-ci-multi-runner.initd
 9e4a248fefb9702eabf287e4aabb2ab1680df708a2e7330c01f0d82423265345  gitlab-ci-multi-runner.logrotate
 8ef5c97ef223783b172bae9f4ea30ed8aa11ca0d5eacb0fc12834d843a214026  Makefile-verbose.patch
 74c75dd168d2f4746e6a3c9bf52736f983f1df02ee66a5fa74bde5b5b5a2b76f  log-timestamp.patch
 6a430c122e667e8e869110e736f5bfb83be89ca08f215e489895a30b9236c7a5  log-without-colors.patch"
-sha512sums="645ac9011145d2a48ca91bba22dc37f195b0dc9d6f41f7b97e2d1850f605ca637cf5d1305536bf805c2fa1825180afc5a0fe5dce0fcfc66b9c82403e93971fd2  gitlab-ci-multi-runner-1.11.1.tar.gz
-096cfd4966c42c7102d7970e30aa22f4b6059b846013d10ccc8bc9aa118cf66033eda3f668af72414bdfea951e5e995bda48cd36356a3669ed792c0c28ee229b  gitlab-ci-multi-runner-1.11.1-prebuilt-x86_64.tar.xz.bin
-d582da82223a7161a91da5934004e7fea25a7856a5bf5590e19cc86b6f39017c2c2a7ab80f9bbdb9ef9fa8726861c18312d97fe5e6f8d0a183fac7e23dfb7e31  gitlab-ci-multi-runner-1.11.1-prebuilt-arm.tar.xz.bin
+sha512sums="0f61bfffb481350f8afac5080f989b7b4567f6f2d1c7a7d9ec3a7bd5fe0afb004df9f5c8646107d237685498ddccd90a7e0da1cd61e57b05eca7c4c4803af412  gitlab-ci-multi-runner-1.11.2.tar.gz
+abc0f46e3b4ce10ac013d48eb837bcd41ad7c997783028e55d2be11caeeb2462a7fa359f085db4943c1e0ad5693d17bc0382d9a3b030984ae7dc031a2181fb96  gitlab-ci-multi-runner-1.11.2-prebuilt-x86_64.tar.xz.bin
+781168dba111fd78c4046d76b4c3a42cf1cd6a745c89665e432ec640274c317d7d97d8c47ca960c8bea06775df1e1839f3e5c5773d712d791caa4565fa84db92  gitlab-ci-multi-runner-1.11.2-prebuilt-arm.tar.xz.bin
 9b9e09af635aebd4b682a12b671b22c786862394e85a57519e0f1c3d9ae97a173ee0a8526e81394c2a2d9f51527f8b264e5ebeff2d479513213c8114305c2441  gitlab-ci-multi-runner.initd
 194440d43e1796f35ae61cae8f76874435e03dc3977af47bde0056ec37a631f4e13b0014f91d9dbf06b37d606bf47629d6e55d013eb7a289df1d5cd0f7848dff  gitlab-ci-multi-runner.logrotate
 95d4add06c080ac6e3a68b9ff9e2d16b01cc59d5b0b184f617c03d62e2ba686a7a246c2a53934413dadbbb7d3086de64a1dd08518f33443ee24c50bc94501453  Makefile-verbose.patch
