@@ -13,7 +13,7 @@
 
 
 #
-# GitHub Rails (Unicorn server)
+# GitLab Rails (Unicorn server)
 #
 
 # IP address and port where the Unicorn server should listen on.
@@ -58,6 +58,12 @@
 
 # Number of API requests allowed to be queued.
 #workhorse_api_queue_limit=
+
+# Long polling duration for job requesting for runners (default 0s - disabled)
+#workhorse_ci_long_polling_duration=
+
+# File that hold configuration, currently only for Redis.
+#workhorse_config=
 
 # Sentry DSN for Workhorse.
 #workhorse_sentry_dsn=

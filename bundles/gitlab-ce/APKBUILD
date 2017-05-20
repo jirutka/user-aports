@@ -2,7 +2,7 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
-pkgver=8.17.6
+pkgver=9.1.4
 pkgrel=0
 pkgdesc="A version control for your server"
 url="https://github.com/gitlabhq/gitlabhq"
@@ -11,8 +11,8 @@ license="MIT"
 _rubyslot=""
 # ruby-irb is needed only for Rails console (gitlab-rails console)
 depends="$pkgname-assets=$pkgver-r$pkgrel
-	gitlab-shell>=4.1.1
-	gitlab-workhorse>=1.3.0
+	gitlab-shell>=5
+	gitlab-workhorse>=1.4
 	ca-certificates
 	git>=2.8.3
 	http-parser
@@ -33,7 +33,7 @@ depends="$pkgname-assets=$pkgver-r$pkgrel
 makedepends="
 	icu-dev
 	libgcrypt-dev
-	libgit2-dev>=0.24
+	libgit2-dev>=0.25
 	libxml2-dev
 	libxslt-dev
 	linux-headers
@@ -41,7 +41,9 @@ makedepends="
 	postgresql-dev
 	nodejs>=4.3.0
 	ruby$_rubyslot-dev
-	yarn
+	ruby$_rubyslot-grpc
+	ruby$_rubyslot-google-protobuf
+	yarn>=0.17.0
 	"
 pkgusers="git"
 pkggroups="git"
@@ -54,22 +56,24 @@ source="$pkgname-$pkgver.tar.gz::https://github.com/gitlabhq/gitlabhq/archive/v$
 	$_pkgname.confd
 	$_pkgname.logrotate
 	bin-wrapper.in
-	0001-Gemfile.patch
+	gemfile-exclude-unnecessary-gems.patch
 	dont-hardcode-gitlab_workhorse_secret-path.patch
-	0002-default-configs.patch
-	0003-dont-dump-schema.patch
-	0004-fix-setup-task.patch
-	0005-fix-check-task.patch
-	0006-replace-sys-filesystem.patch
-	0009-gitlab-revision.patch
-	relative-url-sample.patch
+	default-configs.patch
+	dont-dump-schema.patch
+	fix-setup-task.patch
+	fix-check-task.patch
+	replace-sys-filesystem.patch
+	gitlab-revision.patch
+	gemfile-use-local-grpc-and-protobuf.patch
 	"
 builddir="$srcdir/gitlabhq-$pkgver"
 
 _prefix="/usr/lib/bundles/$_pkgname"
 
 prepare() {
-	default_prepare || return 1  # apply patches
+	local sysgemdir=$(ruby$_rubyslot -rubygems -e 'puts Gem.default_dir')
+
+	default_prepare || return 1
 
 	cd "$builddir"
 
@@ -92,16 +96,32 @@ prepare() {
 		config/database.yml.env \
 		config/database.yml.mysql \
 		config/karma.config.js \
-		config/newrelic.yml \
 		config/unicorn.rb.example.development \
 		config/environments/development.rb \
 		config/environments/test.rb
+
+	# These Google gems are totally messed, so we can't install them from
+	# RubyGems using Bundler.
+	# XXX: google-protobuf can be installed via Bundler after upgrade
+	# to Alpine v3.6.
+	local name; for name in grpc google-protobuf; do
+		mkdir -p vendor/gems/$name
+
+		cp -r "$sysgemdir"/gems/$name-*/* \
+			vendor/gems/$name/ || return 1
+		cp "$sysgemdir"/specifications/$name-*.gemspec \
+			vendor/gems/$name/$name.gemspec || return 1
+	done
+	cp "$sysgemdir"/extensions/*/*/grpc-*/grpc/grpc_c.so \
+		vendor/gems/grpc/src/ruby/lib/grpc/ || return 1
+	cp "$sysgemdir"/extensions/*/*/google-protobuf-*/google/protobuf_c.so \
+		vendor/gems/google-protobuf/lib/google/
 }
 
 build() {
 	local bundle="bundle$_rubyslot"
 	local bundle_opts="--deployment --jobs=${JOBS:-2} --no-cache
-		--without exclude auth_ext backups_ext development kerberos metrics mysql test"
+		--without exclude development kerberos metrics mysql test"
 
 	cd "$builddir"
 
@@ -209,7 +229,7 @@ package() {
 	# Install application files.
 	# Note: *VERSION files and doc directory are required (Help in GitLab
 	# menu refers to the doc directory).
-	cp -rl .bundle config.ru Gemfile* GITLAB_* Rakefile VERSION app db doc \
+	cp -rl .bundle config.ru Gemfile* Rakefile *VERSION app db doc \
 		fixtures config lib public vendor \
 		"$destdir"/ || return 1
 
@@ -231,7 +251,6 @@ package() {
 			sidekiq.yml.example \
 			sidekiq_queues.yml.orig \
 			initializers/rack_attack.rb.example \
-			initializers/relative_url.rb.sample \
 			initializers/smtp_settings.rb.sample; do
 		dest="$(basename "${file%.*}")"
 		install -m640 -g git -D config/$file "$pkgdir"/etc/gitlab/$dest || return 1
@@ -280,51 +299,51 @@ assets() {
 	mv "${pkgdir}$_prefix"/public/assets "$destdir"/public/
 }
 
-md5sums="e4c890b4b2a03cecb4b6af028126b761  gitlab-ce-8.17.6.tar.gz
-d124eb46ca0d57b5287333bfee7f8ec7  gitlab.initd
+md5sums="7c6182f3e7ed6f2a972785a6a76247ec  gitlab-ce-9.1.4.tar.gz
+c5d4ed70e24d4f6b59c74df1b5d52f04  gitlab.initd
 5cd94a6ac7e92b02d65126bfcaf6eb05  gitlab.mailroom.initd
-c0af4429c9da9c313b41925cbefefafc  gitlab.sidekiq.initd
-0f6bd0e731025ab6f87c9c57b1d5bde4  gitlab.confd
+2c55e27ab623046b611ef2e6a0988921  gitlab.sidekiq.initd
+569708afeec677b6f4c69eab86741aef  gitlab.confd
 ec823fda257d0e183f4c67e3b3f79d79  gitlab.logrotate
 eb7cb58375b6c4f58f8aabd8a9bd79d2  bin-wrapper.in
-bc3d9db8cffc1c4b235fb2211baf79ee  0001-Gemfile.patch
-a23a69d5c61ac7521b1412504ff78bc5  dont-hardcode-gitlab_workhorse_secret-path.patch
-f34fcf64d3397f29e9ffc7e6fe99d33b  0002-default-configs.patch
-9ec230f02a0aa7350605dd8d2802d924  0003-dont-dump-schema.patch
-fae44c0a7da22724a907a87c4199c300  0004-fix-setup-task.patch
-ac9cb7da3cdeb056922d05b86b1df6d7  0005-fix-check-task.patch
-a1d32fa537fe878e74f01ca50df0e2f1  0006-replace-sys-filesystem.patch
-d5eaa8ce1e5f12619891994b2d0a97fa  0009-gitlab-revision.patch
-f174956e5da7f66cbbed43a71a08e8af  relative-url-sample.patch"
-sha256sums="2636de91a52d9089c37c73c09c93c8fbffc4dcc0b4b6d99eda1dc7a8384678d5  gitlab-ce-8.17.6.tar.gz
-c7aa5b95b3c025f5675247c881d19a200ce924ef89fc1deab15c51b0e062d5bc  gitlab.initd
+046fb14e11fb0e4dad645c3d0405f7d9  gemfile-exclude-unnecessary-gems.patch
+b75eb3be6f0c9f062efdd8d4f2b3c288  dont-hardcode-gitlab_workhorse_secret-path.patch
+637bc247e465496be178040ab8d93628  default-configs.patch
+d06f61d791de4b852a12c888b730dd8b  dont-dump-schema.patch
+c94aed8cc3f8691360d3e7494269ad06  fix-setup-task.patch
+8a1341c180438c706e24300372027e7c  fix-check-task.patch
+4a4f9a9a4a6c4ce725f386e1f494fb9e  replace-sys-filesystem.patch
+8c6183b74264f234f2797601edb8e215  gitlab-revision.patch
+7e2b4d64e3c69cccf801a0dc1f7ab1a5  gemfile-use-local-grpc-and-protobuf.patch"
+sha256sums="75077af910caf8c50691755fe67010cff13139569028dbc3c7d951e672c582c0  gitlab-ce-9.1.4.tar.gz
+957fb177d82e686c32d8ce33fb21b24944f8a705c8e3c3ed7697555d2e818ae1  gitlab.initd
 7b1a785762dbdd5fa755ff4eeb3e2b52d6c8668833bd520ccef0561c5d497322  gitlab.mailroom.initd
-ef8d7e9fcbc0844c01edb4ffb7e0aa0b42b0fd80d37bacc3b752b54f9ae3f395  gitlab.sidekiq.initd
-49c1f235d55c02f0395b18282522448a08c45001ba32fee369ed2be99f3424bb  gitlab.confd
+c6fcc0106b1b4375b83d881b2f3e2f03e2020eda8cc9e80cfdb4a7ab61afa4de  gitlab.sidekiq.initd
+a84432e3dce816ec2c98be1a9a6544bd24cedcabd9affab567423a2dd3da2f7d  gitlab.confd
 13cb9f7a9f260e10d992dba4dc1b272ce9629af779cede349c059b80ef2416c1  gitlab.logrotate
 8cc33fb6d56864759d064f7b7f52d547b099cb4f1fd254f5de0068b7358667fc  bin-wrapper.in
-e95d02f7f4c5bffcd8dd86e78ea55903e4cdf75fc223f1f0ed5eadc9a8061b54  0001-Gemfile.patch
-c710ecdfd5884e506456a38eccb91a36bf41f7dbf73ed15c0482da73bcf8fef0  dont-hardcode-gitlab_workhorse_secret-path.patch
-14aa0f023e0aebb701f95392eda58867ca263cfcbc3dd6f9ef7cc39134b07e26  0002-default-configs.patch
-c84cb62eebe4784afc715bfbbbe51494261f9495c6d72e15aa4a66b132745559  0003-dont-dump-schema.patch
-29e37d0d76a1e66f0ebe607e843ccd46f3b7b380619cea9ffe29a0da2b638429  0004-fix-setup-task.patch
-d2ae2c2c8229606ca109b39e5f43bce528534a8d50babe1ec77bbedc5799d20c  0005-fix-check-task.patch
-251b43279cf02caf6453e16ab1acc8e72bacf78b9aff1331e9523a4ce49a0e6e  0006-replace-sys-filesystem.patch
-8cd06457b32dda57178157859740ffa370a521906a2b3aa40bb5d698acf52af1  0009-gitlab-revision.patch
-336b8066a9d898d777948059d7e09df939570442ff6cc8ee574d08a65f52387a  relative-url-sample.patch"
-sha512sums="665cb3221a416263ee364010b64d315d5f9e6a0fd13955401d6d6bc5ab7113727e1d5aa819a7a3a5cb317bdf9716fe139a9e3e7d25b6c3a0bce22ef1fecbf4ca  gitlab-ce-8.17.6.tar.gz
-0997e2454f389f8218e764054f63aaf6fa5a0663b23d86e1141fe48a02ac6952305b36730827e615dd4efc310a2abb7e0f26fb3ae52a7759a0e30c4850134998  gitlab.initd
+a631eab5232acd49225441b26e5e9d9b4fdb0a89ac599295beb6228748dde605  gemfile-exclude-unnecessary-gems.patch
+ba0ceeb3fba6423c7caf57191be68bb309396034927336e3863a6264eaa9c4ec  dont-hardcode-gitlab_workhorse_secret-path.patch
+049d426c2995472a81739b6d830d51e28f77850a5cc639851447c3fe16cc0c71  default-configs.patch
+6fdd650ed4735c0b90561ba241e3560441371f1bfd158939b7fb30b7c3b14999  dont-dump-schema.patch
+cf57a682a71607ca5f691d88d7cd7f5a16d73a78819fb408d8083323ebd5bdf1  fix-setup-task.patch
+722f56d92b28367643b5d97d7a0e71bb645b6f202afdeca2ba41c76ae8f092bb  fix-check-task.patch
+bbf2a74322f972b7fe9cc9941f42bb6e96983d4ef8d373e3a4d13da7147c4d97  replace-sys-filesystem.patch
+98d06fd179efedc0705429e8e5987085c5903e19badb856a552a7c2f72d1308e  gitlab-revision.patch
+902eaea53c93f6af0aede225c5877bc10a7cdf21d271e403022faeb3c14447b5  gemfile-use-local-grpc-and-protobuf.patch"
+sha512sums="af2dc01c072b1fbdd51637e7d6603904f5d650a35a4ac5e385df7e65995144e6af5841e4b6e066378746e46ffc181f8c1c51d9714c9221cd8b472b001074fa58  gitlab-ce-9.1.4.tar.gz
+16704d9e301328147e5d16ec447adc88a15e3749bdb2c0641735d20794dea66b074c178d57d6ad6bf51b1887f238b740a9ef3eb4a897d52b677f6e2c9a7df471  gitlab.initd
 d56587e94db0f607d4d37dbc1952914e2d6628405b3c2fe9f7548f27ca70f5393bf4fdebc7fa192b9bad7d07706a55cd77a910bd127236422f0f6d4a5a46be25  gitlab.mailroom.initd
-4dee153c5d9aafb10d310baa9cc5950cdcb23e32210682827c258423b9a268e9b92ee979f23ac37e9de7d175a4fccb036bd51dbd88bf45fec472bd2d81e020e6  gitlab.sidekiq.initd
-f8bbf8eca453d4221820fbda36488873f1ef9a50321af863d7e9eaccf75ba7509a0767291fd2ec6cd42332ebb27811b957ae8f639ad1b5345754dd5f6f97888c  gitlab.confd
+84c51a03e938c39b3081cb55b115148e087a1f58a4b9cc43b76be93aee67b7e04f41f42e6594d5810946a701cf3554ac26851b2f9de91e73927e7ef70945e2ba  gitlab.sidekiq.initd
+607da2cb246d3289b0f2529f541427b4b99cb0ee39f158a0458f9746af0b60417e0271b293c1da1629fd85c9bc7d84755afe39bf6dae851ba6eaaf1878e4f60b  gitlab.confd
 d711d9c0a17a8a6f862f5505da1eb65a701917155207b5864b40e8acfaf958c68a2d8f9b01a92871b3d630e00c78df38b24701e4adcba8f1d35cdc69dedf2df6  gitlab.logrotate
 a944c3886388ba1574bf8c96b6de4d9f24ef4a83f553c31a224e17a3b01f2a5c65b60c59b7ed7ca4b25670c60ea8dd41b96a8a623d909d2bb09bdf2520ed7f23  bin-wrapper.in
-eb5a9de97422515cf309448af27b76f63d21e02f6c756390fb2a371254836e61245c2586b017705937c7a81332ef96fe5257f3f95fc19ebad2aa0bebb8b71859  0001-Gemfile.patch
-ca651676cb4b44182078af2e8e078e40e79cadafc069a5699617a4e96106dc1e83da99d1847c9799e9b02e90e2a2b1caa0242a701aa943293bbbeb0876edbed8  dont-hardcode-gitlab_workhorse_secret-path.patch
-13c83a2e65eb04d5fd59c8866c571cc511dc1a02c2d66d77ec39f9aa407bae437ab6dc2fdf3bfecae157622c9ff21b8db73232ece85725f8232b08b48690d0bc  0002-default-configs.patch
-5fe15dae9b27641dafdefa44e8a31a0b9fbcb2b3485fe0691fe60016e7bc646edf79d204068555699e18e9b643f9ea05dec0919333a3c4999381eff62df00a75  0003-dont-dump-schema.patch
-ae798cdbc5e3292cc874a4bb8aee56f489abd2de1d33333fe2638f7a6bca768be08151d492532d606ee65de2931687b4ada164890efb670e91e84fbdc5098a91  0004-fix-setup-task.patch
-7378b4d1745ba75111e3c11218f7f89c047ecd4b663a85484095448daacc991ec1df924177261e286abafc02c39894bceafc2a0aad97c99dea63ec342610255b  0005-fix-check-task.patch
-af32919422bbbfdf58d2a3403a3b5455e50b25be4e6f3e396e7ffb473cd118cd6e2ef075a6f058681371962c5390d1e7e2f4e87a538bfa53177291898966c65b  0006-replace-sys-filesystem.patch
-7a1eab9b09e123e3130ca4ff90e20ab1d422694efd2c8e7d087afe3d6585d7df702c53759b4770aab5ea276f06aca5358e04b5594a588ec3d6f3e9d896d818e7  0009-gitlab-revision.patch
-6af80dd113a330e5a5b73ceae214ebbadd0ae9c89db10963a973a35f348096adf2edaf3aac14f065560efddda0be4da83e247442896f57a2de8edfbfa55e4fdb  relative-url-sample.patch"
+7b81837234c292e4aa623fd7f1ae82eb8466fa54819557c6bddfb62eec7c38a4a8526dbe404068f93f68085e9022355aa5a76544e08f8cc806e06bd34ff24a54  gemfile-exclude-unnecessary-gems.patch
+50579b45d788dcb4010090cfca10f39969c8f53ee22a27c7fc5883f93f253a09b2932ba459db561a0cc050e445d92a6ad0c39a11696435f68c9538c55935d309  dont-hardcode-gitlab_workhorse_secret-path.patch
+3b68dbf899f75b996064b518318a0e5bff5b1fe9bd9c082a4a88afb381602b0ce76f5fc68fdf37b6a0e842ead0fb660237edc108fe74aef34cbb4274b4f0a0a8  default-configs.patch
+ac9e2b58542ff82ed8c91623c0ed2bd5df94e8ac4978f7aadbaaa90dfdf0f41fd2d3b29deda75311a8d53d0576f22d3f44201d41002f609ae73ba8027cad70fa  dont-dump-schema.patch
+d834c4d8815de2ffc5ffb7e91dfba72b66f4cd39abbe03191db8748d42d0db263063b99bdef72ecfe41b9dad8fafe72891c21df6659447d573bac7f388798bac  fix-setup-task.patch
+cc665efa6d7cdf988115557b892b39b584c90fb27b8e0114459edea826bb2bdd6f331ecceddc601611a235129dac534ea5941380e46e6d021ca339b2e164648f  fix-check-task.patch
+84b21ee18d6472cc6cd5e61b8797572734e3c31440356fa72c7227c18bdafc52db7b8970fbeb26b54c1e9ad229eb464cc00fb9c644ce230f9f75992047837811  replace-sys-filesystem.patch
+99c09ae81f2e553663ec610b4476be692774df363bc4e82796d4f7b7ebf653aa9999abcfa1bd9269bccc79e4fd2f2896f32d5b1458857d003e17fb94b03dec79  gitlab-revision.patch
+2e3b340e018e578f152cfab079a26c789462777356ad8c83ebc5487d623b74ab073e27e448d65320457d9e2fcb84f26827753f5c0f9571f6df8b4ebdec9c1ee5  gemfile-use-local-grpc-and-protobuf.patch"

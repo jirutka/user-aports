@@ -1,9 +1,14 @@
+From 6fa4b101f3663b1a1c9514f9abcb334a2dbc6eae Mon Sep 17 00:00:00 2001
 From: Jakub Jirutka <jakub@jirutka.cz>
-Date: Wed, 29 Apr 2016 00:03:00 +0200
-Subject: [PATCH] Fix gitlab:setup task to not drop & create database
+Date: Fri, 29 Apr 2016 00:03:00 +0200
+Subject: [PATCH 5/8] Fix gitlab:setup task to not drop & create database
+
+---
+ lib/tasks/gitlab/setup.rake | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/lib/tasks/gitlab/setup.rake b/lib/tasks/gitlab/setup.rake
-index 48baecf..df74626 100644
+index 05fcb8e..2ec1b47 100644
 --- a/lib/tasks/gitlab/setup.rake
 +++ b/lib/tasks/gitlab/setup.rake
 @@ -14,8 +14,8 @@ namespace :gitlab do
@@ -17,3 +22,6 @@ index 48baecf..df74626 100644
      Rake::Task["setup_postgresql"].invoke
      Rake::Task["db:seed_fu"].invoke
    rescue Gitlab::TaskAbortedByUserError
+-- 
+2.10.1 (Apple Git-78)
+

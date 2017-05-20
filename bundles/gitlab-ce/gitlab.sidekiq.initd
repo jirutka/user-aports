@@ -2,7 +2,7 @@
 
 supervisor=supervise-daemon
 
-name="GitLab (sidekiq)"
+name="GitLab Sidekiq"
 description="GitLab backgroud workers"
 
 : ${gitlab_base:="/usr/lib/bundles/gitlab"}

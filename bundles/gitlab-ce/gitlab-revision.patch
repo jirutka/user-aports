@@ -1,0 +1,24 @@
+From 9ae1134d103ddd71cffd93fe0a2107dfef592f64 Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Thu, 18 May 2017 18:02:26 +0200
+Subject: [PATCH 8/8] Don't read GitLab revision using git
+
+We don't deploy GitLab including whole git repository...
+---
+ config/initializers/2_app.rb | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/config/initializers/2_app.rb b/config/initializers/2_app.rb
+index bd74f90..1a047a9 100644
+--- a/config/initializers/2_app.rb
++++ b/config/initializers/2_app.rb
+@@ -4,5 +4,5 @@ module Gitlab
+   end
+ 
+   VERSION  = File.read(Rails.root.join("VERSION")).strip.freeze
+-  REVISION = Gitlab::Popen.popen(%W(#{config.git.bin_path} log --pretty=format:%h -n 1)).first.chomp.freeze
++  REVISION = "".freeze
+ end
+-- 
+2.10.1 (Apple Git-78)
+

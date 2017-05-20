@@ -20,18 +20,31 @@ gen_random_b64() {
 	EOF
 }
 
-if [ ! -f "$secrets_file" ]; then
-	echo "* Generating random secrets in $secrets_file" >&2
 
-	cat > "$secrets_file" <<-EOF
-	production:
-	  secret_key_base: $(gen_random_hex 64)
-	  otp_key_base: $(gen_random_hex 64)
-	  db_key_base: $(gen_random_hex 64)
-	EOF
-	chown root:$group "$secrets_file"
-	chmod 0640 "$secrets_file"
-fi
+echo "* Checking $secrets_file" >&2
+
+ruby <<-EOF
+	require 'openssl'
+	require 'securerandom'
+	require 'yaml'
+
+	secrets_file = '$secrets_file'
+	changed = false
+
+	secrets = YAML.load_file(secrets_file) if File.exist?(secrets_file)
+	secrets ||= {}
+	prod = secrets['production'] ||= {}
+	prod['secret_key_base'] ||= ( changed = true; SecureRandom.hex(64) )
+	prod['otp_key_base'] ||= ( changed = true; SecureRandom.hex(64) )
+	prod['db_key_base'] ||= ( changed = true; SecureRandom.hex(64) )
+	prod['jws_private_key'] ||= ( changed = true; OpenSSL::PKey::RSA.new(2048).to_pem )
+
+	if changed
+	  STDERR.puts "* Generating random secrets into #{secrets_file}"
+	  File.write(secrets_file, YAML.dump(secrets), mode: 'w', perm: 0640)
+	end
+EOF
+chown root:$group "$secrets_file"
 
 if [ ! -f "$shell_secret_file" ]; then
 	echo "* Generating random secret in $shell_secret_file" >&2

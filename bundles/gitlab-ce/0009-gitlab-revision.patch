@@ -1,9 +1,0 @@
---- a/config/initializers/2_app.rb
-+++ b/config/initializers/2_app.rb
-@@ -4,5 +4,5 @@
-   end
- 
-   VERSION  = File.read(Rails.root.join("VERSION")).strip.freeze
--  REVISION = Gitlab::Popen.popen(%W(#{config.git.bin_path} log --pretty=format:%h -n 1)).first.chomp.freeze
-+  REVISION = "".freeze
- end

@@ -1,0 +1,124 @@
+From d3752531aefe703a1ba889d9836f6c91916dcabc Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Mon, 19 Sep 2016 20:14:00 +0200
+Subject: [PATCH 1/8] Move some unnecessary gems to groups (i.e. exclude them)
+
+---
+ Gemfile | 58 +++++++++++++++++++++++++++++-----------------------------
+ 1 file changed, 29 insertions(+), 29 deletions(-)
+
+diff --git a/Gemfile b/Gemfile
+index 12296bb..c3c98dc 100644
+--- a/Gemfile
++++ b/Gemfile
+@@ -24,20 +24,20 @@ gem 'devise', '~> 4.2'
+ gem 'doorkeeper', '~> 4.2.0'
+ gem 'doorkeeper-openid_connect', '~> 1.1.0'
+ gem 'omniauth', '~> 1.4.2'
+-gem 'omniauth-auth0', '~> 1.4.1'
+-gem 'omniauth-azure-oauth2', '~> 0.0.6'
+-gem 'omniauth-cas3', '~> 1.1.2'
+-gem 'omniauth-facebook', '~> 4.0.0'
++gem 'omniauth-auth0', '~> 1.4.1', group: :exclude
++gem 'omniauth-azure-oauth2', '~> 0.0.6', group: :exclude
++gem 'omniauth-cas3', '~> 1.1.2', group: :exclude
++gem 'omniauth-facebook', '~> 4.0.0', group: :exclude
+ gem 'omniauth-github', '~> 1.1.1'
+ gem 'omniauth-gitlab', '~> 1.0.2'
+-gem 'omniauth-google-oauth2', '~> 0.4.1'
++gem 'omniauth-google-oauth2', '~> 0.4.1', group: :exclude
+ gem 'omniauth-kerberos', '~> 0.3.0', group: :kerberos
+-gem 'omniauth-oauth2-generic', '~> 0.2.2'
+-gem 'omniauth-saml', '~> 1.7.0'
+-gem 'omniauth-shibboleth', '~> 1.2.0'
+-gem 'omniauth-twitter', '~> 1.2.0'
+-gem 'omniauth_crowd', '~> 2.2.0'
+-gem 'omniauth-authentiq', '~> 0.3.0'
++gem 'omniauth-oauth2-generic', '~> 0.2.2', group: :exclude
++gem 'omniauth-saml', '~> 1.7.0', group: :exclude
++gem 'omniauth-shibboleth', '~> 1.2.0', group: :exclude
++gem 'omniauth-twitter', '~> 1.2.0', group: :exclude
++gem 'omniauth_crowd', '~> 2.2.0', group: :exclude
++gem 'omniauth-authentiq', '~> 0.3.0', group: :exclude
+ gem 'rack-oauth2', '~> 1.2.1'
+ gem 'jwt', '~> 1.5.6'
+ 
+@@ -88,18 +88,18 @@ gem 'carrierwave', '~> 0.11.0'
+ gem 'dropzonejs-rails', '~> 0.7.1'
+ 
+ # for backups
+-gem 'fog-aws', '~> 0.9'
+-gem 'fog-core', '~> 1.40'
+-gem 'fog-google', '~> 0.5'
+-gem 'fog-local', '~> 0.3'
+-gem 'fog-openstack', '~> 0.1'
+-gem 'fog-rackspace', '~> 0.1.1'
++gem 'fog-aws', '~> 0.9', group: :exclude
++gem 'fog-core', '~> 1.40', group: :exclude
++gem 'fog-google', '~> 0.5', group: :exclude
++gem 'fog-local', '~> 0.3', group: :exclude
++gem 'fog-openstack', '~> 0.1', group: :exclude
++gem 'fog-rackspace', '~> 0.1.1', group: :exclude
+ 
+ # for Google storage
+-gem 'google-api-client', '~> 0.8.6'
++gem 'google-api-client', '~> 0.8.6', group: :exclude
+ 
+ # for aws storage
+-gem 'unf', '~> 0.1.4'
++gem 'unf', '~> 0.1.4', group: :exclude
+ 
+ # Seed data
+ gem 'seed-fu', '~> 2.3.5'
+@@ -194,7 +194,7 @@ gem 'ruby-fogbugz', '~> 0.2.1'
+ gem 'kubeclient', '~> 2.2.0'
+ 
+ # d3
+-gem 'd3_rails', '~> 3.5.0'
++gem 'd3_rails', '~> 3.5.0', group: :assets
+ 
+ # underscore-rails
+ gem 'underscore-rails', '~> 1.8.0'
+@@ -213,10 +213,10 @@ gem 'licensee', '~> 8.7.0'
+ gem 'rack-attack', '~> 4.4.1'
+ 
+ # Ace editor
+-gem 'ace-rails-ap', '~> 4.1.0'
++gem 'ace-rails-ap', '~> 4.1.0', group: :assets
+ 
+ # Keyboard shortcuts
+-gem 'mousetrap-rails', '~> 1.4.6'
++gem 'mousetrap-rails', '~> 1.4.6', group: :assets
+ 
+ # Detect and convert string character encoding
+ gem 'charlock_holmes', '~> 0.7.3'
+@@ -231,19 +231,19 @@ gem 'chronic_duration', '~> 0.10.6'
+ gem 'webpack-rails', '~> 0.9.10'
+ gem 'rack-proxy', '~> 0.6.0'
+ 
+-gem 'sass-rails', '~> 5.0.6'
+-gem 'coffee-rails', '~> 4.1.0'
+-gem 'uglifier', '~> 2.7.2'
++gem 'sass-rails', '~> 5.0.6', group: :assets
++gem 'coffee-rails', '~> 4.1.0', group: :assets
++gem 'uglifier', '~> 2.7.2', group: :assets
+ 
+ gem 'addressable', '~> 2.3.8'
+-gem 'bootstrap-sass', '~> 3.3.0'
++gem 'bootstrap-sass', '~> 3.3.0', group: :assets
+ gem 'font-awesome-rails', '~> 4.7'
+ gem 'gemojione', '~> 3.0'
+ gem 'gon', '~> 6.1.0'
+-gem 'jquery-atwho-rails', '~> 1.3.2'
+-gem 'jquery-rails', '~> 4.1.0'
++gem 'jquery-atwho-rails', '~> 1.3.2', group: :assets
++gem 'jquery-rails', '~> 4.1.0', group: :assets
+ gem 'request_store', '~> 1.3'
+-gem 'select2-rails', '~> 3.5.9'
++gem 'select2-rails', '~> 3.5.9', group: :assets
+ gem 'virtus', '~> 1.0.1'
+ gem 'net-ssh', '~> 3.0.1'
+ gem 'base32', '~> 0.3.0'
+-- 
+2.10.1 (Apple Git-78)
+

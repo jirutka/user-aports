@@ -1,12 +1,17 @@
+From 4bf8e79f6d4f20b65035b90a66d5ed740651a23f Mon Sep 17 00:00:00 2001
 From: Jakub Jirutka <jakub@jirutka.cz>
-Date: Wed, 20 Sep 2016 23:51:00 +0200
-Subject: [PATCH] Disable checking init script in gitlab:check task
+Date: Tue, 20 Sep 2016 23:51:00 +0200
+Subject: [PATCH 6/8] Disable checking init script in gitlab:check task
+
+---
+ lib/tasks/gitlab/check.rake | 9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
 
 diff --git a/lib/tasks/gitlab/check.rake b/lib/tasks/gitlab/check.rake
-index effb8eb..2f9ea2e 100644
+index a9a48f7..8dd19b1 100644
 --- a/lib/tasks/gitlab/check.rake
 +++ b/lib/tasks/gitlab/check.rake
-@@ -24,7 +24,7 @@ namespace :gitlab do
+@@ -22,7 +22,7 @@ namespace :gitlab do
        check_tmp_writable
        check_uploads
        check_init_script_exists
@@ -15,7 +20,7 @@ index effb8eb..2f9ea2e 100644
        check_projects_have_namespace
        check_redis_version
        check_ruby_version
-@@ -590,13 +590,6 @@
+@@ -586,13 +586,6 @@ namespace :gitlab do
          puts "yes".color(:green)
        else
          puts "no".color(:red)
@@ -29,3 +34,6 @@ index effb8eb..2f9ea2e 100644
          fix_and_rerun
        end
      end
+-- 
+2.10.1 (Apple Git-78)
+
