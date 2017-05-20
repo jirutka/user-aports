@@ -1,0 +1,32 @@
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Fri, 20 May 2017 00:18:00 +0200
+Subject: [PATCH] Fix extconf.rb to not break Makefile
+
+Make executes tasks in parallel and since there's no dependency declared
+on "strip", it may be (and actually is on my machine) executed before
+build is finished.
+
+Moreover abuild automatically strips binaries, so we actually don't
+need it.
+
+--- a/src/ruby/ext/grpc/extconf.rb
++++ b/src/ruby/ext/grpc/extconf.rb
+@@ -114,18 +114,3 @@
+ 
+ strip_tool = RbConfig::CONFIG['STRIP']
+ strip_tool = 'strip -x' if RUBY_PLATFORM =~ /darwin/
+-
+-if grpc_config == 'opt'
+-  File.open('Makefile.new', 'w') do |o|
+-    o.puts 'hijack: all strip'
+-    o.puts
+-    File.foreach('Makefile') do |i|
+-      o.puts i
+-    end
+-    o.puts
+-    o.puts 'strip:'
+-    o.puts "\t$(ECHO) Stripping $(DLLIB)"
+-    o.puts "\t$(Q) #{strip_tool} $(DLLIB)"
+-  end
+-  File.rename('Makefile.new', 'Makefile')
+-end

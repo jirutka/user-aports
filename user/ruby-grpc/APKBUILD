@@ -1,0 +1,71 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+#
+# Note: This is the worst Ruby gem I've ever seen. It's pure trash violating
+# all conventions and best-practices, that's why so much patching...
+pkgname=ruby-grpc
+_pkgname=grpc
+pkgver=1.3.2
+pkgrel=0
+pkgdesc="An RPC library and framework"
+url="https://github.com/grpc/grpc"
+arch="all"
+license="BSD3"
+depends="ruby-google-protobuf"
+makedepends="c-ares-dev libressl-dev ruby ruby-dev zlib-dev"
+source="$_pkgname-$pkgver.tar.gz::https://github.com/grpc/$_pkgname/archive/v$pkgver.tar.gz
+	use-system-provided-deps.patch
+	use-system-certs.patch
+	fix-require-grpc_c.patch
+	fix-extconf.patch"
+builddir="$srcdir/$_pkgname-$pkgver"
+options="!check"  # XXX: we need ruby-rspec package...
+
+prepare() {
+	default_prepare || return 1
+
+	# Remove bundled dependencies from the gem's files list.
+	sed -i -e '/etc\/roots.pem/d' \
+		-e '/third_party\/boringssl\//d' \
+		-e '/third_party\/zlib\//d' \
+		-e '/third_party\/cares\//d' \
+		$_pkgname.gemspec || return 1
+
+	# Remove unused dependency from gemspec.
+	sed -i '/add_dependency.*googleauth/d' $_pkgname.gemspec
+}
+
+build() {
+	cd "$builddir"
+
+	gem build $_pkgname.gemspec || return 1
+	gem install \
+		--local \
+		--install-dir dist \
+		--ignore-dependencies \
+		--no-document \
+		--verbose \
+		$_pkgname-$pkgver.gem
+}
+
+package() {
+	local gemdir="$pkgdir/$(ruby -rubygems -e 'puts Gem.default_dir')"
+	cd "$builddir"/dist
+
+	mkdir -p "$gemdir"
+	cp -r extensions gems specifications "$gemdir"/ || return 1
+
+	# Remove unnecessary files and rubbish...
+	cd "$gemdir"/extensions/*/*/$_pkgname-$pkgver
+	rm gem.build_complete mkmf.log || true
+	cd "$gemdir"/gems/$_pkgname-$pkgver
+	rm -r .yardopts Makefile etc/ include/ src/boringssl src/core third_party/ || true
+	cd src/ruby
+	rm -r bin ext lib/grpc/grpc_c.so pb/README.md pb/src pb/test spec || true
+}
+
+sha512sums="e8e85c92b8ed3d4d6cc17f5f034bd58c9c7815c8eb8859d5efbff99c1bd915cf273ece7b99bf6cd3247ae426163c60427ef6b11e4b5af304d85dfabebc53aae6  grpc-1.3.2.tar.gz
+7bb065c56ab84bb064294b7d5f7fc85f98b139a853d1465a42b553977db41311c506ac21e905a5109eeccea6c283f97c4be40073d1e00ac85b6186a9e2e182b9  use-system-provided-deps.patch
+13c68b45c06b4d27aa4099f6e76bcf09e7a7077bc4a712e4421bca6ead487cdd1b67c281e515460c002cc87134401be3b171cc7a2446e945352a0b45f76f2ff3  use-system-certs.patch
+e02f209869e72d251cb6fbebda8501e0c38ff6d92a00a794ada38e0dab71127794838c6e6c0bc478943eeedcc9ee41537fe2aaa53581463b76bdcbb8c5afdbec  fix-require-grpc_c.patch
+becc7ee297b98c3ee24c9d0ef506de0d0ba1e30cc73074f114d9b724dedcea1d3617df50936d7b9ae2913403314d2f0816b1b2efd4bc99b22f2d2df82ee291d7  fix-extconf.patch"

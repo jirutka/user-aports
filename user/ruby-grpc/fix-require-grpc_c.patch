@@ -1,0 +1,21 @@
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Fri, 20 May 2017 01:35:00 +0200
+Subject: [PATCH] Fix messed require of grpc_c
+
+--- a/src/ruby/lib/grpc/grpc.rb
++++ b/src/ruby/lib/grpc/grpc.rb
+@@ -27,13 +27,4 @@
+ # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ 
+-begin
+-  ruby_version_dirname = /(\d+\.\d+)/.match(RUBY_VERSION).to_s
+-  distrib_lib_dir = File.expand_path(ruby_version_dirname,
+-                                     File.dirname(__FILE__))
+-  if File.directory?(distrib_lib_dir)
+-    require_relative "#{distrib_lib_dir}/grpc_c"
+-  else
+-    require_relative 'grpc_c'
+-  end
+-end
++require 'grpc/grpc_c'
