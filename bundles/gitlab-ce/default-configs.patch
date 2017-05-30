@@ -5,7 +5,7 @@ Subject: [PATCH 3/8] Adjust paths and remove some boilerplate from configs
 
 ---
  config/database.yml.postgresql              |  45 +------
- config/gitlab.yml.example                   | 202 +++-------------------------
+ config/gitlab.yml.example                   | 206 +++-------------------------
  config/initializers/smtp_settings.rb.sample |  11 +-
  config/resque.yml.example                   |  16 +--
  config/sidekiq.yml.example                  |   2 +-
@@ -119,11 +119,13 @@ index 12239cf..3f6d104 100644
  
      # The domain under which the pages are served:
      # http://group.example.com/project
-@@ -204,7 +195,7 @@ production: &base
+@@ -203,8 +194,8 @@ production: &base
+     # host: registry.example.com
      # port: 5005
      # api_url: http://localhost:5000/ # internal address to the registry, will be used by GitLab to directly communicate with API
-     # key: config/registry.key
+-    # key: config/registry.key
 -    # path: shared/registry
++    # key: /etc/gitlab/registry.key
 +    # path: /var/lib/gitlab/registry
      # issuer: gitlab-issuer
  
@@ -137,6 +139,15 @@ index 12239cf..3f6d104 100644
  
    #
    # 3. Auth settings
+@@ -253,7 +244,7 @@ production: &base
+ 
+         host: '_your_ldap_server'
+         port: 389
+-        uid: 'sAMAccountName'
++        uid: 'uid'
+         method: 'plain' # "tls" or "ssl" or "plain"
+         bind_dn: '_the_full_dn_of_the_user_you_will_bind_with'
+         password: '_the_password_of_the_bind_user'
 @@ -266,7 +257,7 @@ production: &base
          # This setting specifies if LDAP server is Active Directory LDAP server.
          # For non AD servers it skips the AD specific queries.
