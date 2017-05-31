@@ -1,0 +1,252 @@
+From 148098532398aad0a8e592c244ef72a18a17126f Mon Sep 17 00:00:00 2001
+From: Jarka Kadlecova <jarka@gitlab.com>
+Date: Tue, 9 May 2017 14:14:24 +0200
+Subject: [PATCH] Fix LaTeX formatting for AsciiDoc wiki
+
+---
+ .../filter/ascii_doc_post_processing_filter.rb     | 13 +++++++++
+ lib/banzai/filter/sanitization_filter.rb           |  4 +++
+ lib/banzai/pipeline/ascii_doc_pipeline.rb          | 14 +++++++++
+ lib/gitlab/asciidoc.rb                             | 13 ++++-----
+ .../projects/wiki/user_creates_wiki_page_spec.rb   | 34 ++++++++++++++++++++++
+ .../ascii_doc_post_processing_filter_spec.rb       | 15 ++++++++++
+ spec/lib/banzai/filter/sanitization_filter_spec.rb | 16 ++++++++++
+ spec/lib/gitlab/asciidoc_spec.rb                   | 25 ++++++++++++++++
+ 8 files changed, 127 insertions(+), 7 deletions(-)
+ create mode 100644 lib/banzai/filter/ascii_doc_post_processing_filter.rb
+ create mode 100644 lib/banzai/pipeline/ascii_doc_pipeline.rb
+ create mode 100644 spec/lib/banzai/filter/ascii_doc_post_processing_filter_spec.rb
+
+diff --git a/lib/banzai/filter/ascii_doc_post_processing_filter.rb b/lib/banzai/filter/ascii_doc_post_processing_filter.rb
+new file mode 100644
+index 0000000..c9fcf05
+--- /dev/null
++++ b/lib/banzai/filter/ascii_doc_post_processing_filter.rb
+@@ -0,0 +1,13 @@
++module Banzai
++  module Filter
++    class AsciiDocPostProcessingFilter < HTML::Pipeline::Filter
++      def call
++        doc.search('[data-math-style]').each do |node|
++          node.set_attribute('class', 'code math js-render-math')
++        end
++
++        doc
++      end
++    end
++  end
++end
+diff --git a/lib/banzai/filter/sanitization_filter.rb b/lib/banzai/filter/sanitization_filter.rb
+index 522217d..2d6e8ff 100644
+--- a/lib/banzai/filter/sanitization_filter.rb
++++ b/lib/banzai/filter/sanitization_filter.rb
+@@ -31,6 +31,10 @@ module Banzai
+         # Allow span elements
+         whitelist[:elements].push('span')
+ 
++        # Allow data-math-style attribute in order to support LaTeX formatting
++        whitelist[:attributes]['code'] = %w(data-math-style)
++        whitelist[:attributes]['pre'] = %w(data-math-style)
++
+         # Allow html5 details/summary elements
+         whitelist[:elements].push('details')
+         whitelist[:elements].push('summary')
+diff --git a/lib/banzai/pipeline/ascii_doc_pipeline.rb b/lib/banzai/pipeline/ascii_doc_pipeline.rb
+new file mode 100644
+index 0000000..1048b92
+--- /dev/null
++++ b/lib/banzai/pipeline/ascii_doc_pipeline.rb
+@@ -0,0 +1,14 @@
++module Banzai
++  module Pipeline
++    class AsciiDocPipeline < BasePipeline
++      def self.filters
++        FilterArray[
++          Filter::SanitizationFilter,
++          Filter::ExternalLinkFilter,
++          Filter::PlantumlFilter,
++          Filter::AsciiDocPostProcessingFilter
++        ]
++      end
++    end
++  end
++end
+diff --git a/lib/gitlab/asciidoc.rb b/lib/gitlab/asciidoc.rb
+index 9ebe79a..f8f40f9 100644
+--- a/lib/gitlab/asciidoc.rb
++++ b/lib/gitlab/asciidoc.rb
+@@ -30,22 +30,21 @@ module Gitlab
+       )
+       asciidoc_opts[:attributes].unshift(*DEFAULT_ADOC_ATTRS)
+ 
+-      context[:pipeline] = :markup
++      context[:pipeline] = :ascii_doc
+ 
+       plantuml_setup
+ 
+       html = ::Asciidoctor.convert(input, asciidoc_opts)
+       html = Banzai.render(html, context)
+       html = Banzai.post_process(html, context)
+-
+       html.html_safe
+     end
+ 
+     def self.plantuml_setup
+       Asciidoctor::PlantUml.configure do |conf|
+-        conf.url = ApplicationSetting.current.plantuml_url
+-        conf.svg_enable = ApplicationSetting.current.plantuml_enabled
+-        conf.png_enable = ApplicationSetting.current.plantuml_enabled
++        conf.url = current_application_settings.plantuml_url
++        conf.svg_enable = current_application_settings.plantuml_enabled
++        conf.png_enable = current_application_settings.plantuml_enabled
+         conf.txt_enable = false
+       end
+     end
+@@ -58,13 +57,13 @@ module Gitlab
+       def stem(node)
+         return super unless node.style.to_sym == :latexmath
+ 
+-        %(<pre#{id_attribute(node)} class="code math js-render-math #{node.role}" data-math-style="display"><code>#{node.content}</code></pre>)
++        %(<pre#{id_attribute(node)} data-math-style="display"><code>#{node.content}</code></pre>)
+       end
+ 
+       def inline_quoted(node)
+         return super unless node.type.to_sym == :latexmath
+ 
+-        %(<code#{id_attribute(node)} class="code math js-render-math #{node.role}" data-math-style="inline">#{node.text}</code>)
++        %(<code#{id_attribute(node)} data-math-style="inline">#{node.text}</code>)
+       end
+ 
+       private
+diff --git a/spec/features/projects/wiki/user_creates_wiki_page_spec.rb b/spec/features/projects/wiki/user_creates_wiki_page_spec.rb
+index 1ffac8c..ec85518 100644
+--- a/spec/features/projects/wiki/user_creates_wiki_page_spec.rb
++++ b/spec/features/projects/wiki/user_creates_wiki_page_spec.rb
+@@ -28,6 +28,40 @@ feature 'Projects > Wiki > User creates wiki page', feature: true do
+         expect(page).to have_content("Last edited by #{user.name}")
+         expect(page).to have_content('My awesome wiki!')
+       end
++
++      scenario 'creates ASCII wiki with LaTeX blocks' do
++        stub_application_setting(plantuml_url: 'http://localhost', plantuml_enabled: true)
++
++        ascii_content = <<~MD
++          :stem: latexmath
++
++          [stem]
++          ++++
++          \sqrt{4} = 2
++          ++++
++
++          another part
++
++          [latexmath]
++          ++++
++          \beta_x \gamma
++          ++++
++
++          stem:[2+2] is 4
++        MD
++
++        find('#wiki_format option[value=asciidoc]').select_option
++        fill_in :wiki_content, with: ascii_content
++
++        page.within '.wiki-form' do
++          click_button 'Create page'
++        end
++
++        page.within '.wiki' do
++          expect(page).to have_selector('.katex', count: 3)
++          expect(page).to have_content('2+2 is 4')
++        end
++      end
+     end
+ 
+     context 'when wiki is not empty' do
+diff --git a/spec/lib/banzai/filter/ascii_doc_post_processing_filter_spec.rb b/spec/lib/banzai/filter/ascii_doc_post_processing_filter_spec.rb
+new file mode 100644
+index 0000000..33b812e
+--- /dev/null
++++ b/spec/lib/banzai/filter/ascii_doc_post_processing_filter_spec.rb
+@@ -0,0 +1,15 @@
++require 'spec_helper'
++
++describe Banzai::Filter::AsciiDocPostProcessingFilter, lib: true do
++  include FilterSpecHelper
++
++  it "adds class for elements with data-math-style" do
++    result = filter('<pre data-math-style="inline">some code</pre><div data-math>and</div>').to_html
++    expect(result).to eq('<pre data-math-style="inline" class="code math js-render-math">some code</pre><div data-math>and</div>')
++  end
++
++  it "keeps content when no data-math-style found" do
++    result = filter('<pre>some code</pre><div data-math>and</div>').to_html
++    expect(result).to eq('<pre>some code</pre><div data-math>and</div>')
++  end
++end
+diff --git a/spec/lib/banzai/filter/sanitization_filter_spec.rb b/spec/lib/banzai/filter/sanitization_filter_spec.rb
+index fdbc65b..fb7862f 100644
+--- a/spec/lib/banzai/filter/sanitization_filter_spec.rb
++++ b/spec/lib/banzai/filter/sanitization_filter_spec.rb
+@@ -97,6 +97,22 @@ describe Banzai::Filter::SanitizationFilter, lib: true do
+       expect(filter(act).to_html).to eq exp
+     end
+ 
++    it 'allows `data-math-style` attribute on `code` and `pre` elements' do
++      html = <<-HTML
++      <pre class="code" data-math-style="inline">something</pre>
++      <code class="code" data-math-style="inline">something</code>
++      <div class="code" data-math-style="inline">something</div>
++      HTML
++
++      output = <<-HTML
++      <pre data-math-style="inline">something</pre>
++      <code data-math-style="inline">something</code>
++      <div>something</div>
++      HTML
++
++      expect(filter(html).to_html).to eq(output)
++    end
++
+     it 'removes `rel` attribute from `a` elements' do
+       act = %q{<a href="#" rel="nofollow">Link</a>}
+       exp = %q{<a href="#">Link</a>}
+diff --git a/spec/lib/gitlab/asciidoc_spec.rb b/spec/lib/gitlab/asciidoc_spec.rb
+index 59d5440..31d840d 100644
+--- a/spec/lib/gitlab/asciidoc_spec.rb
++++ b/spec/lib/gitlab/asciidoc_spec.rb
+@@ -72,6 +72,31 @@ module Gitlab
+           expect(output).to include('rel="nofollow noreferrer noopener"')
+         end
+       end
++
++      context 'LaTex code' do
++        it 'adds class js-render-math to the output' do
++          input = <<~MD
++            :stem: latexmath
++
++            [stem]
++            ++++
++            \sqrt{4} = 2
++            ++++
++
++            another part
++
++            [latexmath]
++            ++++
++            \beta_x \gamma
++            ++++
++
++            stem:[2+2] is 4
++            MD
++
++          expect(render(input, context)).to include('<pre data-math-style="display" class="code math js-render-math"><code>eta_x gamma</code></pre>')
++          expect(render(input, context)).to include('<p><code data-math-style="inline" class="code math js-render-math">2+2</code> is 4</p>')
++        end
++      end
+     end
+ 
+     def render(*args)
+-- 
+2.10.1 (Apple Git-78)
+
