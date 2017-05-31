@@ -11,7 +11,7 @@
 -endif
 -
 -GO_LDFLAGS ?= -X main.VERSION=$(VERSION) -X main.REVISION=$(REVISION)
-+GO_LDFLAGS ?= -X main.VERSION=$(VERSION) -X main.REVISION=unknown
++GO_LDFLAGS ?= -X main.VERSION=$(VERSION) -X main.REVISION=$(REVISION)
  GO_FILES ?= $(shell find . -name '*.go')
  
  export GO15VENDOREXPERIMENT := 1
