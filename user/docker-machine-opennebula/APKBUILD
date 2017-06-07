@@ -24,12 +24,12 @@ export GOPATH="$srcdir"
 
 prepare() {
 	mkdir -p "${builddir%/*}"
-	mv "$srcdir"/$pkgname-release-$pkgver "$builddir" || return 1
+	mv "$srcdir"/$pkgname-release-$pkgver "$builddir"
 
 	cd "$builddir"
 
 	cp "$srcdir"/glide.* .
-	glide install --skip-test || return 1
+	glide install --skip-test
 
 	default_prepare
 }
@@ -44,13 +44,13 @@ package() {
 }
 
 glide_init() {
-	abuild clean deps fetch unpack prepare || return 1
+	abuild clean deps fetch unpack prepare
 
 	cd "$builddir"
 
-	glide init --non-interactive || return 1
-	glide up --skip-test || return 1
-	cp glide.yaml glide.lock "$startdir"/ || return 1
+	glide init --non-interactive
+	glide up --skip-test
+	cp glide.yaml glide.lock "$startdir"/
 
 	cd $startdir
 	abuild checksum undeps
