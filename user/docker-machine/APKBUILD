@@ -14,7 +14,7 @@ builddir="$srcdir/src/github.com/docker/machine"
 
 prepare() {
 	mkdir -p "${builddir%/*}"
-	mv "$srcdir"/$_pkgname-$pkgver "$builddir" || return 1
+	mv "$srcdir"/$_pkgname-$pkgver "$builddir"
 
 	default_prepare
 }
@@ -22,6 +22,11 @@ prepare() {
 build() {
 	cd "$builddir"
 	GOPATH="$srcdir" make VERBOSE=true build
+}
+
+check() {
+	cd "$builddir"
+	./bin/docker-machine --version
 }
 
 package() {
