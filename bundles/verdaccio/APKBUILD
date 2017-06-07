@@ -22,13 +22,13 @@ builddir="$srcdir/$pkgname-$pkgver"
 _prefix="/usr/lib/bundles/$pkgname"
 
 prepare() {
-	default_prepare || return 1
+	default_prepare
 	cd "$builddir"
 
 	# Add sinopia-ldap to dependencies.
 	mv package.json package.json.orig
 	jq '.dependencies["sinopia-ldap"] = "^0.5.1"' \
-		package.json.orig > package.json || return 1
+		package.json.orig > package.json
 
 	local oldver="$(jq -r '.version' "$srcdir"/npm-shrinkwrap.json)"
 	if [ "$oldver" = "$pkgver" ]; then
@@ -40,9 +40,9 @@ build() {
 	cd "$builddir"
 
 	export NPM_CONFIG_CACHE="$srcdir/.npm"
-	npm install --production || return 1
+	npm install --production
 
-	npm shrinkwrap || return 1
+	npm shrinkwrap
 	cp -f npm-shrinkwrap.json "$startdir"/
 }
 
@@ -50,19 +50,19 @@ package() {
 	cd "$builddir"
 
 	mkdir -p "$pkgdir"/$_prefix
-	mv bin lib node_modules index.js package.json "$pkgdir"/$_prefix/ || return 1
+	mv bin lib node_modules index.js package.json "$pkgdir"/$_prefix/
 
 	mkdir -p "$pkgdir"/usr/bin
-	ln -s $_prefix/bin/verdaccio "$pkgdir"/usr/bin/$pkgname || return 1
+	ln -s $_prefix/bin/verdaccio "$pkgdir"/usr/bin/$pkgname
 
 	install -m 640 -g $pkggroups -D "$srcdir"/config.yaml \
-		"$pkgdir"/etc/$pkgname/config.yaml || return 1
+		"$pkgdir"/etc/$pkgname/config.yaml
 
 	install -m 755 -D "$srcdir"/$pkgname.initd \
-		"$pkgdir"/etc/init.d/$pkgname || return 1
+		"$pkgdir"/etc/init.d/$pkgname
 
 	install -m 644 -D "$srcdir"/$pkgname.logrotate \
-		"$pkgdir"/etc/logrotate.d/$pkgname || return 1
+		"$pkgdir"/etc/logrotate.d/$pkgname
 
 	install -d -m 750 -o $pkgusers -g $pkggroups \
 		"$pkgdir"/var/lib/$pkgname \
