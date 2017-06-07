@@ -6,7 +6,7 @@ pkgver=9.1.4
 pkgrel=1
 pkgdesc="A version control for your server"
 url="https://github.com/gitlabhq/gitlabhq"
-arch="all"
+arch=""  # XXX: Temporarily disabled due to problem with ruby-google-protobuf.
 license="MIT"
 _rubyslot=""
 # ruby-irb is needed only for Rails console (gitlab-rails console)
