@@ -26,16 +26,16 @@ build() {
 		--isolated \
 		--disable-pip-version-check \
 		--constraint="$srcdir/constraints.txt" \
-		. || return 1
+		.
 
-	python2 -m compileall -fqd "$_prefix" usr/ || return 1
+	python2 -m compileall -fqd "$_prefix" usr/
 }
 
 package() {
 	cd "$_builddir"
 
-	install -m755 -d "${pkgdir}${_prefix}" || return 1
-	cp -r usr/* "${pkgdir}${_prefix}"/ || return 1
+	install -m755 -d "${pkgdir}${_prefix}"
+	cp -r usr/* "${pkgdir}${_prefix}"/
 }
 
 md5sums="71392bfa441ccfdd1de5da45135b35d6  sentry-ldap-auth-2.0.tar.gz
