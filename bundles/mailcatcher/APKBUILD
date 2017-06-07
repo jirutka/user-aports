@@ -18,10 +18,6 @@ builddir="$srcdir/build"
 
 _prefix="/usr/lib/bundles/$pkgname"
 
-prepare() {
-	return 0
-}
-
 build() {
 	local file
 	cd "$srcdir"
@@ -32,13 +28,12 @@ build() {
 	gem install \
 		--no-document \
 		--install-dir="$builddir" \
-		$pkgname-$pkgver.gem || return 1
+		$pkgname-$pkgver.gem
 
-	cd "$builddir"/gems/mailcatcher-* || return 1
+	cd "$builddir"/gems/mailcatcher-*
 	for file in $source; do
 		case $file in
-			*.patch) patch -p1 -i "$srcdir/$file" || return 1
-			;;
+			*.patch) patch -p1 -i "$srcdir/$file"
 		esac
 	done
 
@@ -46,7 +41,7 @@ build() {
 	for file in bin/*; do
 		# Add text after the first line of the file.
 		sed -i -e "1a ENV['GEM_PATH'] = '$_prefix'" \
-			-e "1a Gem.clear_paths" $file || return 1
+			-e "1a Gem.clear_paths" $file
 	done
 }
 
@@ -54,17 +49,14 @@ package() {
 	cd "$builddir"
 
 	mkdir -p "$pkgdir"$_prefix
-	cp -r bin extensions gems specifications "$pkgdir"$_prefix/ || return 1
+	cp -r bin extensions gems specifications "$pkgdir"$_prefix/
 
 	mkdir -p "$pkgdir"/usr/bin
-	ln -sf $_prefix/bin/mailcatcher "$pkgdir"/usr/bin/mailcatcher || return 1
-	ln -sf $_prefix/bin/catchmail "$pkgdir"/usr/bin/catchmail || return 1
+	ln -sf $_prefix/bin/mailcatcher "$pkgdir"/usr/bin/mailcatcher
+	ln -sf $_prefix/bin/catchmail "$pkgdir"/usr/bin/catchmail
 
-	install -m755 -D "$srcdir"/$pkgname.initd \
-		"$pkgdir"/etc/init.d/$pkgname || return 1
-
-	install -m644 -D "$srcdir"/$pkgname.confd \
-		"$pkgdir"/etc/conf.d/$pkgname
+	install -m755 -D "$srcdir"/$pkgname.initd "$pkgdir"/etc/init.d/$pkgname
+	install -m644 -D "$srcdir"/$pkgname.confd "$pkgdir"/etc/conf.d/$pkgname
 }
 
 md5sums="fbb74af47d4d828da6f934dd82d55ecd  mailcatcher-0.6.4.gem
