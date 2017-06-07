@@ -28,13 +28,14 @@ source="https://downloads.sourceforge.net/project/$_pkgname/$_pkgname/$pkgver/$_
 	os.m4.patch
 	fix-headers.patch"
 builddir="$srcdir/$_pkgname-$pkgver"
+options="!check"  # upstream does not provide any tests
 
 prepare () {
-	default_prepare || return 1
-	update_config_sub || return 1
+	default_prepare
+	update_config_sub
 
 	cd "$builddir"/autoconf
-	autoconf || return 1
+	autoconf
 	cp configure ../
 }
 
@@ -58,9 +59,8 @@ build() {
 		--enable-largefile \
 		--enable-client-only \
 		--enable-smartalloc \
-		--disable-nls \
-		|| return 1
-	make || return 1
+		--disable-nls
+	make
 }
 
 package() {
@@ -71,18 +71,16 @@ package() {
 
 	# Remove useless dirs and libs.
 	rm -Rf .scriptdir tmp
-	find ./usr/lib -iname libbaccats* -type l -delete || return 1
+	find ./usr/lib -iname libbaccats* -type l -delete
 
 	# Fix permissions.
-	install -m 750 -o bacula -g bacula -d ./var/lib/bacula || return 1
-	install -m 755 -o root -g bacula -d ./etc/bacula || return 1
-	chown root:bacula ./etc/bacula/* || return 1
+	install -m 750 -o bacula -g bacula -d ./var/lib/bacula
+	install -m 755 -o root -g bacula -d ./etc/bacula
+	chown root:bacula ./etc/bacula/*
 
-	install -m 755 -D "$srcdir"/bacula-fd.initd \
-		./etc/init.d/bacula-fd || return 1
+	install -m 755 -D "$srcdir"/bacula-fd.initd ./etc/init.d/bacula-fd
 
-	install -m 644 -D "$srcdir"/bacula-fd.confd \
-		./etc/conf.d/bacula-fd
+	install -m 644 -D "$srcdir"/bacula-fd.confd ./etc/conf.d/bacula-fd
 }
 
 md5sums="43417bae0c221afb1f30a581c9e0f2fe  bacula-5.2.13.tar.gz
