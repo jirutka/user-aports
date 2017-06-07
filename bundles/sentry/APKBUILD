@@ -37,7 +37,7 @@ build() {
 		. || return 1
 
 	# Remove tests.
-	find lib/python*/ -name "test_*.py" -delete
+	find usr/lib/python*/ -name "test_*.py" -delete
 
 	# Remove useless scripts.
 	rm -f usr/bin/easy_install*
@@ -67,22 +67,6 @@ package() {
 		"$pkgdir"/etc/logrotate.d/$pkgname || return 1
 }
 
-md5sums="9044844ea8a3f694bc24265833d729ab  sentry-8.2.5.tar.gz
-f27b53a3b2c4e8f466e79118f4ae0b39  sentry
-6b8e1efebd8834b9f4fe30761d930752  sentry.initd
-9454efab110fb005c838dec7b49bf30a  sentry.confd
-ff8573b3a785fa5df7740133e2209c96  sentry.cron
-f2302ce24629f24a9a6652713826453c  sentry.logrotate
-591b903dc877f4b93e2908f7a4edab44  0001-fix-setup.py.patch
-5990aefa57b2b2075ce64ca604a08c80  0002-config-template.patch"
-sha256sums="b554e8fedc11270ff270adc24a9b6d507ddcf2617d5b0d9eed62f0e86ed8f2b5  sentry-8.2.5.tar.gz
-dccf0803c43462a3ea74af8ebaac0eb66d21f941ef883984417c52aa8f657d5b  sentry
-050ac9a7b5c1bb811094aa6e55307eaeb085d0a9138223a1d40ebd202c8236d1  sentry.initd
-3b1c4cca0742ed037e0a870794c47642ebfcb6768b09b333234ed1650afd088f  sentry.confd
-14306619445d8bb80d6c8b8ddde725306b87b33f1619071c14f34461c0d28b2b  sentry.cron
-e4f617413b2f32177de9a607711bba94625268660aa2aac5210851512642c49f  sentry.logrotate
-fbbe882a572e191d46dad0a497bdea65c7448d58769f3d4ecaae153553003dd6  0001-fix-setup.py.patch
-2f30e06dea952acb2ff6cc7a55ba13a151fa9493cc30c133d798a1b8fa07aeed  0002-config-template.patch"
 sha512sums="e7ccc1270b0e5ba718a7f491317e6bd665ee43d67e07ca0bfa5fefe26a4f65eaf409f1720586ff903a9c71562c7148fc377b9a1cf00fc08c6412518d490d993f  sentry-8.2.5.tar.gz
 20fa0891e2d88a606d598803fe0afb9c4d799d84b4fcd362772118b3d7b6aa2f53d70ae71f0d9b68002009212887c48e9c09aafc4fe6b1c16da1169e1015cc7e  sentry
 e670937322b9bbc816f957e219219c7049fed350065177d4bfd4eb4daf66894182d358322fcef6220a25868bbff21a3729915301537160aa168e67f90ba3bd9d  sentry.initd
