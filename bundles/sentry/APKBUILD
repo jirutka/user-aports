@@ -2,12 +2,12 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=sentry
 pkgver=8.2.5
-pkgrel=2
+pkgrel=3
 pkgdesc="Sentry provides real-time crash reporting for your web apps, mobile apps, and games."
 url="https://github.com/getsentry/sentry"
 arch="all"
 license="BSD"
-depends="libpq libxslt python2 redis uwsgi-python>2.0.0"
+depends="libpq libxslt python2 py-setuptools redis uwsgi-python>2.0.0"
 makedepends="ca-certificates libffi-dev libxml2-dev libxslt-dev libzip-dev
 	linux-headers libressl-dev postgresql-dev python2-dev py2-pip"
 install="$pkgname.pre-install $pkgname.post-install $pkgname.post-upgrade"
