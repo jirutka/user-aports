@@ -17,7 +17,7 @@ package() {
 	cd "$pkgdir"
 
 	local file; for file in $source; do
-		install -m644 -D "$srcdir"/$file etc/skel/$file || return 1
+		install -m644 -D "$srcdir"/$file etc/skel/$file
 	done
 
 	install -m700 -d etc/skel/.ssh
