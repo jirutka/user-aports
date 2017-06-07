@@ -32,8 +32,8 @@ prepare() {
 	mkdir -p "$builddir"
 
 	cd "$srcdir"
-	ln -s mailman-$_pkgver-* mailman || return 1
-	ln -s mailman-hyperkitty-$_mmhyperkitty_ref-* mailman-hyperkitty || return 1
+	ln -s mailman-$_pkgver-* mailman
+	ln -s mailman-hyperkitty-$_mmhyperkitty_ref-* mailman-hyperkitty
 
 	local builddir="$srcdir"
 	default_prepare
@@ -45,7 +45,7 @@ build() {
 	cd "$builddir"
 
 	# Create virtualenv.
-	python$_pyver -m venv . || return 1
+	python$_pyver -m venv .
 
 	bin/python -m pip install \
 		--disable-pip-version-check \
@@ -54,18 +54,18 @@ build() {
 		--no-cache-dir \
 		--constraint "$srcdir"/constraints.txt \
 		"$srcdir"/mailman "$srcdir"/mailman-hyperkitty \
-		$extra_eggs || return 1
+		$extra_eggs
 
 	# Note: This overwrites existing constraints.txt.
 	bin/python -m pip freeze --disable-pip-version-check \
 		| sed -E '/^(mailman|mailman-hyperkitty)==.*/d' \
-		> "$srcdir"/constraints.txt || return 1
+		> "$srcdir"/constraints.txt
 
 	# Remove pip that is not needed in runtime (note: setuptools is needed).
-	bin/python -m pip uninstall --disable-pip-version-check -y pip || return 1
+	bin/python -m pip uninstall --disable-pip-version-check -y pip
 
 	# Fix shebang to correct destination.
-	find ./bin -type f -exec sed -i "s|$builddir|$_prefix|g" {} \; || return 1
+	find ./bin -type f -exec sed -i "s|$builddir|$_prefix|g" {} \;
 
 	# Remove some unnecessary scripts and directories.
 	rm -f bin/activate.* bin/easy_install* bin/falcon-bench
@@ -80,28 +80,28 @@ build() {
 
 package() {
 	mkdir -p "${pkgdir}${_prefix}"
-	cd "$pkgdir" || return 1
+	cd "$pkgdir"
 
-	mv "$builddir"/* .$_prefix/ || return 1
+	mv "$builddir"/* .$_prefix/
 
 	mkdir -p ./usr/bin
-	ln -s $_prefix/bin/mailman ./usr/bin/mailman || return 1
+	ln -s $_prefix/bin/mailman ./usr/bin/mailman
 
 	install -m 640 -g mailman -D "$srcdir"/mailman.cfg \
-		./etc/mailman.cfg || return 1
+		./etc/mailman.cfg
 
 	install -m 640 -g mailman -D "$srcdir"/hyperkitty.cfg \
-		./etc/mailman.d/hyperkitty.cfg || return 1
+		./etc/mailman.d/hyperkitty.cfg
 
 	install -m 755 -D "$srcdir"/$pkgname.initd \
-		./etc/init.d/$pkgname || return 1
+		./etc/init.d/$pkgname
 
 	install -m 644 -D "$srcdir"/$pkgname.logrotate \
-		./etc/logrotate.d/$pkgname || return 1
+		./etc/logrotate.d/$pkgname
 
 	install -d -m 750 -o mailman -g mailman \
 		./var/lib/mailman \
-		./var/log/mailman || return 1
+		./var/log/mailman
 
 	install -d -m 700 -o mailman -g mailman \
 		./var/spool/mailman \
