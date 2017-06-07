@@ -50,20 +50,19 @@ prepare() {
 	mkdir -p "$builddir"
 
 	cd "$srcdir"
-	ln -s "$_postorius_dir" postorius || return 1
-	ln -s "$_hyperkitty_dir" hyperkitty || return 1
-	ln -s "$_mailmanclient_dir" mailmanclient || return 1
-	ln -s "$_djangomailman3_dir" django-mailman3 || return 1
+	ln -s "$_postorius_dir" postorius
+	ln -s "$_hyperkitty_dir" hyperkitty
+	ln -s "$_mailmanclient_dir" mailmanclient
+	ln -s "$_djangomailman3_dir" django-mailman3
 
 	local builddir="$srcdir"
-	default_prepare || return 1
+	default_prepare
 
 	local file; for file in postorius/setup.py \
 		django-mailman3/setup.py \
 		hyperkitty/hyperkitty/__init__.py
 	do
-		sed -Ei "s/(version\s*=\s*)['\"]?[^'\"]+['\"]?/\1'${pkgver/_git/.dev}'/i" \
-			$file || return 1
+		sed -Ei "s/(version\s*=\s*)['\"]?[^'\"]+['\"]?/\1'${pkgver/_git/.dev}'/i" $file
 	done
 }
 
@@ -72,7 +71,7 @@ build() {
 	cd "$builddir"
 
 	# Create virtualenv.
-	python2 -m virtualenv --no-download --no-wheel . || return 1
+	python2 -m virtualenv --no-download --no-wheel .
 
 	# Install projects and their dependencies.
 	bin/pip install \
@@ -82,14 +81,14 @@ build() {
 		--isolated \
 		--no-cache-dir \
 		"$_mailmanclient_dir" "$_djangomailman3_dir" "$_postorius_dir" "$_hyperkitty_dir" \
-		$extra_eggs || return 1
+		$extra_eggs
 
 	# Note: This overwrites existing constraints.txt.
 	bin/python -m pip freeze --disable-pip-version-check \
 		| sed -E '/^(postorius|HyperKitty|mailmanclient|django-mailman3)==.*/d' \
 		> "$srcdir"/constraints.txt
 
-	bin/pip uninstall -y pip || return 1
+	bin/pip uninstall -y pip
 
 	# Inject code into django-admin that adds ../ into PYTHONPATH, so
 	# it can find the settings module, and also set default name of the
@@ -98,7 +97,7 @@ build() {
 		-e "3a sys.path.append(os.path.abspath(os.path.dirname(os.path.realpath(__file__)) + '/..'))" \
 		-e "3a os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings')" \
 		-e '3a' \
-		bin/django-admin || return 1
+		bin/django-admin
 
 	# Remove some unnecessary scripts.
 	rm bin/activate_* bin/activate.* bin/easy_install* bin/python-config
@@ -106,67 +105,61 @@ build() {
 	# Remove tests.
 	find lib/python*/ -name "test_*.py" -delete
 
-	python2 -m compileall -f -d $_prefix/lib lib || return 1
+	python2 -m compileall -f -d $_prefix/lib lib
 
 
 	## Collect static assets
 
 	sed -E "s|^(SECRET_KEY =).*|\1 'top-secret'|" \
-		"$srcdir"/settings.py > settings.py || return 1
-	cp "$srcdir"/settings_build.py settings_local.py || return 1
-	cp "$srcdir"/custom.py . || return 1
+		"$srcdir"/settings.py > settings.py
+	cp "$srcdir"/settings_build.py settings_local.py
+	cp "$srcdir"/custom.py .
 
 	bin/django-admin collectstatic --noinput --ignore "*.scss" \
-		--ignore "README.*" --ignore "*license*" || return 1
-	bin/django-admin compress || return 1
+		--ignore "README.*" --ignore "*license*"
+	bin/django-admin compress
 
 	# Remove empty directories.
 	find static/ -type d -exec rmdir {} + 2>/dev/null || true
 
 
 	# Fix absolute paths e.g. in shebang to correct destination.
-	find ./bin -type f -exec sed -i "s|$builddir|$_prefix|g" {} \; || return 1
+	find ./bin -type f -exec sed -i "s|$builddir|$_prefix|g" {} \;
 }
 
 package() {
 	local name
 
 	mkdir -p "${pkgdir}${_prefix}"
-	cd "$pkgdir" || return 1
+	cd "$pkgdir"
 
-	mv "$builddir"/bin "$builddir"/lib "$builddir"/static \
-		.$_prefix/ || return 1
+	mv "$builddir"/bin "$builddir"/lib "$builddir"/static .$_prefix/
 
-	touch .$_prefix/__init__.py || return 1
+	touch .$_prefix/__init__.py
 	for name in wsgi.py custom.py; do
-		install -m 644 "$srcdir"/$name .$_prefix/$name || return 1
+		install -m 644 "$srcdir"/$name .$_prefix/$name
 	done
 
 	mkdir -p ./usr/bin
-	ln -s $_prefix/bin/django-admin ./usr/bin/$pkgname-admin || return 1
+	ln -s $_prefix/bin/django-admin ./usr/bin/$pkgname-admin
 
 	install -m 640 -o root -g mailman -D \
-		"$srcdir"/settings.py ./etc/$pkgname/settings.py || return 1
-	install -m 644 "$srcdir"/urls.py ./etc/$pkgname/urls.py || return 1
+		"$srcdir"/settings.py ./etc/$pkgname/settings.py
+	install -m 644 "$srcdir"/urls.py ./etc/$pkgname/urls.py
 
 	for name in settings.py urls.py; do
-		ln -s /etc/$pkgname/$name .$_prefix/$name || return 1
+		ln -s /etc/$pkgname/$name .$_prefix/$name
 	done
 
 	mkdir -p ./etc/init.d
-	ln -s uwsgi ./etc/init.d/$pkgname || return 1
+	ln -s uwsgi ./etc/init.d/$pkgname
 
-	install -m 644 -D "$srcdir"/$pkgname.confd \
-		./etc/conf.d/$pkgname || return 1
-
-	install -m 644 -D "$srcdir"/$pkgname.cron \
-		./etc/cron.d/$pkgname || return 1
-
-	install -m 644 -D "$srcdir"/$pkgname.logrotate \
-		./etc/logrotate.d/$pkgname || return 1
+	install -m 644 -D "$srcdir"/$pkgname.confd ./etc/conf.d/$pkgname
+	install -m 644 -D "$srcdir"/$pkgname.cron ./etc/cron.d/$pkgname
+	install -m 644 -D "$srcdir"/$pkgname.logrotate ./etc/logrotate.d/$pkgname
 
 	install -d -m 750 -o mailman -g mailman \
-		./var/lib/$pkgname || return 1
+		./var/lib/$pkgname
 
 	install -d -m 755 -o mailman -g mailman \
 		./var/log/$pkgname \
@@ -180,7 +173,6 @@ assets() {
 	mkdir -p "$subpkgdir"$_prefix/static
 	mv "$pkgdir"$_prefix/static "$subpkgdir"$_prefix/
 }
-
 
 md5sums="4288984ae9fda7c4dd525116b33f1656  postorius-059c07a9c0283a81d0ca9b00cafba9f692e6d2bf.tar.gz
 b08b83a8e442c4c8f7a6593537020b55  hyperkitty-8e5f0c6be1290ae6a6a9da7c22bbcbfa3e0f55f0.tar.gz
