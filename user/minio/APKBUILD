@@ -23,7 +23,7 @@ builddir="$srcdir/src/$_goname"
 
 prepare() {
 	mkdir -p "${builddir%/*}"
-	mv "$srcdir"/$pkgname-$_srctag "$builddir" || return 1
+	mv "$srcdir"/$pkgname-$_srctag "$builddir"
 
 	default_prepare
 }
@@ -40,19 +40,16 @@ build() {
 }
 
 package() {
-	install -D -m 755 "$builddir"/bin/$pkgname \
-		"$pkgdir"/usr/bin/$pkgname || return 1
+	install -D -m 755 "$builddir"/bin/$pkgname "$pkgdir"/usr/bin/$pkgname
 
-	install -D -m 755 "$srcdir"/$pkgname.initd \
-		"$pkgdir"/etc/init.d/$pkgname || return 1
-	install -D -m 644 "$srcdir"/$pkgname.confd \
-		"$pkgdir"/etc/conf.d/$pkgname || return 1
+	install -D -m 755 "$srcdir"/$pkgname.initd "$pkgdir"/etc/init.d/$pkgname
+	install -D -m 644 "$srcdir"/$pkgname.confd "$pkgdir"/etc/conf.d/$pkgname
 
 	install -D -m 644 "$srcdir"/$pkgname.logrotate \
-		"$pkgdir"/etc/logrotate.d/$pkgname || return 1
+		"$pkgdir"/etc/logrotate.d/$pkgname
 
 	install -d -m 750 -o $pkgusers -g $pkggroups \
-		"$pkgdir"/etc/$pkgname || return 1
+		"$pkgdir"/etc/$pkgname
 	install -d -m 700 -o $pkgusers -g $pkggroups \
 		"$pkgdir"/var/lib/$pkgname/data
 }
