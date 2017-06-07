@@ -34,7 +34,7 @@ build() {
 		--ignore-installed \
 		--isolated \
 		--disable-pip-version-check \
-		. || return 1
+		.
 
 	# Remove tests.
 	find usr/lib/python*/ -name "test_*.py" -delete
@@ -42,29 +42,25 @@ build() {
 	# Remove useless scripts.
 	rm -f usr/bin/easy_install*
 
-	python2 -m compileall -f -d "$_prefix" usr/ || return 1
+	python2 -m compileall -f -d "$_prefix" usr/
 }
 
 package() {
 	cd "$builddir"
 
-	mkdir -p "${pkgdir}${_prefix}" || return 1
-	cp -r usr/* "${pkgdir}${_prefix}"/ || return 1
+	mkdir -p "${pkgdir}${_prefix}"
+	cp -r usr/* "${pkgdir}${_prefix}"/
 
-	install -m755 -D "$srcdir"/$pkgname \
-		"$pkgdir"/usr/bin/$pkgname || return 1
+	install -m755 -D "$srcdir"/$pkgname "$pkgdir"/usr/bin/$pkgname
 
-	install -m755 -D "$srcdir"/$pkgname.initd \
-		"$pkgdir"/etc/init.d/$pkgname || return 1
-
-	install -m644 -D "$srcdir"/$pkgname.confd \
-		"$pkgdir"/etc/conf.d/$pkgname || return 1
+	install -m755 -D "$srcdir"/$pkgname.initd "$pkgdir"/etc/init.d/$pkgname
+	install -m644 -D "$srcdir"/$pkgname.confd "$pkgdir"/etc/conf.d/$pkgname
 
 	install -m755 -D "$srcdir"/$pkgname.cron \
-		"$pkgdir"/etc/periodic/daily/$pkgname || return 1
+		"$pkgdir"/etc/periodic/daily/$pkgname
 
 	install -m644 -D "$srcdir"/$pkgname.logrotate \
-		"$pkgdir"/etc/logrotate.d/$pkgname || return 1
+		"$pkgdir"/etc/logrotate.d/$pkgname
 }
 
 sha512sums="e7ccc1270b0e5ba718a7f491317e6bd665ee43d67e07ca0bfa5fefe26a4f65eaf409f1720586ff903a9c71562c7148fc377b9a1cf00fc08c6412518d490d993f  sentry-8.2.5.tar.gz
