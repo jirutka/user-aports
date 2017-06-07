@@ -19,7 +19,7 @@ source="http://archive.apache.org/dist/tomcat/$_pkgname-$_majorver/v$pkgver/bin/
 builddir="$srcdir/apache-$_pkgname-$pkgver"
 
 package() {
-	local file
+	local path
 	local destdir="$pkgdir/usr/share/java/$pkgname"
 	cd "$builddir"
 
@@ -29,16 +29,14 @@ package() {
 	rm lib/tomcat-i18n-*.jar
 
 	for path in conf/* lib/* bin/bootstrap.jar bin/tomcat-juli.jar; do
-		install -m 644 -D "$path" "$destdir"/$path || return 1
+		install -m 644 -D "$path" "$destdir"/$path
 	done
 	for path in logging.properties server.xml; do
-		install -m 644 "$srcdir"/$path "$destdir"/conf/$path || return 1
+		install -m 644 "$srcdir"/$path "$destdir"/conf/$path
 	done
 
-	install -m 755 -D "$srcdir"/$pkgname.initd \
-		"$pkgdir"/etc/init.d/$pkgname || return 1
-	install -m 644 -D "$srcdir"/$pkgname.confd \
-		"$pkgdir"/etc/conf.d/$pkgname
+	install -m 755 -D "$srcdir"/$pkgname.initd "$pkgdir"/etc/init.d/$pkgname
+	install -m 644 -D "$srcdir"/$pkgname.confd "$pkgdir"/etc/conf.d/$pkgname
 }
 
 md5sums="ca9a50ad51d79282f9ca397514c755d7  apache-tomcat-7.0.73.tar.gz
