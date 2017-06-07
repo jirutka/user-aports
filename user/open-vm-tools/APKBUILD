@@ -42,7 +42,7 @@ build() {
 
 	cd "$builddir"/open-vm-tools
 
-	autoreconf -vif || return 1
+	autoreconf -vif
 	./configure \
 		--build=$CBUILD \
 		--host=$CHOST \
@@ -66,19 +66,18 @@ build() {
 		--without-xmlsec1 \
 		--without-xml2 \
 		--without-icu \
-		--disable-werror \
-		|| return 1
-	make || return 1
+		--disable-werror
+	make
 }
 
 package() {
 	cd "$builddir"/open-vm-tools
 
-	make install DESTDIR="$pkgdir" || return 1
+	make install DESTDIR="$pkgdir"
 
 	cd "$pkgdir"
 
-	mv ./etc/vmware-tools/vm-support ./usr/bin/vm-support || return 1
+	mv ./etc/vmware-tools/vm-support ./usr/bin/vm-support
 
 	# Remove some unnecessary files.
 	rm -r ./usr/share/ \
@@ -87,16 +86,11 @@ package() {
 		./usr/lib/libhgfs* \
 		./usr/bin/vmware-hgfsclient \
 		./usr/lib/open-vm-tools/plugins/common/libhgfsServer.so \
-		./usr/lib/open-vm-tools/plugins/common/libvix.so \
-		|| return 1
+		./usr/lib/open-vm-tools/plugins/common/libvix.so
 
-	install -Dm755 "$srcdir"/open-vm-tools.initd \
-		./etc/init.d/open-vm-tools || return 1
-	install -Dm644 "$srcdir"/open-vm-tools.confd \
-		./etc/conf.d/open-vm-tools || return 1
-
-	install -Dm644 "$srcdir"/$pkgname.logrotate \
-		./etc/logrotate.d/$pkgname || return 1
+	install -Dm755 "$srcdir"/open-vm-tools.initd ./etc/init.d/open-vm-tools
+	install -Dm644 "$srcdir"/open-vm-tools.confd ./etc/conf.d/open-vm-tools
+	install -Dm644 "$srcdir"/$pkgname.logrotate ./etc/logrotate.d/$pkgname
 
 	mkdir -p ./etc/modules-load.d/
 	cat > ./etc/modules-load.d/open-vm-tools <<-EOF
