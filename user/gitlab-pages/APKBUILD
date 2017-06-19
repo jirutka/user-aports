@@ -1,7 +1,7 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitlab-pages
-pkgver=0.4.2
+pkgver=0.4.3
 pkgrel=0
 pkgdesc="A daemon used to serve static websites for GitLab users"
 url="https://gitlab.com/gitlab-org/gitlab-pages/"
@@ -36,12 +36,6 @@ package() {
 		"$pkgdir"/etc/init.d/gitlab.pages
 }
 
-md5sums="fd47608697d4790a7b871f99cce2ff03  gitlab-pages-0.4.2.tar.gz
-68a675f496213b7ea5cc171a4841bec8  ungit-makefile.patch
-4592b42ac1670b2da40e8d069565cd9a  gitlab-pages.initd"
-sha256sums="0ecbec68632bb023f5b51ec8a77e9a196c9550fa16a3ca6dfde35dc36ade443c  gitlab-pages-0.4.2.tar.gz
-4aa29edb8ccb91f443ad6f9218136a11cdc1387501cc711da11d1af253acf5c4  ungit-makefile.patch
-0890a39be42a3217408b419261555eeef955deff1e540646167a1d30a70471ea  gitlab-pages.initd"
-sha512sums="aad68524bc40714e4747d638b088c47d9ca24c0808e54d203bb456c1e08f19efde9effeaa7b185883f0ab03d12f3e9e8baee35b1802772b488f2505b76532983  gitlab-pages-0.4.2.tar.gz
+sha512sums="d3c2e3dcf78d050e2f2b28b923ba9aa9adc4d9a4482d339a82760d922bb488f8b10e943f7699fbaf32537e33226d4aa4aa55688007c10a1991089587645ab2c4  gitlab-pages-0.4.3.tar.gz
 6c80a1eae1bca1f86629a1f3880c1a9fca9d0a6fab90ec07474addd544fc3f2d3d63c507741a550112b54d98da2e55d06100236a87d2b52892acdcfd12b3ddfe  ungit-makefile.patch
 20bc66c1c3548568ed353ca8d584f9108b9688f9375f212a18efc7b8386fdaafb3b2dc9e865f21c7f8fd31ada6e91842a8bb8d397f64851d853bb0de3e0e60bb  gitlab-pages.initd"
