@@ -11,7 +11,7 @@ license="MIT"
 _rubyslot=""
 # ruby-irb is needed only for Rails console (gitlab-rails console)
 depends="$pkgname-assets=$pkgver-r$pkgrel
-	gitlab-shell>=5
+	gitlab-shell<5.0.5
 	gitlab-workhorse>=1.4
 	ca-certificates
 	git>=2.8.3
