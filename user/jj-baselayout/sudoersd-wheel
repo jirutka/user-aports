@@ -1,0 +1,4 @@
+%wheel ALL=(ALL) NOPASSWD: ALL
+
+# See /etc/profile.d/sudo_git_vars.sh
+Defaults:%wheel env_keep += "SUDO_GIT_NAME SUDO_GIT_EMAIL"

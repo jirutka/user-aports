@@ -1,0 +1,21 @@
+#!/bin/sh
+
+msg_file='/etc/issue'
+test_ips='208.67.222.222 2620:0:ccc::2'
+
+my_ips=$(printf '%s\n' $test_ips \
+	| xargs -rn 1 ip route get 2>/dev/null \
+	| grep -v unreachable \
+	| sed -En 's/.* src ([0-9a-f.:]+) .*/\1/p' \
+	| xargs)
+
+if [ -z "$my_ips" ]; then
+	sed -i '/^IP /d' $msg_file
+
+elif grep -q '^IP ' $msg_file; then
+	sed -i "s/IP .*/IP $my_ips/" $msg_file
+
+else
+	sed -i '${/^$/d;}' $msg_file
+	printf '%s\n\n' "IP $my_ips" >> $msg_file
+fi
