@@ -1,7 +1,7 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=jj-baselayout
-pkgver=1.0.0
+pkgver=1.0.1
 pkgrel=0
 pkgdesc="My base configuration"
 url="https://github.com/jirutka/user-aports"
@@ -9,17 +9,21 @@ arch="noarch"
 license="MIT"
 depends="ca-certificates less logrotate git git-metafile skel sudo"
 install="$pkgname.post-install"
-source="gitignore
+source="git
+	gitignore
 	network-update-issue
 	profiled-admin_motd.sh
 	profiled-sudo_git_vars.sh
 	sudoersd-wheel"
+options="!check"
 
 package() {
 	local name
 
 	mkdir -p "$pkgdir"
 	cd "$pkgdir"
+
+	install -D -m 755 "$srcdir"/git usr/sbin/git
 
 	install -D -m 644 "$srcdir"/gitignore etc/.gitignore
 
@@ -37,7 +41,8 @@ package() {
 	ln -s color_prompt etc/profile.d/color_prompt.sh
 }
 
-sha512sums="8b94da659044a1a7d8380d07d5752811de75ccce318124c599bf783aa1339b34d2d45de4b26b81c93726b2d4a85ad8472e3b6806d9dee72d5b67ff4bcc5bbc71  gitignore
+sha512sums="0a71fa0b0bf0f8699e6094d8cc9171c5d2b02272e5719cc015df825f306dfa9b5deaac9175525a6bfaa15b1443526c647d4a1d9128f5c1e2a36edb29853cf5d3  git
+8b94da659044a1a7d8380d07d5752811de75ccce318124c599bf783aa1339b34d2d45de4b26b81c93726b2d4a85ad8472e3b6806d9dee72d5b67ff4bcc5bbc71  gitignore
 8dae386a5b02ed524f202470e53bf6398c435a221f864ee64c1ac1e6274c8d17c884c3a738e906818fb1602ab5b7a958b4cc4f6a542ac99875320789db1a9350  network-update-issue
 943fb605bbf45477463700a7611031c73905694df9e77cb484eae3ecabc9dcb669b8f007a9b95650a7eefa658aaacacba586bc7353e1e2fa3531d0c42b189d4d  profiled-admin_motd.sh
 452767cf9286211c409252c2961edbd4272c6d33f836c637ae8c212db780ab7821b6e5159576af5a380a1e9b179cdd6522d6f9db15898210bb2142b70090a9a5  profiled-sudo_git_vars.sh

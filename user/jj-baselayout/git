@@ -1,0 +1,10 @@
+#!/bin/sh
+# See /etc/profile.d/sudo_git_vars.sh
+
+GIT='/usr/bin/git'
+
+if [ -n "$SUDO_GIT_NAME" ] && [ -n "$SUDO_GIT_EMAIL" ]; then
+	exec "$GIT" -c user.name="$SUDO_GIT_NAME" -c user.email="$SUDO_GIT_EMAIL" "$@"
+else
+	exec "$GIT" "$@"
+fi
