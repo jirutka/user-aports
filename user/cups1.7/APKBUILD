@@ -1,8 +1,8 @@
-# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=cups1.7
 _pkgname=cups
 pkgver=1.7.5
-pkgrel=0
+pkgrel=1
 pkgdesc="The CUPS Printing System 1.7"
 url="http://www.cups.org/"
 arch="all"
@@ -125,8 +125,8 @@ package() {
 	# /run is tmpfs
 	rm -rf run
 
-	install -D -m 755 "$srcdir"/cupsd.initd "$pkgdir"/etc/init.d/cupsd
-	install -D -m 644 "$srcdir"/cups.logrotate "$pkgdir"/etc/logrotate.d/cups
+	install -D -m 755 "$srcdir"/cupsd.initd etc/init.d/cupsd
+	install -D -m 644 "$srcdir"/cups.logrotate etc/logrotate.d/cups
 }
 
 lang() {
@@ -174,7 +174,7 @@ _submv() {
 
 sha512sums="fe446b3d904539d744d3fa24f3ced2549ef9dfea8c805f1602eb71d03e19c2f06edaacf51f148e8216207af0c901f7d956c855f49b13b01112b01c9c45b75b9d  cups-1.7.5-source.tar.bz2
 cf64211da59e79285f99d437c02fdd7db462855fb2920ec9563ba47bd8a9e5cbd10555094940ceedeb41ac805c4f0ddb9147481470112a11a76220d0298aef79  cups.logrotate
-cb3ed46529533972d71b5ef50cecb5f97ca352111fdb031ba782444483e7d121531ece6dd67ef4609684841be73d4bc29459ed71b9d6d1b60db361547021c606  cupsd.initd
+cdc90a542e1dc747dcea1d45550b8516586c3e9bbb685ecfb072cd3cee1771eda82a7820cb97f729770bd99e4ba4acc5707d0d02d2efe0afd18326a10e2cbb22  cupsd.initd
 d57ea4e98ff865b36cd1077048080409a16d7397a6fa2a92dfb1faece5e3f3cd0a439f7df8eb2db32c7367bc2fca666018461c72fd777c62f4514f4f09450a70  str4396-make-scheduler-return-completed-jobs-in-correct-order.patch
 37c3b1396d8000d70602197c0f549bb0304c55232c8c9abf75a0a7f59b4b0698844173f2a5a2adfbe23f6b3a74ed1859b4653236dda927c8af7c6fa06e02152b  str4461-restore-access-to-logfiles.patch
 24037ad98f2ed5fc12f5b88cf9b3f0e9215240710f43fee2b92029ee3f115aa888ca4efb8f6538cd46e4de0c3ee6bb8fd6b3dc1234283c51393ef8bacb61abc8  str4475-fix-the-spinner-imager-on-restart.patch
