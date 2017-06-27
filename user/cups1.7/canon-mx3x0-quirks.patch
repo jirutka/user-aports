@@ -1,0 +1,27 @@
+Description: Add two USB quirk fixes for Canon MX310 and MX320 printers
+Origin: vendor
+Bug-Ubuntu: https://bugs.launchpad.net/bugs/1346868
+Bug-Ubuntu: https://bugs.launchpad.net/bugs/1369547
+Bug: http://cups.org/str.php?L4482
+Last-Update: 2014-09-21
+--- a/backend/org.cups.usb-quirks
++++ b/backend/org.cups.usb-quirks
+@@ -75,12 +75,18 @@
+ # Canon, Inc. MP510 Printer, https://bugs.launchpad.net/bugs/1050009
+ 0x04a9 0x1717 unidir
+ 
++# Canon, Inc. MX310 Printer, https://bugs.launchpad.net/bugs/1346868
++0x04a9 0x1728 unidir
++
+ # Canon, Inc. MP550 Printer, http://www.cups.org/str.php?L4155
+ 0x04a9 0x173d unidir
+ 
+ # Canon, Inc. MP560 Printer, http://www.cups.org/str.php?L4155
+ 0x04a9 0x173e unidir
+ 
++# Canon, Inc. MX320 Printer, https://bugs.launchpad.net/bugs/1369547
++0x04a9 0x1736 unidir
++
+ # Canon, Inc. MF4150 Printer, https://bugs.launchpad.net/bugs/1160638
+ 0x04a9 0x26a3 no-reattach
+ 

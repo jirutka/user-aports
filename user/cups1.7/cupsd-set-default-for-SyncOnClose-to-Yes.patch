@@ -1,0 +1,61 @@
+Description: Set the default for SyncOnClose to Yes
+Author: Tim Waugh <twaugh@redhat.com>
+Last-Update: 2013-10-31
+
+--- a/conf/cups-files.conf.in
++++ b/conf/cups-files.conf.in
+@@ -9,7 +9,7 @@
+ #FatalErrors @CUPS_FATAL_ERRORS@
+ 
+ # Do we call fsync() after writing configuration or status files?
+-#SyncOnClose No
++#SyncOnClose Yes
+ 
+ # Default user and group for filters/backends/helper programs; this cannot be
+ # any user or group that resolves to ID 0 for security reasons...
+--- a/doc/help/man-cups-files.conf.html
++++ b/doc/help/man-cups-files.conf.html
+@@ -146,7 +146,7 @@
+ <dt>SyncOnClose No
+ </dt>
+ <dd>Specifies whether the scheduler calls <i>fsync(2)</i> after writing configuration
+-or state files. The default is No.
++or state files. The default is Yes.
+ </dd>
+ <dt>SystemGroup group-name [group-name ...]
+ </dt>
+--- a/doc/help/ref-cups-files-conf.html.in
++++ b/doc/help/ref-cups-files-conf.html.in
+@@ -442,8 +442,8 @@
+ 
+ <P>The <CODE>SyncOnClose</CODE> directive determines whether the scheduler
+ flushes changes to configuration and state files to disk. The default is
+-<CODE>No</CODE> which relies on the operating system to schedule a suitable
+-time to write changes to disk.</P>
++<CODE>Yes</CODE>. The option <CODE>No</CODE> relies on the operating
++system to schedule a suitable time to write changes to disk.</P>
+ 
+ <BLOCKQUOTE><B>Note:</B>
+ 
+--- a/man/cups-files.conf.man.in
++++ b/man/cups-files.conf.man.in
+@@ -126,7 +126,7 @@
+ .TP 5
+ SyncOnClose No
+ Specifies whether the scheduler calls \fIfsync(2)\fR after writing configuration
+-or state files. The default is No.
++or state files. The default is Yes.
+ .TP 5
+ SystemGroup group-name [group-name ...]
+ .br
+--- a/scheduler/conf.c
++++ b/scheduler/conf.c
+@@ -715,7 +715,7 @@
+   ReloadTimeout	           = DEFAULT_KEEPALIVE;
+   RootCertDuration         = 300;
+   StrictConformance        = FALSE;
+-  SyncOnClose              = FALSE;
++  SyncOnClose              = TRUE;
+   Timeout                  = DEFAULT_TIMEOUT;
+   WebInterface             = CUPS_DEFAULT_WEBIF;
+ 

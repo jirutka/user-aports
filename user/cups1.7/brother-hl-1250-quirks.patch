@@ -1,0 +1,18 @@
+Description: Add Brother HL-1250 usb quirks fix
+Author: Didier Raboud <odyx@debian.org>
+Bug-Debian: https://bugs.debian.org/712512
+Bug: https://www.cups.org/str.php?L4519
+Last-Update: 2014-11-04
+
+--- a/backend/org.cups.usb-quirks
++++ b/backend/org.cups.usb-quirks
+@@ -90,6 +90,9 @@
+ # Canon, Inc. MF4150 Printer, https://bugs.launchpad.net/bugs/1160638
+ 0x04a9 0x26a3 no-reattach
+ 
++# Brother Industries, Ltd HL-1250 Laser Printer, https://bugs.debian.org/712512
++0x04f9 0x0007 no-reattach
++
+ # Brother Industries, Ltd HL-1430 Laser Printer, https://bugs.launchpad.net/bugs/1038695
+ 0x04f9 0x001a no-reattach
+ 

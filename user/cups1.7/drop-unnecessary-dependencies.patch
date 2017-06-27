@@ -1,0 +1,71 @@
+Description: Do not link libcups.so and libcupsimage.so against
+ unnecessary libraries.  This avoids unnecessary package dependencies for
+ both libcups, as well as for packages using cups-config.
+Author: Martin Pitt <mpitt@debian.org>
+Bug: https://www.cups.org/str.php?L4343
+Bug-Debian: http://bugs.debian.org/438067
+Last-Update: 2014-01-04
+
+--- a/Makedefs.in
++++ b/Makedefs.in
+@@ -137,7 +137,7 @@
+ SYSTEMD_UNITS   =       @SYSTEMD_UNITS@
+ DNSSD_BACKEND	=	@DNSSD_BACKEND@
+ DSOFLAGS	=	-L../cups @DSOFLAGS@
+-DSOLIBS		=	@DSOLIBS@ $(COMMONLIBS)
++DSOLIBS		=	@DSOLIBS@
+ DNSSDLIBS	=	@DNSSDLIBS@
+ IPPFIND_BIN	=	@IPPFIND_BIN@
+ IPPFIND_MAN	=	@IPPFIND_MAN@
+@@ -146,9 +146,9 @@
+ LDFLAGS		=	-L../cgi-bin -L../cups -L../filter -L../ppdc \
+ 			-L../scheduler @LDARCHFLAGS@ \
+ 			@LDFLAGS@ @RELROFLAGS@ @PIEFLAGS@ $(OPTIM)
+-LINKCUPS	=	@LINKCUPS@ $(LIBGSSAPI) $(SSLLIBS) $(DNSSDLIBS) $(LIBZ)
++LINKCUPS	=	@LINKCUPS@ $(LIBGSSAPI) $(DNSSDLIBS) $(LIBZ)
+ LINKCUPSIMAGE	=	@LINKCUPSIMAGE@
+-LIBS		=	$(LINKCUPS) $(COMMONLIBS)
++LIBS		=	$(LINKCUPS) $(SSLLIBS) $(COMMONLIBS)
+ OPTIM		=	@OPTIM@
+ OPTIONS		=
+ PAMLIBS		=	@PAMLIBS@
+--- a/cups/Makefile
++++ b/cups/Makefile
+@@ -305,7 +305,7 @@
+ libcups.so.2 libcups.sl.2:	$(LIBOBJS)
+ 	echo Linking $@...
+ 	$(DSO) $(ARCHFLAGS) $(DSOFLAGS) -o $@ $(LIBOBJS) $(LIBGSSAPI) \
+-		$(SSLLIBS) $(DNSSDLIBS) $(COMMONLIBS) $(LIBZ)
++		$(SSLLIBS) $(DNSSDLIBS) -lpthread $(LIBZ) -lm
+ 	$(RM) `basename $@ .2`
+ 	$(LN) $@ `basename $@ .2`
+ 
+@@ -326,7 +326,7 @@
+ 		-compatibility_version 2.0.0 \
+ 		-exported_symbols_list t.exp \
+ 		$(LIBOBJS) $(LIBGSSAPI) $(SSLLIBS) $(DNSSDLIBS) \
+-		$(COMMONLIBS) $(LIBZ)
++		-lpthread $(LIBZ) -lm
+ 	$(RM) libcups.dylib t.exp
+ 	$(LN) $@ libcups.dylib
+ 
+@@ -339,7 +339,7 @@
+ 	echo Creating $@...
+ 	$(DSO) $(DSOFLAGS) -Wl,-bexport:libcups_s.exp -o libcups_s.o \
+ 		$(LIBOBJS) $(LIBGSSAPI) $(SSLLIBS) $(DNSSDLIBS) \
+-		$(COMMONLIBS) $(LIBZ)
++		-lpthread $(LIBZ) -lm
+ 	$(RM) $@
+ 	$(AR) $(ARFLAGS) $@ libcups_s.o
+ 
+--- a/filter/Makefile
++++ b/filter/Makefile
+@@ -269,7 +269,7 @@
+ libcupsimage.so.2 libcupsimage.sl.2:	$(IMAGEOBJS)
+ 	echo Linking $@...
+ 	$(DSO) $(ARCHFLAGS) $(DSOFLAGS) -o $@ $(IMAGEOBJS) $(DSOLIBS) \
+-		-L../cups $(LINKCUPS)
++		-L../cups $(LINKCUPS) -lpthread
+ 	$(RM) `basename $@ .2`
+ 	$(LN) $@ `basename $@ .2`
+ 

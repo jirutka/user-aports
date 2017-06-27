@@ -1,0 +1,216 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=cups1.7
+_pkgname=cups
+pkgver=1.7.5
+pkgrel=0
+pkgdesc="The CUPS Printing System 1.7"
+url="http://www.cups.org/"
+arch="all"
+license="GPL LGPL2+"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-lang $pkgname-libs
+	$pkgname-ppdc $pkgname-ipptool $pkgname-client"
+depends="!cups $pkgname-client=$pkgver-r$pkgrel poppler-utils libressl"
+depends_dev="gnutls-dev zlib-dev"
+makedepends="$depends_dev libpaper-dev libjpeg-turbo-dev openldap-dev
+	linux-headers"
+install="cups1.7.pre-install"
+pkggroups="lp lpadmin"
+pkgusers="lp"
+source="http://www.cups.org/software/$pkgver/cups-$pkgver-source.tar.bz2
+	cups.logrotate
+	cupsd.initd
+	"
+# Patches backported from upstream or sent to upstream copied from Debian.
+source="$source
+	str4396-make-scheduler-return-completed-jobs-in-correct-order.patch
+	str4461-restore-access-to-logfiles.patch
+	str4475-fix-the-spinner-imager-on-restart.patch
+	str4484-fix-random-crash-in-scheduler.patch
+	str4500-cupsGetPPD3-Only-use-symlink-if-file-is-readable-STR.patch
+	str4551-fix-buffer-overflow-in-cupsRasterReadPixels.patch
+	str4609-prevent-privilege-escalation-through-dynamic-linker.patch
+	pwg-raster-attributes.patch
+	rootbackends-worldreadable.patch
+	fixes-for-jobs-with-multiple-files-and-multiple-formats.patch
+	dont-build-depend-on-libgcrypt.patch
+	canon-mx3x0-quirks.patch
+	brother-hl-1250-quirks.patch
+	"
+# Patches backported from upstream copied from openSUSE.
+source="$source
+	gh4782-add-gziptoany-filter-when-raw-printing-multiple-files.patch
+	gh4790-lpd-remove-adding-docname.patch
+	"
+# Patches copied from Debian Jessie.
+source="$source
+	move-cupsd-conf-default-to-share.patch
+	drop-unnecessary-dependencies.patch
+	read-embedded-options-from-incoming-postscript-and-add-to-ipp-attrs.patch
+	cups-deviced-allow-device-ids-with-newline.patch
+	airprint-support.patch
+	snmp-oids-device-id-hp-ricoh.patch
+	disable-conffile-timestamps.patch
+	ppd-poll-with-client-conf.patch
+	remove-cvs-tag.patch
+	dont-broadcast-with-hostnames.patch
+	reactivate-recommended-driver.patch
+	add-ipp-backend-of-cups-1.4.patch
+	disable-logs-rotation.patch
+	dont-alter-confdir-perms.patch
+	show-compile-command-lines.patch
+	cupsd-set-default-for-SyncOnClose-to-Yes.patch
+	disable-browsing-by-default.patch
+	"
+# Patches copied from Fedora 21.
+source="$source
+	add-dymo-deviceid.patch
+	dont-export-ssllibs-to-cups-config.patch
+	fix-dir-perms.patch
+	filter-debug.patch
+	lpr-add-help.patch
+	reinitialize-resolver-on-failure.patch
+	increase-web-devices-timeout.patch
+	"
+builddir="$srcdir/$_pkgname-$pkgver"
+options="!check"
+
+build() {
+	cd "$builddir"
+
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--libdir=/usr/lib \
+		--localstatedir=/var \
+		--with-optim="$CFLAGS" \
+		--with-cachedir=/var/cache/cups \
+		--with-docdir=/usr/share/cups/webcontent \
+		--with-logdir=/var/log/cups \
+		--with-rundir=/run/cups \
+		--with-cupsd-file-perm=0755 \
+		--with-log-file-perm=0640 \
+		--with-cups-user=lp \
+		--with-cups-group=lp \
+		--with-system-groups=lpadmin \
+		--with-domainsocket=/run/cups/cups.sock \
+		--without-rcdir \
+		--enable-libpaper \
+		--enable-gnutls \
+		--disable-dbus \
+		--disable-pam \
+		--disable-avahi \
+		--disable-dnssd \
+		--disable-launchd \
+		--disable-browsing
+	make
+}
+
+package() {
+	cd "$builddir"
+
+	make BUILDROOT="$pkgdir" install
+
+	cd "$pkgdir"
+
+	# These no longer works since CUPS >= 1.6 (http://www.cups.org/str.php?L4120).
+	rm -rf usr/share/cups/banners/* \
+		usr/share/cups/data/testprint
+
+	# Don't install desktop stuff.
+	rm -rf usr/share/applications \
+		usr/share/icons
+
+	# /run is tmpfs
+	rm -rf run
+
+	install -D -m 755 "$srcdir"/cupsd.initd "$pkgdir"/etc/init.d/cupsd
+	install -D -m 644 "$srcdir"/cups.logrotate "$pkgdir"/etc/logrotate.d/cups
+}
+
+lang() {
+	default_lang
+
+	cd "$pkgdir"
+	_submv $(find usr/share/cups/templates/* -type d -prune)
+	_submv $(find usr/share/cups/webcontent/* -type d ! -name help \
+		-a ! -name images -prune)
+}
+
+ppdc() {
+	pkgdesc="CUPS-1.7 utilities to generate and manipulate PPD files"
+	depends="!cups-client !cups"
+
+	cd "$pkgdir"
+	_submv usr/bin/ppd* \
+		usr/share/cups/examples
+}
+
+ipptool() {
+	pkgdesc="Perform internet printing protocol requests"
+	depends="!ipptool"
+
+	cd "$pkgdir"
+	_submv usr/bin/ipptool \
+		usr/share/cups/ipptool
+}
+
+client() {
+	pkgdesc="CUPS-1.7 command-line client programs"
+	depends="!cups-client"
+
+	cd "$pkgdir"
+	_submv usr/bin
+	_submv $(find usr/sbin/ ! -name cupsd -a ! -name cupsfilter -mindepth 1)
+}
+
+_submv() {
+	local i; for i in "$@"; do
+		mkdir -p "$subpkgdir"/${i%/*}
+		mv "$pkgdir"/$i "$subpkgdir"/${i%/*}/
+	done
+}
+
+sha512sums="fe446b3d904539d744d3fa24f3ced2549ef9dfea8c805f1602eb71d03e19c2f06edaacf51f148e8216207af0c901f7d956c855f49b13b01112b01c9c45b75b9d  cups-1.7.5-source.tar.bz2
+cf64211da59e79285f99d437c02fdd7db462855fb2920ec9563ba47bd8a9e5cbd10555094940ceedeb41ac805c4f0ddb9147481470112a11a76220d0298aef79  cups.logrotate
+cb3ed46529533972d71b5ef50cecb5f97ca352111fdb031ba782444483e7d121531ece6dd67ef4609684841be73d4bc29459ed71b9d6d1b60db361547021c606  cupsd.initd
+d57ea4e98ff865b36cd1077048080409a16d7397a6fa2a92dfb1faece5e3f3cd0a439f7df8eb2db32c7367bc2fca666018461c72fd777c62f4514f4f09450a70  str4396-make-scheduler-return-completed-jobs-in-correct-order.patch
+37c3b1396d8000d70602197c0f549bb0304c55232c8c9abf75a0a7f59b4b0698844173f2a5a2adfbe23f6b3a74ed1859b4653236dda927c8af7c6fa06e02152b  str4461-restore-access-to-logfiles.patch
+24037ad98f2ed5fc12f5b88cf9b3f0e9215240710f43fee2b92029ee3f115aa888ca4efb8f6538cd46e4de0c3ee6bb8fd6b3dc1234283c51393ef8bacb61abc8  str4475-fix-the-spinner-imager-on-restart.patch
+6695e77ae7a4b76f82805a2703c93fd41358925c02324c37877abbbdc58fba25a5ca86e6dd10de668978439f31fceba33d55dcd195497cfdcb5a9ef4130bb46b  str4484-fix-random-crash-in-scheduler.patch
+3963de108fe64a8be43d1a74ac9f9da3ebd2e7b7b56da56024a0f8246b162c73846601cc5d00383f65b08f223c44ddd2f627d0d6333d79cf73b566b1a381e530  str4500-cupsGetPPD3-Only-use-symlink-if-file-is-readable-STR.patch
+dcf3130f6261d7a43a1475e8ac8fba08da04b729b90a8d090d314ccede2e8b35cebe951951bce85015e6de08305cff96976c4b46bfa6cf80cb92b814efcd8a59  str4551-fix-buffer-overflow-in-cupsRasterReadPixels.patch
+07be8ae2040836e24c3bead9b86419cbdc55f1acdd9f50e19a8796da8e19b7c4619731099f3c896a3e3c98f393600134e9cdc834159220566a93abddd0d83036  str4609-prevent-privilege-escalation-through-dynamic-linker.patch
+558aaadf0e55258f728fd88c314fae7f739932e0ca638f54610c44666c3cb7db3e293a6e0ccee142237940ea2672650bda0a00d68b901bba6a8180ffa793df09  pwg-raster-attributes.patch
+e5c5ca79659748e21c2ff118a9a7eed7aef72cc006e9db8aefcfd2427c1d96391f8d0c0f83190a6d66f498115d188fd7800e2ff58859f5ea8394e5997d626d2b  rootbackends-worldreadable.patch
+158b6ab5fcbc99067caf8a9cf3d3abe2564da5b01d8335712254cae7f8ff89fa556c509d9ee1bee8af1c1053118af0056a3899693c8485812114d61fdfb4c3a6  fixes-for-jobs-with-multiple-files-and-multiple-formats.patch
+41a3df99b9f294cb47a05b8345560e0ff0edba2976fa9e9da13967c5a27fd2844f456ebe4eadc18d294685cc44e7e7ffefb19e3574cef4ec3d427f3e9c3445eb  dont-build-depend-on-libgcrypt.patch
+7746a075c9a1696829bff2df82ae1e82673137cf9685e66b7f15d31110087e7d6c18d292327fc2889573ad5e7a9b406511d944f14f06bfd54d72f4a8a24b16bc  canon-mx3x0-quirks.patch
+f00ec3215260264a2c1c682081aa36d08b5e1f075e2e37da3945ff29b2be1e2acd4ec697890d62f0cba4479244f37d27a29467e07debe176d9d589dad12ae3f3  brother-hl-1250-quirks.patch
+ec348250245cfb90bc40389db23a345a930e0697fa9f71a4f7861863759976be548292945b2eb5754bde09977c9917ad6f9574017d702a8101f1576646412d12  gh4782-add-gziptoany-filter-when-raw-printing-multiple-files.patch
+28d3b54032f3a23e5fc57bceb05c211f88189511b25e9a5a00cb158e379dc25c48f92f11e2d59a95ef9b0f5e56d07684f7a7d326654c6f9b72b4a59cc0d0b6a5  gh4790-lpd-remove-adding-docname.patch
+a5837441663a428a0eb1b619d5f0e74a21d2173863df19822ac7f809e4c0d85b240f0489b577f97137da312362d78391f0c02ecace778430ba25d33b46b8b2f4  move-cupsd-conf-default-to-share.patch
+4a6b9691447ef31e890b7266f94cb06d018fe8e133e0a12cb41b954257011bf91877d04c306d0ab63d7773eb862c7956eb7f067bfdc0a5ccb6582bb5ed9cb08e  drop-unnecessary-dependencies.patch
+d11a26962892ff8fa7084fb275a21786e7e65e6edafc32c8636b04eb59683bb7e9d9c9d416e5392d3ccf96fd6151c2933c40fdf36e19ead058d701d9902c75b9  read-embedded-options-from-incoming-postscript-and-add-to-ipp-attrs.patch
+fa69cd58450cbad79eede14a8170809d5a367e51eff7ccdcc82c0c7806776c2e52ed8fbc098581d9866e00669746e0fa85dfab35f4ed2803d869fa53a377a880  cups-deviced-allow-device-ids-with-newline.patch
+0cdebda1232b3a1130b2ed81f7ecf63a95482a2a6dbf4b63e53034d5179fd808eb1e03ff716b8778c737c5bd9dc9ccbcae98a5bc816e62d8d821f7839dec337f  airprint-support.patch
+bd34adf176738b0614b48bd83a63e162c522b57776749a1d400470ee341cc1d1dcbad5384619deb057c037d702ac196a6d09cf23f00fe5889b6b7a1af470f350  snmp-oids-device-id-hp-ricoh.patch
+07b0a6237a64db3ba9b3c17571df06e02a372501e4cbccbd67274b4340d895bf358f9ac435f4213d2f806e6df13c66c9bcd999274b39583ca153fa2c636234f7  disable-conffile-timestamps.patch
+8e35934c73eb031f31d196293edb07dc75952618ce007ad44e89faec87af0ec6d3a6e8b1ac9e6af9ca6c76155b25ed59d25f694bf2cc6a7432b479ddd1662b18  ppd-poll-with-client-conf.patch
+9bab08e1e6cb25e8253e9cc91b61da85bffccb9b6f119ea0bec4678c502d2b5bc25ac8dbbf4df84478412029bd5ea928814c5d2dc886a905efdce3cb4ae5f941  remove-cvs-tag.patch
+71ad34e73bbd041d6ec9de487dc7cf57e9fb0d7bebd3385b945ac612db891c7fda6edc6490afdfd501c37c10682dee892aa448380542fa84a8ee7151ce92512b  dont-broadcast-with-hostnames.patch
+1d805b55870102abeba16c22ca783514fc573584339a394f31081321d7a2f70229b6496f016d0555bef680c9ee98a5033109eb5fb74dabff7fde7037defc670e  reactivate-recommended-driver.patch
+7566ca938cc4336c2d49cc084a01a3b22b851c5ba18596978903af96d33867682258d171ae56bd9809a69bc50e43a9773d6a7195d83d8c53ac018551e06c5b54  add-ipp-backend-of-cups-1.4.patch
+226aac5aac9bc510cb46efcc63a4967911f45004fded02a971ba8afa23d31df443119bf14cff0907d14a4eb70998fb137c4312200caf1d3c3e0fe408946c51ae  disable-logs-rotation.patch
+9e822a076553fc84c7321b1eecbad406fef4c6bdceee73f8ec8694e6436fbcc84b29960a5b49d2530f1252a3ef8bb43aaaaa39c0bf5e4db79b42683849218e25  dont-alter-confdir-perms.patch
+f16a72e2d0de43cdfe2caff5eeddb50c37df3609a1fe87d31ed1ddb2e3eb02c46b370945a3bfa94b1e0835afb71824c836d8e43f311820d9aef34353266a366b  show-compile-command-lines.patch
+491980f8fdd3a1099ec008b9a0e9e6fffeca474b7611fc87c1fcce638961af20282fd2b25bc5f205035dcc56a09ea08fb4478b6743c93c4036971529cf2f294c  cupsd-set-default-for-SyncOnClose-to-Yes.patch
+047521306598cdbe328a1bf045f1f3c697aa77b8d29096f0ef0ec205f1b29bf57a6748b92732a06dd8d7507cb1b4b2f68a85cb4c53db58ca1aeb76fb37606b2a  disable-browsing-by-default.patch
+cf234c6b8c41953f4d6aacbc93a9f659d56d7c05aad150fbc593f1e909f45336c047cedc12a2d972fd04ee13d0af1a97283d72ea71ef7b36c71c6363a1e8b005  add-dymo-deviceid.patch
+d6b9733b4e85f216ecba39c2ceb327b3cb484f2644fcb3ac280e5ed398f96185b49d729c198850b0d69a9672fa1fe8a681d8f8b7b83d5b8c72d97ef05e6a97e2  dont-export-ssllibs-to-cups-config.patch
+cad7e04605bb3022ffd549779f741c34b481bd00b88f984519110e48a8a3700c4c999a6ace54e0e1d613f4c28b19c18a7cce06fcd7c643a365f995d3022f9e2a  fix-dir-perms.patch
+3e870b5528d0ab8139635e4167c1cd8e27121c3096f50e7d98028b87739b5e59b4e75700208db0531f6cb73c2b9878cce3946438d5c5dae5d896cbc37dc8daa3  filter-debug.patch
+58c0b578a36d4954bd1e1d07ed0f3faaa49b2f3b532475a8d4e4d11b4d0f5e08fd617c8a3e96fd25958eababc9087390036ddd48c52f9b9871445488311a94b2  lpr-add-help.patch
+cfdb3b43a70561128d9c4ec2e48c11a9171e67530c3bed167d734c7d4e659600979b2834162bbf0c03dc26dcf022384aabd70b85a64923bc5cb4e82cb54cd08b  reinitialize-resolver-on-failure.patch
+8f00e8536b81c0f64fcc09ec680f7dd6d3327c8426d29380ffeb82e0ed1b3faf13da0599c1186359eaddec0ca91d7d276b43d0d9e389cfe03e5db0f9e3a51f38  increase-web-devices-timeout.patch"

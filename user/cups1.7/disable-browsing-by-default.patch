@@ -1,0 +1,14 @@
+Description: Disable Browsing by default.
+Author: Martin Pitt <martin.pitt@ubuntu.com>
+
+--- a/conf/cupsd.conf.in
++++ b/conf/cupsd.conf.in
+@@ -22,7 +22,7 @@
+ @CUPS_LISTEN_DOMAINSOCKET@
+ 
+ # Show shared printers on the local network.
+-Browsing On
++Browsing Off
+ BrowseLocalProtocols @CUPS_BROWSE_LOCAL_PROTOCOLS@
+ 
+ # Default authentication type, when authentication is required...

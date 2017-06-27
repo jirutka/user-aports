@@ -1,0 +1,22 @@
+The upstream patch part for scheduler/job.c from
+https://github.com/apple/cups/commit/f62664600159820a136a6e726a01a598b9ea292e
+adapted to fit exactly for CUPS-1.7.5
+that fixes raw printing multiple files by adding the gziptoany filter.
+See https://github.com/apple/cups/issues/4782.
+
+Patch-Origin: upstream
+Patch-Source: https://build.opensuse.org/package/view_file/openSUSE:Leap:42.2/cups/add_gziptoany_filter_when_raw_printing_multiple_files_GitHub4782.patch
+
+--- a/scheduler/job.c
++++ b/scheduler/job.c
+@@ -704,8 +704,8 @@ cupsdContinueJob(cupsd_job_t *job)	/* I
+   * Add decompression/raw filter as needed...
+   */
+ 
+-  if (job->compressions[job->current_file] &&
+-      (!job->printer->remote || job->num_files == 1))
++  if ((job->compressions[job->current_file] && (!job->printer->remote || job->num_files == 1)) ||
++      (!job->printer->remote && job->printer->raw && job->num_files > 1))
+   {
+    /*
+     * Add gziptoany filter to the front of the list...

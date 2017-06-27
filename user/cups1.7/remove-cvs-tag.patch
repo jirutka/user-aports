@@ -1,0 +1,23 @@
+Description: Do not write VCS tags into installed conffiles
+Bug: http://www.cups.org/str.php?L2369
+Origin: vendor
+Author: Kenshi Muto <kmuto@debian.org>
+Author: Didier Raboud <odyx@debian.org>
+Last-Update: 2014-01-16
+
+--- a/conf/Makefile
++++ b/conf/Makefile
+@@ -75,9 +75,13 @@
+ 			$(INSTALL_CONFIG) -g $(CUPS_GROUP) $$file $(SERVERROOT)/$$file.N ; \
+ 		else \
+ 			$(INSTALL_CONFIG) -g $(CUPS_GROUP) $$file $(SERVERROOT) ; \
++			grep -v "\$$Id[:\$$]" $(SERVERROOT)/$$file > $(SERVERROOT)/$$file.n ; \
++			mv $(SERVERROOT)/$$file.n $(SERVERROOT)/$$file ; \
+ 		fi ; \
+ 	done
+ 	$(INSTALL_CONFIG) -g $(CUPS_GROUP) cupsd.conf $(DATADIR)/cupsd.conf.default
++	grep -v "\$$Id[:\$$]" $(DATADIR)/cupsd.conf.default > $(DATADIR)/cupsd.conf.default.n ; \
++	mv $(DATADIR)/cupsd.conf.default.n $(DATADIR)/cupsd.conf.default ; \
+ 	$(INSTALL_DIR) -m 755 $(DATADIR)/mime
+ 	for file in $(REPLACE); do \
+ 		if test -r $(DATADIR)/mime/$$file ; then \

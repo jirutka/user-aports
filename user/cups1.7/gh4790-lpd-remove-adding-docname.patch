@@ -1,0 +1,23 @@
+This patch is an excerpt from the upstream patch part for scheduler/cups-lpd.c from
+https://github.com/apple/cups/commit/4cc64a80fd01016eb5c3b62b754fc684d87bfb89
+that avoids warnings in error_log of the form
+"Unexpected 'document-name' operation attribute in a Create-Job request."
+
+Patch-Origin: upstream
+Patch-Source: https://build.opensuse.org/package/view_file/openSUSE:Leap:42.2/cups/cups-lpd_remove_adding_docname_GitHub4790.patch
+Upstream-Bug: https://github.com/apple/cups/issues/4790
+
+--- a/scheduler/cups-lpd.c
++++ b/scheduler/cups-lpd.c
+@@ -344,10 +344,6 @@ create_job(http_t        *http,		/* I -
+     ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_NAME, "job-name",
+                  NULL, title);
+ 
+-  if (docname[0])
+-    ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_NAME, "document-name",
+-                 NULL, docname);
+-
+   cupsEncodeOptions(request, num_options, options);
+ 
+  /*
+

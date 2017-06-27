@@ -1,0 +1,28 @@
+Re-initialise the resolver on failure in httpAddrGetList().
+
+Patch-Origin: Fedora 21
+
+--- a/cups/http-addr.c
++++ b/cups/http-addr.c
+@@ -319,7 +319,8 @@ httpAddrLookup(
+ 
+     if (error)
+     {
+-      if (error == EAI_FAIL)
++      if (error == EAI_FAIL || error == EAI_AGAIN || error == EAI_NODATA ||
++          error == EAI_NONAME)
+         cg->need_res_init = 1;
+ 
+       return (httpAddrString(addr, name, namelen));
+--- a/cups/http-addrlist.c
++++ b/cups/http-addrlist.c
+@@ -581,7 +581,8 @@ httpAddrGetList(const char *hostname,	/*
+     }
+     else
+     {
+-      if (error == EAI_FAIL)
++      if (error == EAI_FAIL || error == EAI_AGAIN || error == EAI_NODATA ||
++          error == EAI_NONAME)
+         cg->need_res_init = 1;
+ 
+       _cupsSetError(IPP_STATUS_ERROR_INTERNAL, gai_strerror(error), 0);
