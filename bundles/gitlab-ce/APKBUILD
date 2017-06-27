@@ -3,7 +3,7 @@
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
 pkgver=9.1.7
-pkgrel=1
+pkgrel=2
 pkgdesc="A version control for your server"
 url="https://github.com/gitlabhq/gitlabhq"
 arch="all"
@@ -299,8 +299,7 @@ package() {
 	EOF
 
 	# Some paths are hard-coded in GitLab, so we must make symlinks. :(
-	mkdir -p public/uploads
-	ln -sf /var/lib/gitlab/uploads public/uploads/system || return 1
+	ln -sf /var/lib/gitlab/uploads public/uploads || return 1
 	ln -sf /var/log/gitlab log || return 1
 	ln -sf /tmp/gitlab tmp || return 1
 
