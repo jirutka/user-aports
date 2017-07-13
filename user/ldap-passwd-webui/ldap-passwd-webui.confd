@@ -36,7 +36,7 @@ listen_on="*:8080"
 
 # Extra options for waitress-serve.
 # See https://docs.pylonsproject.org/projects/waitress/en/latest/runner.html.
-#extra_opts=
+waitress_opts="--max-request-body-size=16384"
 
 
 # The following variables should not be modified!

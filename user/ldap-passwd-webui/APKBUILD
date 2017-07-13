@@ -3,7 +3,7 @@
 pkgname=ldap-passwd-webui
 pkgver=2.0.0_pre1
 _gitrev=352b3d8240e20ce49810786990406b7c67f5af0b
-pkgrel=2
+pkgrel=3
 pkgdesc="Very simple web interface for changing password stored in LDAP or Active Directory (Samba 4 AD)"
 url="https://github.com/jirutka/ldap-passwd-webui"
 arch="noarch"
@@ -37,5 +37,5 @@ waitress() {
 }
 
 sha512sums="e97a272083a525f58d41e15b70532c1bb036bd9614e95a546744b00c929e127b177ef822a660b1ec3132b05499b1dbdfe8c96fdba1765a8892294eaecec7cb26  ldap-passwd-webui-352b3d8240e20ce49810786990406b7c67f5af0b.tar.gz
-820004448c59affd755397260cbde6fd7565b5a628e1a2626a05947429d77d025019f8fd67ed1a3fa52b404d5cbebb08580e0e2501bfd5705b39dc0b6a4020ac  ldap-passwd-webui.confd
+a1f10fbd2261e86ac249efe6571b6c42c398cd17566b602fb0a94e1c9c755da09e73ee7a1bd839181d552ffd74ea7e99352efb51b01a1a27db707e29312b8120  ldap-passwd-webui.confd
 e3200bb2495dfe0f233554c003fd2401ffdc6d86e29c1fbecb1f473f351bd4d2a97add2983d43828bed31c0afb23535cd99ff37c5d8343f304fe9edfa4ccc991  settings.patch"
