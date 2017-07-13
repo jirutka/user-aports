@@ -1,0 +1,27 @@
+#!/sbin/openrc-run
+
+: ${user:="nobody"}
+: ${logfile:="/var/log/ldap-passwd-webui.log"}
+: ${cfgfile:="/etc/ldap-passwd-webui.ini"}
+
+command="/usr/share/webapps/ldap-passwd-webui/app.py"
+command_background="yes"
+
+pidfile="/run/$RC_SVCNAME.pid"
+start_stop_daemon_args="
+	--user $user
+	${group:+--group $group}
+	--stdout $logfile
+	--stderr $logfile
+	--env CONF_FILE=$cfgfile"
+
+required_files="$cfgfile"
+
+depends() {
+	need net
+	after openldap
+}
+
+start_pre() {
+	checkpath -f -m 644 -o $user "$logfile"
+}
