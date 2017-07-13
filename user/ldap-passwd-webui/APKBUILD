@@ -1,9 +1,8 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=ldap-passwd-webui
-pkgver=2.0.0_pre1
-_gitrev=352b3d8240e20ce49810786990406b7c67f5af0b
-pkgrel=3
+pkgver=2.0.0
+pkgrel=0
 pkgdesc="Very simple web interface for changing password stored in LDAP or Active Directory (Samba 4 AD)"
 url="https://github.com/jirutka/ldap-passwd-webui"
 arch="noarch"
@@ -11,10 +10,10 @@ license="MIT"
 depends="python3 py3-bottle py3-ldap3"
 makedepends="python3-dev"
 subpackages="$pkgname-waitress"
-source="$pkgname-$_gitrev.tar.gz::https://github.com/jirutka/$pkgname/archive/$_gitrev.tar.gz
+source="$pkgname-$pkgver.tar.gz::https://github.com/jirutka/$pkgname/archive/v$pkgver.tar.gz
 	$pkgname.confd
 	settings.patch"
-builddir="$srcdir/$pkgname-$_gitrev"
+builddir="$srcdir/$pkgname-$pkgver"
 options="!check"
 
 package() {
@@ -22,7 +21,7 @@ package() {
 	cd "$builddir"
 
 	mkdir -p "$destdir"
-	cp -r static app.py index.tpl VERSION "$destdir"/
+	cp -r static app.py index.tpl "$destdir"/
 
 	install -D -m 644 settings.ini.example "$pkgdir"/etc/$pkgname.ini
 }
@@ -36,6 +35,6 @@ waitress() {
 	install -D -m 644 "$srcdir"/$pkgname.confd "$subpkgdir"/etc/conf.d/$pkgname
 }
 
-sha512sums="e97a272083a525f58d41e15b70532c1bb036bd9614e95a546744b00c929e127b177ef822a660b1ec3132b05499b1dbdfe8c96fdba1765a8892294eaecec7cb26  ldap-passwd-webui-352b3d8240e20ce49810786990406b7c67f5af0b.tar.gz
+sha512sums="84ecb80ef633e9b3a04913ba0594a98e1e6372d47cdbc0330bb6f914b0b5ec84e1d2886717292d005556705eafbb74d86c85d37065feb9a9975ed393f36587b5  ldap-passwd-webui-2.0.0.tar.gz
 a1f10fbd2261e86ac249efe6571b6c42c398cd17566b602fb0a94e1c9c755da09e73ee7a1bd839181d552ffd74ea7e99352efb51b01a1a27db707e29312b8120  ldap-passwd-webui.confd
 e3200bb2495dfe0f233554c003fd2401ffdc6d86e29c1fbecb1f473f351bd4d2a97add2983d43828bed31c0afb23535cd99ff37c5d8343f304fe9edfa4ccc991  settings.patch"
