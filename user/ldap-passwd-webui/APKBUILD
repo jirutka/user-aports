@@ -3,15 +3,16 @@
 pkgname=ldap-passwd-webui
 pkgver=2.0.0_pre1
 _gitrev=352b3d8240e20ce49810786990406b7c67f5af0b
-pkgrel=0
+pkgrel=1
 pkgdesc="Very simple web interface for changing password stored in LDAP or Active Directory (Samba 4 AD)"
 url="https://github.com/jirutka/ldap-passwd-webui"
 arch="noarch"
 license="MIT"
 depends="python3 py3-bottle py3-ldap3"
 makedepends="python3-dev"
+subpackages="$pkgname-waitress"
 source="$pkgname-$_gitrev.tar.gz::https://github.com/jirutka/$pkgname/archive/$_gitrev.tar.gz
-	$pkgname.initd"
+	$pkgname.confd"
 builddir="$srcdir/$pkgname-$_gitrev"
 options="!check"
 
@@ -23,8 +24,16 @@ package() {
 	cp -r static app.py index.tpl VERSION "$destdir"/
 
 	install -D -m 644 settings.ini.example "$pkgdir"/etc/$pkgname.ini
-	install -D -m 755 "$srcdir"/$pkgname.initd "$pkgdir"/etc/init.d/$pkgname
+}
+
+waitress() {
+	pkgdesc="Runscript for ldap-passwd-webui using Waitress WSGI server"
+	depends="$pkgname=$pkgver-r$pkgrel py-waitress"
+
+	mkdir -p "$subpkgdir"/etc/init.d
+	ln -s waitress "$subpkgdir"/etc/init.d/$pkgname
+	install -D -m 644 "$srcdir"/$pkgname.confd "$subpkgdir"/etc/conf.d/$pkgname
 }
 
 sha512sums="e97a272083a525f58d41e15b70532c1bb036bd9614e95a546744b00c929e127b177ef822a660b1ec3132b05499b1dbdfe8c96fdba1765a8892294eaecec7cb26  ldap-passwd-webui-352b3d8240e20ce49810786990406b7c67f5af0b.tar.gz
-a3f97e714ee2ea31affb318ee0ac41b9f2d2487f37475ca741b0cb2f33731655dd19b01645c74b65c7b759a657114cfc6bedc0fc56008d85ff8d31c45eda0f4a  ldap-passwd-webui.initd"
+8f6ee9efed92efeacea8bf3835a79f5e1933cbcca0557fe31d68e44d18d503813cabdc0a75791fd7cbe0218a005ae00a270e6933dad07c48b01e637a83fd384d  ldap-passwd-webui.confd"
