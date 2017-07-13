@@ -4,7 +4,7 @@
 #user="nobody"
 
 # Path of the configuration file.
-_cfgfile="/etc/ldap-passwd-webapps.ini"
+_cfgfile="/etc/ldap-passwd-webui.ini"
 
 # Path of the log file to catch stdout/stderr of the process.
 logfile="/var/log/$RC_SVCNAME.log"
