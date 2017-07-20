@@ -3,7 +3,7 @@
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
 pkgver=9.1.8
-pkgrel=0
+pkgrel=1
 pkgdesc="A version control for your server"
 url="https://github.com/gitlabhq/gitlabhq"
 arch="all"
@@ -68,6 +68,7 @@ source="$pkgname-$pkgver.tar.gz::https://github.com/gitlabhq/gitlabhq/archive/v$
 	gemfile-use-local-grpc-and-protobuf.patch
 	fix-latex-formatting-in-asciidoc.patch
 	gemfile-update-asciidoctor.patch
+	asciidoc-enable-setanchors-by-default.patch
 	"
 builddir="$srcdir/gitlabhq-$pkgver"
 
@@ -350,4 +351,5 @@ cc665efa6d7cdf988115557b892b39b584c90fb27b8e0114459edea826bb2bdd6f331ecceddc6016
 99c09ae81f2e553663ec610b4476be692774df363bc4e82796d4f7b7ebf653aa9999abcfa1bd9269bccc79e4fd2f2896f32d5b1458857d003e17fb94b03dec79  gitlab-revision.patch
 2e3b340e018e578f152cfab079a26c789462777356ad8c83ebc5487d623b74ab073e27e448d65320457d9e2fcb84f26827753f5c0f9571f6df8b4ebdec9c1ee5  gemfile-use-local-grpc-and-protobuf.patch
 5f9cb826ef2c2ad3c4da6aed85a1dc9665fc0624454353b1340c62ec1c62354d385e170bbee5b005e1cb70e2d112be49a0a0684435c4eb21655fbb8a67d38a32  fix-latex-formatting-in-asciidoc.patch
-8ac2d0dc81f3090d6c833a8e117723f36b7166813ca9bcec526831c4f54feac537f24a601d6c6f0dd6f654d57e5d9c919442e9d11c6e878688b5a1a816ab3312  gemfile-update-asciidoctor.patch"
+8ac2d0dc81f3090d6c833a8e117723f36b7166813ca9bcec526831c4f54feac537f24a601d6c6f0dd6f654d57e5d9c919442e9d11c6e878688b5a1a816ab3312  gemfile-update-asciidoctor.patch
+f8f7ac799134bd99bdf60f18dbbaf9456a4fc6ad62f34def017b68ec541527f0e7d914b0c99cffe03cc17a346cd313ac924b7da20b1738256b58861a5ff3f911  asciidoc-enable-setanchors-by-default.patch"
