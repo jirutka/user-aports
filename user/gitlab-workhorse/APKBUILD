@@ -16,7 +16,7 @@ builddir="$srcdir/$pkgname-$pkgver"
 
 prepare() {
 	# Top-level directory inside the tar archive contains SHA of a commit...
-	mv "$srcdir"/$pkgname-v$pkgver-* "$builddir" || return 1
+	mv "$srcdir"/$pkgname-v$pkgver-* "$builddir"
 
 	default_prepare
 }
@@ -30,13 +30,10 @@ build() {
 package() {
 	cd "$builddir"
 
-	make install PREFIX="$pkgdir/usr" || return 1
+	make install PREFIX="$pkgdir/usr"
 
-	install -m644 -D "$srcdir"/workhorse.toml \
-		"$pkgdir"/etc/gitlab/workhorse.toml || return 1
-
-	install -m755 -D "$srcdir"/$pkgname.initd \
-		"$pkgdir"/etc/init.d/gitlab.workhorse
+	install -m644 -D "$srcdir"/workhorse.toml "$pkgdir"/etc/gitlab/workhorse.toml
+	install -m755 -D "$srcdir"/$pkgname.initd "$pkgdir"/etc/init.d/gitlab.workhorse
 }
 
 sha512sums="fb1835ef8e56040b191ae01c8c3024704aba9217f79169c1b46b70b3c4d39327800ad6ca01cc08fb006aa778c7a14e8eacf7805cde7d72eaff04d995bca2dbb4  gitlab-workhorse-1.4.3.tar.gz
