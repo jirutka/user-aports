@@ -30,14 +30,14 @@ prepare() {
 	_gitrev=${dirname##*-}
 
 	mkdir -p "${builddir%/*}"
-	mv $pkgname-v$pkgver-* "$builddir" || return 1
+	mv $pkgname-v$pkgver-* "$builddir"
 
-	default_prepare || return 1
+	default_prepare
 
 	mkdir -p "$builddir"/out/docker
 	local arch; for arch in x86_64 arm; do
 		cp -L "$srcdir"/*-prebuilt-$arch.* \
-			"$builddir"/out/docker/prebuilt-$arch.tar.xz || return 1
+			"$builddir"/out/docker/prebuilt-$arch.tar.xz
 	done
 }
 
@@ -58,42 +58,21 @@ build() {
 package() {
 	cd "$builddir"
 
-	install -D -m 755 out/binaries/$pkgname \
-		"$pkgdir"/usr/bin/$pkgname || return 1
+	install -D -m 755 out/binaries/$pkgname "$pkgdir"/usr/bin/$pkgname
 
-	install -D -m 755 "$srcdir"/$pkgname.initd \
-		"$pkgdir"/etc/init.d/$pkgname || return 1
-
-	install -D -m 644 "$srcdir"/$pkgname.logrotate \
-		"$pkgdir"/etc/logrotate.d/$pkgname || return 1
+	install -D -m 755 "$srcdir"/$pkgname.initd "$pkgdir"/etc/init.d/$pkgname
+	install -D -m 644 "$srcdir"/$pkgname.logrotate "$pkgdir"/etc/logrotate.d/$pkgname
 
 	local dir; for dir in etc var/lib; do
-		install -d -m 750 -o $pkgusers -g $pkggroups \
-			"$pkgdir"/$dir/$_shortname || return 1
+		install -d -m 750 -o $pkgusers -g $pkggroups "$pkgdir"/$dir/$_shortname
 	done
 
 	install -m 640 -o $pkgusers -g $pkggroups config.toml.example \
-		"$pkgdir"/etc/$_shortname/config.toml || return 1
+		"$pkgdir"/etc/$_shortname/config.toml
 
 	ln -s /etc/$_shortname "$pkgdir"/var/lib/$_shortname/.gitlab-runner
 }
 
-md5sums="06776a8b070bc741a7ec3d33c7bce7ab  gitlab-ci-multi-runner-9.1.1.tar.gz
-7bec08c0161cdb9402247461510d9c0f  gitlab-ci-multi-runner-9.1.1-prebuilt-x86_64.tar.xz.bin
-bdaa5b5ddfcfe48f183ef81241f12562  gitlab-ci-multi-runner-9.1.1-prebuilt-arm.tar.xz.bin
-56f4440a0bb05d097f7365175a8cbdfd  gitlab-ci-multi-runner.initd
-4242a5cd4650e84fdb07691866f0bfe2  gitlab-ci-multi-runner.logrotate
-9a6d1f1b1fb4821d5974c283e04b118f  Makefile-verbose.patch
-7076beb9ee5dcd2c840534860bc0dd9d  log-timestamp.patch
-24e68a44d7e8ca66be8010cbf27d6eff  log-without-colors.patch"
-sha256sums="31a8aefd0f747358cef15a5f7c9cbb137c84c983a743f1114f780e4cd4ada70c  gitlab-ci-multi-runner-9.1.1.tar.gz
-8c233cca69c018892cdfd6b62c8effc996b8e4378a6f33c85b6a10770f32bbb3  gitlab-ci-multi-runner-9.1.1-prebuilt-x86_64.tar.xz.bin
-3fbb8b0761df3b7a6e2cfeb4768d6425c1e0ed56cc85e3ca80b372c618c5a656  gitlab-ci-multi-runner-9.1.1-prebuilt-arm.tar.xz.bin
-3264259286093436e7b75104ad989c9ec541a99d2d4c4fd5b15c2af1b258db66  gitlab-ci-multi-runner.initd
-9e4a248fefb9702eabf287e4aabb2ab1680df708a2e7330c01f0d82423265345  gitlab-ci-multi-runner.logrotate
-8ef5c97ef223783b172bae9f4ea30ed8aa11ca0d5eacb0fc12834d843a214026  Makefile-verbose.patch
-74c75dd168d2f4746e6a3c9bf52736f983f1df02ee66a5fa74bde5b5b5a2b76f  log-timestamp.patch
-6a430c122e667e8e869110e736f5bfb83be89ca08f215e489895a30b9236c7a5  log-without-colors.patch"
 sha512sums="ef2a27438bcaa3c777cc88aae257d48d2f8d227f697a7a22215fe2dd521138cdb68edc37a038c7b7b233736e584fe00da2b73ce4ddebb196650719934efbc358  gitlab-ci-multi-runner-9.1.1.tar.gz
 4ace7d38743622a9cb35271f94fd79ca49086a1767bbdd10786b309bb67316bf01200f69cbb1aa5bf14c51010683d4db30195537891abda4653254ace60b176e  gitlab-ci-multi-runner-9.1.1-prebuilt-x86_64.tar.xz.bin
 e44f3ed733ae60523d2bd44c2908a87e26e280ace80670dc83eb7992f84a2f548a99e6f67d8d4f35dfc3b27f1db3211bc370ec452c14d116620ccd6916908c4a  gitlab-ci-multi-runner-9.1.1-prebuilt-arm.tar.xz.bin
