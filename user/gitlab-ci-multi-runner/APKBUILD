@@ -1,7 +1,7 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitlab-ci-multi-runner
-pkgver=9.1.1
+pkgver=9.4.0
 pkgrel=0
 pkgdesc="Official GitLab Runner written in Go"
 url="https://gitlab.com/gitlab-org/gitlab-ci-multi-runner"
@@ -73,9 +73,9 @@ package() {
 	ln -s /etc/$_shortname "$pkgdir"/var/lib/$_shortname/.gitlab-runner
 }
 
-sha512sums="ef2a27438bcaa3c777cc88aae257d48d2f8d227f697a7a22215fe2dd521138cdb68edc37a038c7b7b233736e584fe00da2b73ce4ddebb196650719934efbc358  gitlab-ci-multi-runner-9.1.1.tar.gz
-4ace7d38743622a9cb35271f94fd79ca49086a1767bbdd10786b309bb67316bf01200f69cbb1aa5bf14c51010683d4db30195537891abda4653254ace60b176e  gitlab-ci-multi-runner-9.1.1-prebuilt-x86_64.tar.xz.bin
-e44f3ed733ae60523d2bd44c2908a87e26e280ace80670dc83eb7992f84a2f548a99e6f67d8d4f35dfc3b27f1db3211bc370ec452c14d116620ccd6916908c4a  gitlab-ci-multi-runner-9.1.1-prebuilt-arm.tar.xz.bin
+sha512sums="5f33b7bb1a1b5efd51d3def03fa66e84ab791403e1c36250f35a9174dc3881df11d87df940d052c288b0753ed4aef9aeb79cb60f490e44dac3ddd94156966923  gitlab-ci-multi-runner-9.4.0.tar.gz
+1672866a6fa04914f9ee4606ef3318d32eae9f47fedbda4f659097517fe5df43f83952d9a4cc6dd3d5f32292bc6234be8de36d81bcaca336b2f8ff19dd472a98  gitlab-ci-multi-runner-9.4.0-prebuilt-x86_64.tar.xz.bin
+8317250579625e8939e88dd6d51c33092c3f329cacbe62f4d880733c85c4942305315a4f468b30d3a4b80c8a171108677e193f90087ec4a28a351394587c596e  gitlab-ci-multi-runner-9.4.0-prebuilt-arm.tar.xz.bin
 9b9e09af635aebd4b682a12b671b22c786862394e85a57519e0f1c3d9ae97a173ee0a8526e81394c2a2d9f51527f8b264e5ebeff2d479513213c8114305c2441  gitlab-ci-multi-runner.initd
 194440d43e1796f35ae61cae8f76874435e03dc3977af47bde0056ec37a631f4e13b0014f91d9dbf06b37d606bf47629d6e55d013eb7a289df1d5cd0f7848dff  gitlab-ci-multi-runner.logrotate
 95d4add06c080ac6e3a68b9ff9e2d16b01cc59d5b0b184f617c03d62e2ba686a7a246c2a53934413dadbbb7d3086de64a1dd08518f33443ee24c50bc94501453  Makefile-verbose.patch
