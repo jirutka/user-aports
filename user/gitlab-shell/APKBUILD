@@ -7,8 +7,7 @@ pkgdesc="GitLab Shell handles git commands for GitLab."
 url="https://github.com/gitlabhq/gitlab-shell"
 arch="noarch"
 license="MIT"
-_rubyslot=""
-depends="git>=2.8.4 openssh redis>=2.8 ruby$_rubyslot ruby$_rubyslot-json"
+depends="git>=2.8.4 openssh redis>=2.8 ruby ruby-json"
 pkgusers="git"
 pkggroups="git"
 install="$pkgname.pre-install $pkgname.post-install"
@@ -21,13 +20,7 @@ prepare() {
 	mkdir -p "$builddir"
 	mv "$srcdir"/$pkgname-v$pkgver-*/* "$builddir"/
 
-	default_prepare  # apply patches
-
-	#cd "$builddir"
-	# Change shebang in ruby scripts.
-	#local file; for file in bin/* hooks/*; do
-	#	sed -i "s|/usr/bin/env ruby|/usr/bin/env ruby$_rubyslot|" $file
-	#done
+	default_prepare
 }
 
 package() {
