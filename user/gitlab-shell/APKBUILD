@@ -19,14 +19,14 @@ builddir="$srcdir/$pkgname-$pkgver"
 
 prepare() {
 	mkdir -p "$builddir"
-	mv "$srcdir"/$pkgname-v$pkgver-*/* "$builddir"/ || return 1
+	mv "$srcdir"/$pkgname-v$pkgver-*/* "$builddir"/
 
-	default_prepare || return 1  # apply patches
+	default_prepare  # apply patches
 
 	#cd "$builddir"
 	# Change shebang in ruby scripts.
 	#local file; for file in bin/* hooks/*; do
-	#	sed -i "s|/usr/bin/env ruby|/usr/bin/env ruby$_rubyslot|" $file || return 1
+	#	sed -i "s|/usr/bin/env ruby|/usr/bin/env ruby$_rubyslot|" $file
 	#done
 }
 
@@ -37,18 +37,18 @@ package() {
 
 	install -d -m755 \
 		"$pkgdir"/usr/bin \
-		"$pkgdir"/usr/share/$pkgname || return 1
+		"$pkgdir"/usr/share/$pkgname
 
 	install -d -m755 -o git -g git \
 		"$pkgdir"/var/log/gitlab \
-		"$datadir" || return 1
+		"$datadir"
 
 	install -d -m02770 -o git -g git \
-		"$datadir"/repositories || return 1
+		"$datadir"/repositories
 
-	cp -r VERSION bin hooks lib "$pkgdir"/usr/share/$pkgname/ || return 1
+	cp -r VERSION bin hooks lib "$pkgdir"/usr/share/$pkgname/
 
-	install -m644 -o git -g git "$srcdir"/gitconfig "$datadir"/.gitconfig || return 1
+	install -m644 -o git -g git "$srcdir"/gitconfig "$datadir"/.gitconfig
 	install -m644 -D config.yml.example "$pkgdir"/etc/gitlab/gitlab-shell.yml
 }
 
