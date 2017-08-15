@@ -1,36 +1,48 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitlab-shell
-pkgver=5.0.4
+pkgver=5.3.1
 pkgrel=0
 pkgdesc="GitLab Shell handles git commands for GitLab."
 url="https://github.com/gitlabhq/gitlab-shell"
-arch="noarch"
+arch="all"
 license="MIT"
-depends="git>=2.8.4 openssh redis>=2.8 ruby ruby-json"
+depends="git>=2.8.4 openssh redis>=2.8 ruby ruby-json ruby-redis>=3.3.0"
+makedepends="go"
 pkgusers="git"
 pkggroups="git"
 install="$pkgname.pre-install $pkgname.post-install"
 source="$pkgname-$pkgver.tar.gz::https://gitlab.com/gitlab-org/$pkgname/repository/archive.tar.gz?ref=v$pkgver
 	gitconfig
-	0001-fix-paths.patch"
+	0001-fix-paths.patch
+	gitlab_redis.patch"
 builddir="$srcdir/$pkgname-$pkgver"
+_goname="gitlab.com/gitlab-org/gitlab-shell/go"
 
 prepare() {
 	mkdir -p "$builddir"
 	mv "$srcdir"/$pkgname-v$pkgver-*/* "$builddir"/
 
 	default_prepare
+
+	mkdir -p go_build/src/${_goname%/*}
+	cp -lr go go_build/src/$_goname/
+
+	# Remove bundled redis gem.
+	rm -rv lib/vendor
+}
+
+build() {
+	GOPATH="$builddir/go_build" GO15VENDOREXPERIMENT=1 \
+		go install -v "$_goname/cmd/..."
 }
 
 package() {
-	local datadir="$pkgdir"/var/lib/gitlab
+	local datadir="$pkgdir/var/lib/gitlab"
+	local libdir="$pkgdir/usr/lib/$pkgname"
+	local sharedir="$pkgdir/usr/share/$pkgname"
 
 	cd "$builddir"
-
-	install -d -m755 \
-		"$pkgdir"/usr/bin \
-		"$pkgdir"/usr/share/$pkgname
 
 	install -d -m755 -o git -g git \
 		"$pkgdir"/var/log/gitlab \
@@ -39,12 +51,23 @@ package() {
 	install -d -m02770 -o git -g git \
 		"$datadir"/repositories
 
-	cp -r VERSION bin hooks lib "$pkgdir"/usr/share/$pkgname/
+	mkdir -p "$sharedir"
+	cp -r VERSION bin hooks lib "$sharedir"/
+	rm "$sharedir"/bin/compile
+
+	mkdir -p "$libdir"/bin
+	cp -r go_build/bin/* "$libdir"/bin/
+
+	local name; for name in go_build/bin/*; do
+		name=${name##*/}
+		ln -s ../../../lib/$pkgname/bin/$name "$sharedir"/bin/$name
+	done
 
 	install -m644 -o git -g git "$srcdir"/gitconfig "$datadir"/.gitconfig
 	install -m644 -D config.yml.example "$pkgdir"/etc/gitlab/gitlab-shell.yml
 }
 
-sha512sums="2718e99a43ad934dfb6d8b3df47bab0b957fa362c84510434fdd07ed994bf53ab059569ff0da106c8bd5ebc49cc460694ad5fb2fec57f0fb0cbb297609a00d97  gitlab-shell-5.0.4.tar.gz
+sha512sums="00c6dde3d7a59c956396988b2f5790291c44fe134812588ab5c03e7612d49c08de2f5fd08a8b4a55a2c95a46db1d0cdb0e07469958d5c0d6c778d0f9dd279afc  gitlab-shell-5.3.1.tar.gz
 d2f0740bccc5ff19d36a83c61ebb8e5f110662d3f5ddd3520cd5f59d4c65bbaf3f980512f49a841f153a446a3501f79606a263c892ecf1954fd3549143dcf7f9  gitconfig
-defe783daeac051ad31e81d4b6912bdcf5810deb06b89f771eaf056c3caac005b6f628f4aaac47e1b8ac46bb0e4c1f32346d87d4577c1089bf1334954393cf0f  0001-fix-paths.patch"
+defe783daeac051ad31e81d4b6912bdcf5810deb06b89f771eaf056c3caac005b6f628f4aaac47e1b8ac46bb0e4c1f32346d87d4577c1089bf1334954393cf0f  0001-fix-paths.patch
+b35b517d9bd3c1b36d6011a11f029aa7b21a443da0dd16658016b108a734d7cd5ec9f1376eb289522d262ba55d221811c4f0176c322ed3ecdf9dcfba78aeb03f  gitlab_redis.patch"
