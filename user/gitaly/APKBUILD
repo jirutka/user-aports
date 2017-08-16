@@ -1,0 +1,44 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=gitaly
+# Note: When updating check changes in config.toml.example!
+pkgver=0.21.2
+pkgrel=0
+pkgdesc="A Git RPC service for handling all the git calls made by GitLab"
+pkgusers="git"
+url="https://gitlab.com/gitlab-org/gitaly/"
+arch="all"
+license="MIT"
+depends="git"
+makedepends="go>=1.8"
+source="$pkgname-$pkgver.tar.gz::https://gitlab.com/gitlab-org/$pkgname/repository/archive.tar.gz?ref=v$pkgver
+	$pkgname.initd
+	config.toml"
+builddir="$srcdir/$pkgname-$pkgver"
+options="!check"
+
+prepare() {
+	# Top-level directory inside the tar archive contains SHA of a commit...
+	mv "$srcdir"/$pkgname-v$pkgver-* "$builddir"
+
+	default_prepare
+}
+
+build() {
+	cd "$builddir"
+
+	make VERSION=$pkgver
+}
+
+package() {
+	cd "$builddir"
+
+	install -m755 -D _build/bin/gitaly "$pkgdir"/usr/bin/gitaly
+
+	install -m644 -D "$srcdir"/config.toml "$pkgdir"/etc/gitlab/gitaly.toml
+	install -m755 -D "$srcdir"/$pkgname.initd "$pkgdir"/etc/init.d/gitlab.gitaly
+}
+
+sha512sums="985971c0207fdc42ccfc8f51da23966fcf217585134ca788ae0e88db8961cd0febcc7b645a428045e36f64502f362141cd831666a07d16ee30751aa86006022a  gitaly-0.21.2.tar.gz
+e1da2a5e586b536efccfb01d26c28bb245622fa1cd8df2a150333b899ba89d8bfabc6aefecdac4c7532ddbf7a13b28cd4681afb9fdc3500fab730b0f32b5428f  gitaly.initd
+7b6faa91a52910ef7d4fa1bbfdf6e8fb9026a7eb83c5c6428dc3aa52e6e871fa1d61a133c8d73db6b3b22fd1cb32270010444a11fdcc31b9549924a9104528d1  config.toml"

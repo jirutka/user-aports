@@ -1,0 +1,31 @@
+#!/sbin/openrc-run
+
+name="Gitaly"
+description="A Git RPC service for handling all the git calls made by GitLab"
+
+: ${gitaly_config:="/etc/gitlab/gitaly.toml"}
+
+command="/usr/bin/gitaly"
+command_args="$gitaly_config"
+command_background="yes"
+
+user="git"
+start_stop_daemon_args="
+	--user $user
+	--stdout $gitaly_logfile
+	--stderr $gitaly_logfile"
+pidfile="/run/$RC_SVCNAME.pid"
+
+required_files="$gitaly_config"
+
+depend() {
+	use net
+}
+
+start_pre() {
+	local socket_path=$(sed -En "s/^\s*socket_path\s*=\s*[\"']([\"']+)[\"']/\1/p" "$gitaly_config")
+
+	[ -z "$socket_path" ] \
+		|| checkpath -d -m 750 -o $user "$socket_path"
+	checkpath -f -m 640 -o $user "$gitaly_logfile"
+}
