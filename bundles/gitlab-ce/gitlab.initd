@@ -46,7 +46,7 @@ pidfile="/run/gitlab/unicorn.pid"
 
 required_files="$gitlab_config $unicorn_config"
 
-subservices="gitlab.sidekiq gitlab.workhorse"
+subservices="gitlab.sidekiq gitlab.gitaly gitlab.workhorse"
 if yesno "$mailroom_enabled"; then
 	subservices="$subservices gitlab.mailroom"
 fi
@@ -64,6 +64,9 @@ start_pre() {
 	checkpath -d -m 755 -o $user "$(dirname "$unicorn_listen_unix")"
 	checkpath -d -m 700 -o $user "$(readlink "$gitlab_base"/tmp)"
 	checkpath -f -m 644 -o $user "$unicorn_logfile"
+
+	# Ruby requires sticky bit on TMP directory.
+	checkpath -d -m 1777 /tmp
 
 	local downloads_path="$(_parse_yaml "$gitlab_config" \
 		production.gitlab.repository_downloads_path)"

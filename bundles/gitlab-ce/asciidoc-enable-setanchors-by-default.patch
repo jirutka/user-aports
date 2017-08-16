@@ -1,14 +1,14 @@
-From 3b3575058fa1532d79f6bb433be2be8164d7399d Mon Sep 17 00:00:00 2001
+From d6e4518650ce743a647442fcc471b489bd52089a Mon Sep 17 00:00:00 2001
 From: Jakub Jirutka <jakub@jirutka.cz>
 Date: Thu, 20 Jul 2017 17:43:00 +0200
-Subject: [PATCH] Enable Asciidoctor's attribute "sectanchors" by default
+Subject: [PATCH 10/10] Enable Asciidoctor's attribute "sectanchors" by default
 
 ---
  lib/gitlab/asciidoc.rb | 3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/lib/gitlab/asciidoc.rb b/lib/gitlab/asciidoc.rb
-index f8f40f9..fae79f2 100644
+index 3d41ac7..2a84322 100644
 --- a/lib/gitlab/asciidoc.rb
 +++ b/lib/gitlab/asciidoc.rb
 @@ -8,7 +8,8 @@ module Gitlab

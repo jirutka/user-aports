@@ -1,7 +1,7 @@
-From 9ae1134d103ddd71cffd93fe0a2107dfef592f64 Mon Sep 17 00:00:00 2001
+From d96c62b6eff39faa96f975ed309b152cc0881c03 Mon Sep 17 00:00:00 2001
 From: Jakub Jirutka <jakub@jirutka.cz>
 Date: Thu, 18 May 2017 18:02:26 +0200
-Subject: [PATCH 8/8] Don't read GitLab revision using git
+Subject: [PATCH 07/10] Don't read GitLab revision using git
 
 We don't deploy GitLab including whole git repository...
 ---

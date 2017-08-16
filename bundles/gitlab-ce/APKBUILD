@@ -2,8 +2,8 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
-pkgver=9.1.8
-pkgrel=2
+pkgver=9.4.5
+pkgrel=0
 pkgdesc="A version control for your server"
 url="https://github.com/gitlabhq/gitlabhq"
 arch="all"
@@ -11,8 +11,9 @@ license="MIT"
 _rubyslot=""
 # ruby-irb is needed only for Rails console (gitlab-rails console)
 depends="$pkgname-assets=$pkgver-r$pkgrel
-	gitlab-shell<5.0.5
-	gitlab-workhorse>=1.4
+	gitaly>=0.21.2
+	gitlab-shell>=5.3.1
+	gitlab-workhorse>=2.3.0
 	ca-certificates
 	git>=2.8.3
 	http-parser
@@ -58,17 +59,17 @@ source="$pkgname-$pkgver.tar.gz::https://github.com/gitlabhq/gitlabhq/archive/v$
 	$_pkgname.logrotate
 	bin-wrapper.in
 	gemfile-exclude-unnecessary-gems.patch
-	dont-hardcode-gitlab_workhorse_secret-path.patch
 	default-configs.patch
 	dont-dump-schema.patch
 	fix-setup-task.patch
 	fix-check-task.patch
 	replace-sys-filesystem.patch
 	gitlab-revision.patch
-	gemfile-use-local-grpc-and-protobuf.patch
-	fix-latex-formatting-in-asciidoc.patch
+	gemfile-use-local-grpc.patch
 	gemfile-update-asciidoctor.patch
+	gemfile-update-google-protobuf.patch
 	asciidoc-enable-setanchors-by-default.patch
+	dont-load-prometheus-when-not-installed.patch
 	"
 builddir="$srcdir/gitlabhq-$pkgver"
 
@@ -104,6 +105,9 @@ prepare() {
 		config/environments/development.rb \
 		config/environments/test.rb
 
+	# Remove all locale files except en.
+	find locale -type d -mindepth 1 ! -name en -exec rm -rf {} +
+
 	# This Google gem is totally messed, so we can't install it from
 	# RubyGems using Bundler.
 	mkdir -p vendor/gems/grpc
@@ -122,10 +126,8 @@ build() {
 	cd "$builddir"
 
 	msg "Installing Ruby gems..."
-
 	$bundle config build.nokogiri --use-system-libraries
 	$bundle config build.rugged --use-system-libraries
-
 	$bundle $bundle_opts
 
 	# Patch installed gem gitlab-markup to use python3.
@@ -134,17 +136,16 @@ build() {
 		vendor/bundle/ruby/*/gems/gitlab-markup-*/lib/github/markups.rb
 
 	msg "Installing npm modules..."
-
 	yarn install --production --pure-lockfile
 
-	msg "Compiling assets (this will take few minutes)..."
 
 	# Since we have moved assets gems into a group, they are not implicitly
 	# loaded by default. This will be reverted after compiling assets.
 	sed -i.bak '/Bundler.require(:default, Rails.env/s/)/, :assets)/' \
 		config/application.rb
 
-	# assets:precompile bootstraps the app, so it needs configs.
+	# assets:precompile and gettext:compile bootstraps the app,
+	# so they needs configs.
 	cp config/gitlab.yml.example config/gitlab.yml
 	cp config/database.yml.postgresql config/database.yml
 
@@ -152,17 +153,24 @@ build() {
 	# the package, so we must remove it; GitLab will use the default path.
 	sed -i '/^\s*secret_file:.*/d' config/gitlab.yml
 
-	$bundle exec rake gitlab:assets:compile \
-		NODE_ENV=production \
-		RAILS_ENV=production \
-		SECRET_KEY_BASE="top-secret" \
-		SKIP_STORAGE_VALIDATION=true \
-		USE_DB=false
+	(
+		export NODE_ENV=production
+		export RAILS_ENV=production
+		export SECRET_KEY_BASE="top-secret"
+		export SKIP_STORAGE_VALIDATION=true
+		export USE_DB=false
 
+		msg "Compiling assets (this will take few minutes)..."
+		$bundle exec rake gitlab:assets:compile
+
+		msg "Compiling GetText PO files..."
+		$bundle exec rake gettext:compile
+	)
+
+	# Revert changes.
 	mv config/application.rb.bak config/application.rb
 
 	msg "Cleaning assets gems..."
-
 	$bundle $bundle_opts assets --clean
 
 	# Create executables in bin/*.
@@ -215,7 +223,7 @@ package() {
 	# Note: *VERSION files and doc directory are required (Help in GitLab
 	# menu refers to the doc directory).
 	cp -rl .bundle config.ru Gemfile* Rakefile *VERSION app db doc \
-		fixtures config lib public vendor \
+		fixtures config lib locale public vendor \
 		"$destdir"/
 
 	install -m755 -t "$destdir"/bin \
@@ -326,22 +334,22 @@ assets() {
 	mv "${pkgdir}$_prefix"/public/assets "$destdir"/public/
 }
 
-sha512sums="b8c44b05638556c47bbaae0ef438fa54a5b2d3005403228a64d324c98d80b160d58afd86b58b5ad209ec2dda8933ce9bbd4a1313c7e3f1478cf3a36b200db65c  gitlab-ce-9.1.8.tar.gz
-16704d9e301328147e5d16ec447adc88a15e3749bdb2c0641735d20794dea66b074c178d57d6ad6bf51b1887f238b740a9ef3eb4a897d52b677f6e2c9a7df471  gitlab.initd
+sha512sums="0fbd0ce72cbabfb288e076a5b683a007ed5292120da99402221acb6dee9f4130dee545f090e9ddbac1aceafc0ac38a4bbc74b32a76fec5b9d502dda4b423f366  gitlab-ce-9.4.5.tar.gz
+31c65c03a8e4fd1cd0f4e95939137404b96a2551d228e7d5bc0e47cc9cb3893e46e2a58405aba1ce04584a6f64120162db3e5ecd0713bb7ec9256308cafaf187  gitlab.initd
 d56587e94db0f607d4d37dbc1952914e2d6628405b3c2fe9f7548f27ca70f5393bf4fdebc7fa192b9bad7d07706a55cd77a910bd127236422f0f6d4a5a46be25  gitlab.mailroom.initd
 84c51a03e938c39b3081cb55b115148e087a1f58a4b9cc43b76be93aee67b7e04f41f42e6594d5810946a701cf3554ac26851b2f9de91e73927e7ef70945e2ba  gitlab.sidekiq.initd
-607da2cb246d3289b0f2529f541427b4b99cb0ee39f158a0458f9746af0b60417e0271b293c1da1629fd85c9bc7d84755afe39bf6dae851ba6eaaf1878e4f60b  gitlab.confd
+2b771e23326c5e4f590ea1ba5e12bd44d3d6d6515edf8a79cf2722fb7d3968e60887c4b085a474100ac7562f645bff06b8a085755acd4ce533c5837392e749f2  gitlab.confd
 d711d9c0a17a8a6f862f5505da1eb65a701917155207b5864b40e8acfaf958c68a2d8f9b01a92871b3d630e00c78df38b24701e4adcba8f1d35cdc69dedf2df6  gitlab.logrotate
 a944c3886388ba1574bf8c96b6de4d9f24ef4a83f553c31a224e17a3b01f2a5c65b60c59b7ed7ca4b25670c60ea8dd41b96a8a623d909d2bb09bdf2520ed7f23  bin-wrapper.in
-7b81837234c292e4aa623fd7f1ae82eb8466fa54819557c6bddfb62eec7c38a4a8526dbe404068f93f68085e9022355aa5a76544e08f8cc806e06bd34ff24a54  gemfile-exclude-unnecessary-gems.patch
-50579b45d788dcb4010090cfca10f39969c8f53ee22a27c7fc5883f93f253a09b2932ba459db561a0cc050e445d92a6ad0c39a11696435f68c9538c55935d309  dont-hardcode-gitlab_workhorse_secret-path.patch
-d401618c49da62709a3568ab6b9ee616f7c0c4615284665859d2a71f638cc9a69833b5c07f7ed51d7f79a3b7d545c768f60c6012177c1295fd265f50eea480fb  default-configs.patch
-ac9e2b58542ff82ed8c91623c0ed2bd5df94e8ac4978f7aadbaaa90dfdf0f41fd2d3b29deda75311a8d53d0576f22d3f44201d41002f609ae73ba8027cad70fa  dont-dump-schema.patch
-d834c4d8815de2ffc5ffb7e91dfba72b66f4cd39abbe03191db8748d42d0db263063b99bdef72ecfe41b9dad8fafe72891c21df6659447d573bac7f388798bac  fix-setup-task.patch
-cc665efa6d7cdf988115557b892b39b584c90fb27b8e0114459edea826bb2bdd6f331ecceddc601611a235129dac534ea5941380e46e6d021ca339b2e164648f  fix-check-task.patch
-84b21ee18d6472cc6cd5e61b8797572734e3c31440356fa72c7227c18bdafc52db7b8970fbeb26b54c1e9ad229eb464cc00fb9c644ce230f9f75992047837811  replace-sys-filesystem.patch
-99c09ae81f2e553663ec610b4476be692774df363bc4e82796d4f7b7ebf653aa9999abcfa1bd9269bccc79e4fd2f2896f32d5b1458857d003e17fb94b03dec79  gitlab-revision.patch
-2e3b340e018e578f152cfab079a26c789462777356ad8c83ebc5487d623b74ab073e27e448d65320457d9e2fcb84f26827753f5c0f9571f6df8b4ebdec9c1ee5  gemfile-use-local-grpc-and-protobuf.patch
-5f9cb826ef2c2ad3c4da6aed85a1dc9665fc0624454353b1340c62ec1c62354d385e170bbee5b005e1cb70e2d112be49a0a0684435c4eb21655fbb8a67d38a32  fix-latex-formatting-in-asciidoc.patch
-8ac2d0dc81f3090d6c833a8e117723f36b7166813ca9bcec526831c4f54feac537f24a601d6c6f0dd6f654d57e5d9c919442e9d11c6e878688b5a1a816ab3312  gemfile-update-asciidoctor.patch
-f8f7ac799134bd99bdf60f18dbbaf9456a4fc6ad62f34def017b68ec541527f0e7d914b0c99cffe03cc17a346cd313ac924b7da20b1738256b58861a5ff3f911  asciidoc-enable-setanchors-by-default.patch"
+5dc89e77adb9577d7ce387ae245e67133c218cb9b346129f482a7d7856cafeca7f4ac6159047b1deaa211d8605582a1698bfb3ccdeb0445d5128b361c91d629f  gemfile-exclude-unnecessary-gems.patch
+313262ed9bdf6b742c91e60ec6b27d64084b7bbb2569fb001660ff1d54513e5bf3f278774ca683fc594d0e49d4b9e93303d2d06d80c1e36fc2961e9a96bc540d  default-configs.patch
+a7d85acec2486f2292fc5af03b4fa04be1d65e030acc7fab4f33b343a3ac09ecb7bbd9c7e13ed65f6d68293207b0804ea117156594a146fa467b4574c7da0179  dont-dump-schema.patch
+71b5cd6f57cb3b722e8528a5b1fe1fad739bbf146671e90e9be176aaa7eb584f7674b7382c38e469921ea90a3381807cf41d5a59840a1c0c468f24de5da9cfa7  fix-setup-task.patch
+54b684460efadc2bebe97f55a72623fa4c6d5e20e8b838eb16031a57275a2b726696baecc0e9f41dc486e3518088bb1030600571b24093f69d7a69ecb754a3f1  fix-check-task.patch
+b6580385ea9900e26ae4b594699c68da90241ab466a3ec1567b33362cdd92ff3ed972eed562753b1d1f80c1fd0cb6ae7fecb83990f6a9e904b075e7ee025fe57  replace-sys-filesystem.patch
+7c3cafc4c2e54487fe651ea3137f923d291084b03e77e855e7b5893dfab266278956f0be2b6639993c9040f5cff05a9a83afa24052f09981cfc678c7dff7ca13  gitlab-revision.patch
+681b9cd4ddfbd077c69ccf569717fb516560627ab31c32f351d6aaf85464cb1f298de72e3ee3cbcf74fb8510c1e2d5d7160e9b8c8a00679f8ee0282b6d928a4b  gemfile-use-local-grpc.patch
+d23d8d0cacc1050a39ceb89ed132ae5e04d2df9c58abdea9c8bc7b95ed665b9c12a29240cf14efd6492fa5960f7be81a7efcf6003f1b2074e80b0f911ac710b3  gemfile-update-asciidoctor.patch
+f46b783dc0760522ad45f7f83ef2bd4f4161696413193f3bb779cfd0789e8713e3797361dc68e9e73a72dfb0531c64dba9d80f14a9d600eeadfc680abfead4ad  gemfile-update-google-protobuf.patch
+98e12ad483c870dc944369c70fb3f1fea52564d03cad0865017e7247617597bd1d85318f9a5d51826a582147e9f3e3683a152ea9c773714ae7e99343ff93ca6c  asciidoc-enable-setanchors-by-default.patch
+4392608507241eb318c8c42149968a85f5bc379d037612180100135be6612b7da664cef7f004412c19bd8d3c8e4040ef479bae4d4f591aef4372c198f6a7f8fb  dont-load-prometheus-when-not-installed.patch"

@@ -40,6 +40,17 @@
 
 
 #
+# Gitaly
+#
+
+# Path to the Gitaly config file.
+#gitaly_config="/etc/gitlab/gitaly.toml"
+
+# Path to the Gitaly log file.
+#gitaly_logfile="/var/log/gitlab/gitaly.log"
+
+
+#
 # GitLab Workhorse
 #
 

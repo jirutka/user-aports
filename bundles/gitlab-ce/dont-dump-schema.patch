@@ -1,7 +1,7 @@
-From 6001963e5c3678623e843b9f5bde2ac3e615f707 Mon Sep 17 00:00:00 2001
+From 9001674e37757854848dbd858ad8d006d309b254 Mon Sep 17 00:00:00 2001
 From: Jakub Jirutka <jakub@jirutka.cz>
 Date: Wed, 21 Sep 2016 01:02:00 +0200
-Subject: [PATCH 4/8] Disable dumping schema.rb after db:migrate
+Subject: [PATCH 03/10] Disable dumping schema.rb after db:migrate
 
 db/schema.rb is owned by root, so not writable for git user.
 ---
@@ -9,7 +9,7 @@ db/schema.rb is owned by root, so not writable for git user.
  1 file changed, 2 insertions(+)
 
 diff --git a/config/environments/production.rb b/config/environments/production.rb
-index a9d8ac4..05377f7 100644
+index c5cbfcf..3a75977 100644
 --- a/config/environments/production.rb
 +++ b/config/environments/production.rb
 @@ -80,4 +80,6 @@ Rails.application.configure do

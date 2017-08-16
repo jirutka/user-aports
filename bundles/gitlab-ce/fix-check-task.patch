@@ -1,26 +1,28 @@
-From 4bf8e79f6d4f20b65035b90a66d5ed740651a23f Mon Sep 17 00:00:00 2001
+From b2464aabf37637189549db9cd2fb05b2c87c73d0 Mon Sep 17 00:00:00 2001
 From: Jakub Jirutka <jakub@jirutka.cz>
 Date: Tue, 20 Sep 2016 23:51:00 +0200
-Subject: [PATCH 6/8] Disable checking init script in gitlab:check task
+Subject: [PATCH 05/10] Disable checking init script in gitlab:check task
 
 ---
- lib/tasks/gitlab/check.rake | 9 +--------
- 1 file changed, 1 insertion(+), 8 deletions(-)
+ lib/tasks/gitlab/check.rake | 11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
 
 diff --git a/lib/tasks/gitlab/check.rake b/lib/tasks/gitlab/check.rake
-index a9a48f7..8dd19b1 100644
+index 858f1cd..bab6b0d 100644
 --- a/lib/tasks/gitlab/check.rake
 +++ b/lib/tasks/gitlab/check.rake
-@@ -22,7 +22,7 @@ namespace :gitlab do
-       check_tmp_writable
-       check_uploads
-       check_init_script_exists
--      check_init_script_up_to_date
-+      #check_init_script_up_to_date  we use different init scripts
-       check_projects_have_namespace
-       check_redis_version
-       check_ruby_version
-@@ -586,13 +586,6 @@ namespace :gitlab do
+@@ -27,8 +27,8 @@ namespace :gitlab do
+         SystemCheck::App::UploadsDirectoryExistsCheck,
+         SystemCheck::App::UploadsPathPermissionCheck,
+         SystemCheck::App::UploadsPathTmpPermissionCheck,
+-        SystemCheck::App::InitScriptExistsCheck,
+-        SystemCheck::App::InitScriptUpToDateCheck,
++        #SystemCheck::App::InitScriptExistsCheck,
++        #SystemCheck::App::InitScriptUpToDateCheck,
+         SystemCheck::App::ProjectsHaveNamespaceCheck,
+         SystemCheck::App::RedisVersionCheck,
+         SystemCheck::App::RubyVersionCheck,
+@@ -272,13 +272,6 @@ namespace :gitlab do
          puts "yes".color(:green)
        else
          puts "no".color(:red)
