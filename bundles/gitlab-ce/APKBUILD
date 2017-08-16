@@ -3,10 +3,10 @@
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
 pkgver=9.1.8
-pkgrel=1
+pkgrel=2
 pkgdesc="A version control for your server"
 url="https://github.com/gitlabhq/gitlabhq"
-arch=""  # XXX: Temporarily disabled due to problem with ruby-google-protobuf.
+arch="all"
 license="MIT"
 _rubyslot=""
 # ruby-irb is needed only for Rails console (gitlab-rails console)
@@ -39,11 +39,11 @@ makedepends="
 	linux-headers
 	libressl-dev
 	postgresql-dev
+	protobuf-dev
 	nodejs>=4.3.0
 	re2-dev
 	ruby$_rubyslot-dev
 	ruby$_rubyslot-grpc
-	ruby$_rubyslot-google-protobuf
 	yarn>=0.17.0
 	"
 pkgusers="git"
@@ -104,21 +104,14 @@ prepare() {
 		config/environments/development.rb \
 		config/environments/test.rb
 
-	# These Google gems are totally messed, so we can't install them from
+	# This Google gem is totally messed, so we can't install it from
 	# RubyGems using Bundler.
-	# XXX: google-protobuf can be installed via Bundler after upgrade
-	# to Alpine v3.6.
-	local name; for name in grpc google-protobuf; do
-		mkdir -p vendor/gems/$name
-
-		cp -r "$sysgemdir"/gems/$name-*/* vendor/gems/$name/
-		cp "$sysgemdir"/specifications/$name-*.gemspec \
-			vendor/gems/$name/$name.gemspec
-	done
+	mkdir -p vendor/gems/grpc
+	cp -r "$sysgemdir"/gems/grpc-*/* vendor/gems/grpc/
+	cp "$sysgemdir"/specifications/grpc-*.gemspec \
+			vendor/gems/grpc/grpc.gemspec
 	cp "$sysgemdir"/extensions/*/*/grpc-*/grpc/grpc_c.so \
 		vendor/gems/grpc/src/ruby/lib/grpc/
-	cp "$sysgemdir"/extensions/*/*/google-protobuf-*/google/protobuf_c.so \
-		vendor/gems/google-protobuf/lib/google/
 }
 
 build() {
