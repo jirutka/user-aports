@@ -6,10 +6,10 @@
 pkgname=ruby-grpc
 _pkgname=grpc
 pkgver=1.3.2
-pkgrel=1
+pkgrel=0
 pkgdesc="An RPC library and framework"
 url="https://github.com/grpc/grpc"
-arch=""  # XXX: Temporarily disabled due to problem with ruby-google-protobuf.
+arch="all"
 license="BSD3"
 depends="ruby-google-protobuf"
 makedepends="c-ares-dev libressl-dev ruby ruby-dev zlib-dev"
