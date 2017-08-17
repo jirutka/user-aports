@@ -4,6 +4,7 @@ name="Gitaly"
 description="A Git RPC service for handling all the git calls made by GitLab"
 
 : ${gitaly_config:="/etc/gitlab/gitaly.toml"}
+: ${gitaly_logfile:="/var/log/gitlab/gitaly.log"}
 
 command="/usr/bin/gitaly"
 command_args="$gitaly_config"
@@ -13,7 +14,8 @@ user="git"
 start_stop_daemon_args="
 	--user $user
 	--stdout $gitaly_logfile
-	--stderr $gitaly_logfile"
+	--stderr $gitaly_logfile
+	--env TZ=:/etc/localtime"
 pidfile="/run/$RC_SVCNAME.pid"
 
 required_files="$gitaly_config"

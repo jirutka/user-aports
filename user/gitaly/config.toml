@@ -1,6 +1,6 @@
 # Gitaly configuration file
 
-socket_path = "/run/gitaly/gitaly.socket"
+socket_path = "/run/gitlab/gitaly.socket"
 
 # Optional: listen on a TCP socket. This is insecure (no authentication)
 #listen_addr = "localhost:9999"
