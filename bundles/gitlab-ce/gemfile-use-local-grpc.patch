@@ -1,4 +1,4 @@
-From c69e2157c41d364efea5e4b6350dd6ead86c3c4f Mon Sep 17 00:00:00 2001
+From 18fe032f7a7745380996495543848f8501a61663 Mon Sep 17 00:00:00 2001
 From: Jakub Jirutka <jakub@jirutka.cz>
 Date: Sat, 20 May 2017 21:44:42 +0200
 Subject: [PATCH 08/10] Don't fetch grpc gem from RubyGems
@@ -15,10 +15,10 @@ copy it into vendor/gems/ before running bundler.
  2 files changed, 10 insertions(+), 3 deletions(-)
 
 diff --git a/Gemfile b/Gemfile
-index 64385c0..32da951 100644
+index 2b36b97..84e26c2 100644
 --- a/Gemfile
 +++ b/Gemfile
-@@ -392,6 +392,9 @@ gem 'sys-filesystem', '~> 1.1.6', group: :exclude
+@@ -389,6 +389,9 @@ gem 'sys-filesystem', '~> 1.1.6', group: :exclude
  # Gitaly GRPC client
  gem 'gitaly', '~> 0.14.0'
  
@@ -29,7 +29,7 @@ index 64385c0..32da951 100644
  
  # Feature toggles
 diff --git a/Gemfile.lock b/Gemfile.lock
-index c607c7e..54649f9 100644
+index 0132ee3..d5b510d 100644
 --- a/Gemfile.lock
 +++ b/Gemfile.lock
 @@ -1,3 +1,9 @@
@@ -42,7 +42,7 @@ index c607c7e..54649f9 100644
  GEM
    remote: https://rubygems.org/
    specs:
-@@ -352,9 +358,6 @@ GEM
+@@ -353,9 +359,6 @@ GEM
      grape-entity (0.6.0)
        activesupport
        multi_json (>= 1.3.2)
@@ -52,7 +52,7 @@ index c607c7e..54649f9 100644
      haml (4.0.7)
        tilt
      haml_lint (0.21.0)
-@@ -988,6 +991,7 @@ DEPENDENCIES
+@@ -989,6 +992,7 @@ DEPENDENCIES
    google-api-client (~> 0.8.6)
    grape (~> 0.19.0)
    grape-entity (~> 0.6.0)
