@@ -1,0 +1,270 @@
+From 2a2bca0b6999228d97c43d83f86e12b48d946dc0 Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Tue, 12 Sep 2017 12:30:36 +0200
+Subject: [PATCH 1/2] Add asciidoctor-html5s and new styles for AsciiDoc
+
+---
+ Gemfile                                           |   1 +
+ Gemfile.lock                                      |   4 +
+ app/assets/stylesheets/framework/asciidoctor.scss | 169 ++++++++++++++++++++--
+ lib/banzai/filter/syntax_highlight_filter.rb      |   2 +-
+ lib/gitlab/asciidoc.rb                            |   4 +-
+ 5 files changed, 163 insertions(+), 17 deletions(-)
+
+diff --git a/Gemfile b/Gemfile
+index 84e26c2..54f071e 100644
+--- a/Gemfile
++++ b/Gemfile
+@@ -120,6 +120,7 @@ gem 'org-ruby', '~> 0.9.12'
+ gem 'creole', '~> 0.5.0'
+ gem 'wikicloth', '0.8.1'
+ gem 'asciidoctor', '~> 1.5.2'
++gem 'asciidoctor-html5s', '= 0.1.0.beta.3'
+ gem 'asciidoctor-plantuml', '0.0.7'
+ gem 'rouge', '~> 2.0'
+ gem 'truncato', '~> 0.7.9'
+diff --git a/Gemfile.lock b/Gemfile.lock
+index 283f360..e81608a 100644
+--- a/Gemfile.lock
++++ b/Gemfile.lock
+@@ -59,6 +59,9 @@ GEM
+       faraday_middleware-multi_json (~> 0.0)
+       oauth2 (~> 1.0)
+     asciidoctor (1.5.6.1)
++    asciidoctor-html5s (0.1.0.beta.3)
++      asciidoctor (~> 1.5.5)
++      thread_safe (~> 0.3.4)
+     asciidoctor-plantuml (0.0.7)
+       asciidoctor (~> 1.5)
+     ast (2.3.0)
+@@ -924,6 +927,7 @@ DEPENDENCIES
+   allocations (~> 1.0)
+   asana (~> 0.6.0)
+   asciidoctor (~> 1.5.2)
++  asciidoctor-html5s (= 0.1.0.beta.3)
+   asciidoctor-plantuml (= 0.0.7)
+   attr_encrypted (~> 3.0.0)
+   awesome_print (~> 1.2.0)
+diff --git a/app/assets/stylesheets/framework/asciidoctor.scss b/app/assets/stylesheets/framework/asciidoctor.scss
+index 62493c3..9dbed9a 100644
+--- a/app/assets/stylesheets/framework/asciidoctor.scss
++++ b/app/assets/stylesheets/framework/asciidoctor.scss
+@@ -1,27 +1,168 @@
+-.admonitionblock td.icon {
+-  width: 1%;
++// Rules for asciidoctor-html5s converter.
+ 
+-  [class^="fa icon-"] {
+-    @extend .fa-2x;
++.wiki {
++  .doc-section {
++    // This substitutes margin-top on h1-6 that is zeroed by :first-child rule.
++    margin-top: 24px;
+   }
+ 
+-  .icon-note {
+-    @extend .fa-thumb-tack;
++  .block-title {
++    font-size: 1em;
++    margin: ($gl-padding / 2) 0;
+   }
+ 
+-  .icon-tip {
+-    @extend .fa-lightbulb-o;
++  .toc {
++    margin: $gl-padding 0;
+   }
+ 
+-  .icon-warning {
+-    @extend .fa-exclamation-triangle;
++  .toc-list {
++    list-style-type: none;
++    margin: 0;
++
++    li:before {
++      content: "›\00a0";
++      margin-left: -$gl-padding;
++    }
++  }
++
++  figure {
++    margin: ($gl-padding * 1.5) 0;
++
++    // FIXME
++    & > img {
++      margin-bottom: 0 !important;
++    }
++  }
++
++  figcaption {
++    font-weight: 600;
++    margin: ($gl-padding / 2) 0;
++  }
++
++  // FIXME
++  figcaption + *,
++  .block-title + * {
++    margin-top: 0 !important;
+   }
+ 
+-  .icon-caution {
+-    @extend .fa-fire;
++  // Override some extern rule that mess with footer.
++  blockquote > footer {
++    color: inherit;
++
++    &:before {
++      content: normal;
++    }
++  }
++
++  dt {
++    margin-bottom: $gl-padding / 2;
++  }
++
++  dd {
++    margin-left: 1em;
++  }
++
++  .menuseq b.caret {
++    @extend .fa-angle-right;
+   }
+ 
+-  .icon-important {
+-    @extend .fa-exclamation-circle;
++  // Code callouts list, styled as numbers in black circles.
++  .callout-list {
++    counter-reset: callout-list;
++    list-style-type: none;
++    margin-top: -$gl-padding / 2;
++    margin-bottom: $gl-padding * 1.5;
++
++    & > li:before {
++      display: inline-block;
++      background-color: $black;
++      border-radius: 50%;
++      color: $white-light;
++      content: counter(callout-list);
++      counter-increment: callout-list;
++      text-align: center;
++      font-size: 0.85em;
++      line-height: 1.4em;
++      margin-left: -2em;
++      margin-right: 0.6em;
++      height: 1.4em;
++      width: 1.4em;
++    }
++  }
++
++  .example-block > .example {
++    background-color: $gray-normal;
++    border: 1px solid $border-color;
++    border-radius: $border-radius-default;
++    padding: $gl-padding;
++    padding-bottom: 0;
++    margin: $gl-padding 0;
++  }
++
++  .admonition-block {
++    border: 1px solid $border-color;
++    border-radius: $border-radius-default;
++    display: flex;
++    flex-direction: column;
++    margin-bottom: $gl-padding;
++    padding: $gl-padding $gl-padding 0 4.2em;
++    position: relative;
++    width: 100%;
++
++    &:before {
++      position: absolute;
++      top: 0;
++      bottom: 0;
++      left: 0;
++      margin: auto 0;
++      height: 1.8em;
++      width: 2.4em;
++
++      font-family: FontAwesome;
++      font-size: 1.8em;
++      line-height: 1.8em;
++      text-align: center;
++    }
++
++    &.note,
++    &.tip {
++      background-color: #ffffef;
++    }
++
++    &.warning,
++    &.caution,
++    &.important {
++      background-color: #ffefef;
++    }
++
++    &.note:before {
++      @extend .fa-thumb-tack;
++    }
++
++    &.tip:before {
++      @extend .fa-lightbulb-o;
++    }
++
++    &.warning:before {
++      @extend .fa-exclamation-triangle;
++    }
++
++    &.caution:before {
++      @extend .fa-bolt;
++    }
++
++    &.important:before {
++      @extend .fa-exclamation-circle;
++    }
++
++    .block-title {
++      margin-bottom: $gl-padding;
++    }
++
++    // e.g. "Warning: "
++    .block-title.label-only,
++    .title-label {
++      display: none;
++    }
+   }
+ }
+diff --git a/lib/banzai/filter/syntax_highlight_filter.rb b/lib/banzai/filter/syntax_highlight_filter.rb
+index 7da5650..faa749c 100644
+--- a/lib/banzai/filter/syntax_highlight_filter.rb
++++ b/lib/banzai/filter/syntax_highlight_filter.rb
+@@ -14,7 +14,7 @@ module Banzai
+       end
+ 
+       def highlight_node(node)
+-        language = node.attr('lang')
++        language = node.attr('lang') || node.attr('data-lang')
+         code = node.text
+         css_classes = "code highlight"
+         lexer = lexer_for(language)
+diff --git a/lib/gitlab/asciidoc.rb b/lib/gitlab/asciidoc.rb
+index 8cfaa01..9986da1 100644
+--- a/lib/gitlab/asciidoc.rb
++++ b/lib/gitlab/asciidoc.rb
+@@ -1,5 +1,5 @@
+ require 'asciidoctor'
+-require 'asciidoctor/converter/html5'
++require 'asciidoctor-html5s'
+ require 'asciidoctor/extensions'
+ require "asciidoctor-plantuml"
+ 
+@@ -46,7 +46,7 @@ module Gitlab
+       end
+     end
+ 
+-    class Html5Converter < Asciidoctor::Converter::Html5Converter
++    class Html5Converter < Asciidoctor::Html5s::Converter
+       extend Asciidoctor::Converter::Config
+ 
+       register_for 'gitlab_html5'
+-- 
+2.10.1 (Apple Git-78)
+
