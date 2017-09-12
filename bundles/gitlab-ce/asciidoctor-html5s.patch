@@ -1,18 +1,19 @@
-From 2a2bca0b6999228d97c43d83f86e12b48d946dc0 Mon Sep 17 00:00:00 2001
+From 2e7614ac97fc8468eed6fb9ad154f844dc815342 Mon Sep 17 00:00:00 2001
 From: Jakub Jirutka <jakub@jirutka.cz>
 Date: Tue, 12 Sep 2017 12:30:36 +0200
-Subject: [PATCH 1/2] Add asciidoctor-html5s and new styles for AsciiDoc
+Subject: [PATCH] Add asciidoctor-html5s and new styles for AsciiDoc
 
 ---
  Gemfile                                           |   1 +
  Gemfile.lock                                      |   4 +
  app/assets/stylesheets/framework/asciidoctor.scss | 169 ++++++++++++++++++++--
  lib/banzai/filter/syntax_highlight_filter.rb      |   2 +-
+ lib/banzai/pipeline/ascii_doc_pipeline.rb         |   1 +
  lib/gitlab/asciidoc.rb                            |   4 +-
- 5 files changed, 163 insertions(+), 17 deletions(-)
+ 6 files changed, 164 insertions(+), 17 deletions(-)
 
 diff --git a/Gemfile b/Gemfile
-index 84e26c2..54f071e 100644
+index 84e26c2..b087d06 100644
 --- a/Gemfile
 +++ b/Gemfile
 @@ -120,6 +120,7 @@ gem 'org-ruby', '~> 0.9.12'
@@ -24,7 +25,7 @@ index 84e26c2..54f071e 100644
  gem 'rouge', '~> 2.0'
  gem 'truncato', '~> 0.7.9'
 diff --git a/Gemfile.lock b/Gemfile.lock
-index 283f360..e81608a 100644
+index 283f360..689c929 100644
 --- a/Gemfile.lock
 +++ b/Gemfile.lock
 @@ -59,6 +59,9 @@ GEM
@@ -46,7 +47,7 @@ index 283f360..e81608a 100644
    attr_encrypted (~> 3.0.0)
    awesome_print (~> 1.2.0)
 diff --git a/app/assets/stylesheets/framework/asciidoctor.scss b/app/assets/stylesheets/framework/asciidoctor.scss
-index 62493c3..9dbed9a 100644
+index 62493c3..77839f1 100644
 --- a/app/assets/stylesheets/framework/asciidoctor.scss
 +++ b/app/assets/stylesheets/framework/asciidoctor.scss
 @@ -1,27 +1,168 @@
@@ -245,6 +246,18 @@ index 7da5650..faa749c 100644
          code = node.text
          css_classes = "code highlight"
          lexer = lexer_for(language)
+diff --git a/lib/banzai/pipeline/ascii_doc_pipeline.rb b/lib/banzai/pipeline/ascii_doc_pipeline.rb
+index 1048b92..63bc05c 100644
+--- a/lib/banzai/pipeline/ascii_doc_pipeline.rb
++++ b/lib/banzai/pipeline/ascii_doc_pipeline.rb
+@@ -6,6 +6,7 @@ module Banzai
+           Filter::SanitizationFilter,
+           Filter::ExternalLinkFilter,
+           Filter::PlantumlFilter,
++          Filter::SyntaxHighlightFilter,
+           Filter::AsciiDocPostProcessingFilter
+         ]
+       end
 diff --git a/lib/gitlab/asciidoc.rb b/lib/gitlab/asciidoc.rb
 index 8cfaa01..9986da1 100644
 --- a/lib/gitlab/asciidoc.rb

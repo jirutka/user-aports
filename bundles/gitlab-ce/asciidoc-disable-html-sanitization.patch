@@ -18,7 +18,7 @@ index 1048b92..1371051 100644
 -          Filter::SanitizationFilter,
            Filter::ExternalLinkFilter,
            Filter::PlantumlFilter,
-           Filter::AsciiDocPostProcessingFilter
+           Filter::SyntaxHighlightFilter,
 -- 
 2.10.1 (Apple Git-78)
 
