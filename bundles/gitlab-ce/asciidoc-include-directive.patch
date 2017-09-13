@@ -1,4 +1,4 @@
-From a0658c840735eb081c0c90e0ab4d3c985f7d9405 Mon Sep 17 00:00:00 2001
+From 3dc2478030c52106ed3a5c2bdc15bdedf6339cf6 Mon Sep 17 00:00:00 2001
 From: Jakub Jirutka <jakub@jirutka.cz>
 Date: Fri, 1 Sep 2017 02:18:32 +0200
 Subject: [PATCH] Add basic support for AsciiDoc include directive
@@ -7,9 +7,9 @@ See http://asciidoctor.org/docs/user-manual/#include-directive
 
 Upstream-PR: https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/13978
 ---
- app/helpers/markup_helper.rb |   5 +++
- lib/gitlab/asciidoc.rb       | 102 ++++++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 106 insertions(+), 1 deletion(-)
+ app/helpers/markup_helper.rb |   5 ++
+ lib/gitlab/asciidoc.rb       | 107 ++++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 111 insertions(+), 1 deletion(-)
 
 diff --git a/app/helpers/markup_helper.rb b/app/helpers/markup_helper.rb
 index 941cfce..50a171d 100644
@@ -28,7 +28,7 @@ index 941cfce..50a171d 100644
    end
  
 diff --git a/lib/gitlab/asciidoc.rb b/lib/gitlab/asciidoc.rb
-index 2a84322..596ffe2 100644
+index 2a84322..bdf632b 100644
 --- a/lib/gitlab/asciidoc.rb
 +++ b/lib/gitlab/asciidoc.rb
 @@ -1,5 +1,6 @@
@@ -57,7 +57,7 @@ index 2a84322..596ffe2 100644
  
        context[:pipeline] = :ascii_doc
  
-@@ -62,5 +69,98 @@ module Gitlab
+@@ -62,5 +69,103 @@ module Gitlab
          node.id ? %( id="#{node.id}") : nil
        end
      end
@@ -81,9 +81,14 @@ index 2a84322..596ffe2 100644
 +      def process(doc, reader, target, attributes)
 +        return reader unless @repository.try(:exists?)
 +
-+        path = resolve_relative_path(target, requested_path)
-+        blob = @repository.blob_at(ref, path)
++        # Resolve relative target path against the requested path (path of the
++        # file user wants to see), or against path of the currently processed
++        # include if processing nested include (i.e. A includes B,
++        # B includes C, ...).
++        base_path = reader.include_stack.empty? ? requested_path : reader.file
++        path = resolve_relative_path(target, base_path)
 +
++        blob = @repository.blob_at(ref, path)
 +        error = if blob.nil?
 +                  'Unresolved path'
 +                elsif !blob.readable_text?
@@ -92,7 +97,7 @@ index 2a84322..596ffe2 100644
 +                  'Maximum depth exceeded'
 +                end
 +        if error
-+          reader.replace_line("*[ include::#{target}[] - #{error} ]*")
++          reader.replace_line("*[ERROR: include::#{target}[] - #{error}]*")
 +        else
 +          reader.push_include(blob.data, path, target, 1, attributes)
 +        end
