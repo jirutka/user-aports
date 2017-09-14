@@ -20,7 +20,7 @@ index 84e26c2..b087d06 100644
  gem 'creole', '~> 0.5.0'
  gem 'wikicloth', '0.8.1'
  gem 'asciidoctor', '~> 1.5.2'
-+gem 'asciidoctor-html5s', '= 0.1.0.beta.3'
++gem 'asciidoctor-html5s', '= 0.1.0.beta.4'
  gem 'asciidoctor-plantuml', '0.0.7'
  gem 'rouge', '~> 2.0'
  gem 'truncato', '~> 0.7.9'
@@ -32,7 +32,7 @@ index 283f360..689c929 100644
        faraday_middleware-multi_json (~> 0.0)
        oauth2 (~> 1.0)
      asciidoctor (1.5.6.1)
-+    asciidoctor-html5s (0.1.0.beta.3)
++    asciidoctor-html5s (0.1.0.beta.4)
 +      asciidoctor (~> 1.5.5)
 +      thread_safe (~> 0.3.4)
      asciidoctor-plantuml (0.0.7)
@@ -42,7 +42,7 @@ index 283f360..689c929 100644
    allocations (~> 1.0)
    asana (~> 0.6.0)
    asciidoctor (~> 1.5.2)
-+  asciidoctor-html5s (= 0.1.0.beta.3)
++  asciidoctor-html5s (= 0.1.0.beta.4)
    asciidoctor-plantuml (= 0.0.7)
    attr_encrypted (~> 3.0.0)
    awesome_print (~> 1.2.0)
