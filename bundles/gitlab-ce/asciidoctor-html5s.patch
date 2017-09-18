@@ -1,34 +1,35 @@
-From 2e7614ac97fc8468eed6fb9ad154f844dc815342 Mon Sep 17 00:00:00 2001
+From e4d546147b3bf7f0b5df83244447d8e6e3ef6c2d Mon Sep 17 00:00:00 2001
 From: Jakub Jirutka <jakub@jirutka.cz>
 Date: Tue, 12 Sep 2017 12:30:36 +0200
-Subject: [PATCH] Add asciidoctor-html5s and new styles for AsciiDoc
+Subject: [PATCH] Significantly improve AsciiDoc rendering
 
 ---
- Gemfile                                           |   1 +
- Gemfile.lock                                      |   4 +
- app/assets/stylesheets/framework/asciidoctor.scss | 169 ++++++++++++++++++++--
- lib/banzai/filter/syntax_highlight_filter.rb      |   2 +-
- lib/banzai/pipeline/ascii_doc_pipeline.rb         |   1 +
- lib/gitlab/asciidoc.rb                            |   4 +-
- 6 files changed, 164 insertions(+), 17 deletions(-)
+ Gemfile                                            |   2 +
+ Gemfile.lock                                       |   8 +
+ app/assets/stylesheets/framework/asciidoctor.scss  | 180 +++++++++++++++++++--
+ .../filter/ascii_doc_post_processing_filter.rb     |  12 ++
+ lib/gitlab/asciidoc.rb                             |  11 +-
+ 5 files changed, 196 insertions(+), 17 deletions(-)
 
 diff --git a/Gemfile b/Gemfile
-index 84e26c2..b087d06 100644
+index 84e26c2..fc31dbc 100644
 --- a/Gemfile
 +++ b/Gemfile
-@@ -120,6 +120,7 @@ gem 'org-ruby', '~> 0.9.12'
+@@ -120,7 +120,9 @@ gem 'org-ruby', '~> 0.9.12'
  gem 'creole', '~> 0.5.0'
  gem 'wikicloth', '0.8.1'
  gem 'asciidoctor', '~> 1.5.2'
 +gem 'asciidoctor-html5s', '= 0.1.0.beta.4'
  gem 'asciidoctor-plantuml', '0.0.7'
++gem 'asciidoctor-rouge', '~> 0.1.0', require: false
  gem 'rouge', '~> 2.0'
  gem 'truncato', '~> 0.7.9'
+ gem 'bootstrap_form', '~> 2.7.0'
 diff --git a/Gemfile.lock b/Gemfile.lock
-index 283f360..689c929 100644
+index 283f360..26b883a 100644
 --- a/Gemfile.lock
 +++ b/Gemfile.lock
-@@ -59,6 +59,9 @@ GEM
+@@ -59,8 +59,14 @@ GEM
        faraday_middleware-multi_json (~> 0.0)
        oauth2 (~> 1.0)
      asciidoctor (1.5.6.1)
@@ -37,20 +38,27 @@ index 283f360..689c929 100644
 +      thread_safe (~> 0.3.4)
      asciidoctor-plantuml (0.0.7)
        asciidoctor (~> 1.5)
++    asciidoctor-rouge (0.1.0)
++      asciidoctor (~> 1.5.6)
++      rouge (~> 2.2)
      ast (2.3.0)
-@@ -924,6 +927,7 @@ DEPENDENCIES
+     atomic (1.1.99)
+     attr_encrypted (3.0.3)
+@@ -924,7 +930,9 @@ DEPENDENCIES
    allocations (~> 1.0)
    asana (~> 0.6.0)
    asciidoctor (~> 1.5.2)
 +  asciidoctor-html5s (= 0.1.0.beta.4)
    asciidoctor-plantuml (= 0.0.7)
++  asciidoctor-rouge (~> 0.1.0)
    attr_encrypted (~> 3.0.0)
    awesome_print (~> 1.2.0)
+   babosa (~> 1.0.2)
 diff --git a/app/assets/stylesheets/framework/asciidoctor.scss b/app/assets/stylesheets/framework/asciidoctor.scss
-index 62493c3..77839f1 100644
+index 62493c3..c9d3542 100644
 --- a/app/assets/stylesheets/framework/asciidoctor.scss
 +++ b/app/assets/stylesheets/framework/asciidoctor.scss
-@@ -1,27 +1,168 @@
+@@ -1,27 +1,179 @@
 -.admonitionblock td.icon {
 -  width: 1%;
 +// Rules for asciidoctor-html5s converter.
@@ -58,26 +66,40 @@ index 62493c3..77839f1 100644
 -  [class^="fa icon-"] {
 -    @extend .fa-2x;
 +.wiki {
++  @mixin black-circle-bg {
++    display: inline-block;
++    background-color: $black;
++    border-radius: 50%;
++    color: $white-light;
++    text-align: center;
++    font-size: 0.85em;
++    line-height: 1.4em;
++    height: 1.4em;
++    width: 1.4em;
+   }
+ 
+-  .icon-note {
+-    @extend .fa-thumb-tack;
 +  .doc-section {
 +    // This substitutes margin-top on h1-6 that is zeroed by :first-child rule.
 +    margin-top: 24px;
    }
  
--  .icon-note {
--    @extend .fa-thumb-tack;
+-  .icon-tip {
+-    @extend .fa-lightbulb-o;
 +  .block-title {
 +    font-size: 1em;
 +    margin: ($gl-padding / 2) 0;
    }
  
--  .icon-tip {
--    @extend .fa-lightbulb-o;
+-  .icon-warning {
+-    @extend .fa-exclamation-triangle;
 +  .toc {
 +    margin: $gl-padding 0;
    }
  
--  .icon-warning {
--    @extend .fa-exclamation-triangle;
+-  .icon-caution {
+-    @extend .fa-fire;
 +  .toc-list {
 +    list-style-type: none;
 +    margin: 0;
@@ -106,10 +128,8 @@ index 62493c3..77839f1 100644
 +  figcaption + *,
 +  .block-title + * {
 +    margin-top: 0 !important;
-   }
- 
--  .icon-caution {
--    @extend .fa-fire;
++  }
++
 +  // Override some extern rule that mess with footer.
 +  blockquote > footer {
 +    color: inherit;
@@ -117,8 +137,10 @@ index 62493c3..77839f1 100644
 +    &:before {
 +      content: normal;
 +    }
-+  }
-+
+   }
+ 
+-  .icon-important {
+-    @extend .fa-exclamation-circle;
 +  dt {
 +    margin-bottom: $gl-padding / 2;
 +  }
@@ -129,10 +151,15 @@ index 62493c3..77839f1 100644
 +
 +  .menuseq b.caret {
 +    @extend .fa-angle-right;
-   }
- 
--  .icon-important {
--    @extend .fa-exclamation-circle;
++  }
++
++  // Code callout (a mark inside the code).
++  .code b.conum {
++    @include black-circle-bg;
++    font-weight: normal;
++    font-family: $regular_font;
++  }
++
 +  // Code callouts list, styled as numbers in black circles.
 +  .callout-list {
 +    counter-reset: callout-list;
@@ -141,19 +168,11 @@ index 62493c3..77839f1 100644
 +    margin-bottom: $gl-padding * 1.5;
 +
 +    & > li:before {
-+      display: inline-block;
-+      background-color: $black;
-+      border-radius: 50%;
-+      color: $white-light;
++      @include black-circle-bg;
 +      content: counter(callout-list);
 +      counter-increment: callout-list;
-+      text-align: center;
-+      font-size: 0.85em;
-+      line-height: 1.4em;
 +      margin-left: -2em;
 +      margin-right: 0.6em;
-+      height: 1.4em;
-+      width: 1.4em;
 +    }
 +  }
 +
@@ -233,43 +252,60 @@ index 62493c3..77839f1 100644
 +    }
    }
  }
-diff --git a/lib/banzai/filter/syntax_highlight_filter.rb b/lib/banzai/filter/syntax_highlight_filter.rb
-index 7da5650..faa749c 100644
---- a/lib/banzai/filter/syntax_highlight_filter.rb
-+++ b/lib/banzai/filter/syntax_highlight_filter.rb
-@@ -14,7 +14,7 @@ module Banzai
-       end
+diff --git a/lib/banzai/filter/ascii_doc_post_processing_filter.rb b/lib/banzai/filter/ascii_doc_post_processing_filter.rb
+index c9fcf05..c401bd7 100644
+--- a/lib/banzai/filter/ascii_doc_post_processing_filter.rb
++++ b/lib/banzai/filter/ascii_doc_post_processing_filter.rb
+@@ -6,6 +6,18 @@ module Banzai
+           node.set_attribute('class', 'code math js-render-math')
+         end
  
-       def highlight_node(node)
--        language = node.attr('lang')
-+        language = node.attr('lang') || node.attr('data-lang')
-         code = node.text
-         css_classes = "code highlight"
-         lexer = lexer_for(language)
-diff --git a/lib/banzai/pipeline/ascii_doc_pipeline.rb b/lib/banzai/pipeline/ascii_doc_pipeline.rb
-index 1048b92..63bc05c 100644
---- a/lib/banzai/pipeline/ascii_doc_pipeline.rb
-+++ b/lib/banzai/pipeline/ascii_doc_pipeline.rb
-@@ -6,6 +6,7 @@ module Banzai
-           Filter::SanitizationFilter,
-           Filter::ExternalLinkFilter,
-           Filter::PlantumlFilter,
-+          Filter::SyntaxHighlightFilter,
-           Filter::AsciiDocPostProcessingFilter
-         ]
++        doc.search('.rouge.highlight > code').each do |code|
++          lang = code.attr('data-lang')
++          pre = code.parent
++
++          code.remove_attribute('data-lang')
++          code.remove_attribute('class')
++
++          pre.set_attribute('class', "code highlight js-syntax-highlight #{lang}")
++          pre.set_attribute('lang', lang)
++          pre.set_attribute('v-pre', 'true')
++        end
++
+         doc
        end
+     end
 diff --git a/lib/gitlab/asciidoc.rb b/lib/gitlab/asciidoc.rb
-index 8cfaa01..9986da1 100644
+index b7ff4c6..6717c8d 100644
 --- a/lib/gitlab/asciidoc.rb
 +++ b/lib/gitlab/asciidoc.rb
-@@ -1,5 +1,5 @@
+@@ -1,7 +1,8 @@
  require 'asciidoctor'
 -require 'asciidoctor/converter/html5'
-+require 'asciidoctor-html5s'
  require 'asciidoctor/extensions'
++require 'asciidoctor-html5s'
  require "asciidoctor-plantuml"
++require 'asciidoctor/rouge/treeprocessor'
  
-@@ -46,7 +46,7 @@ module Gitlab
+ module Gitlab
+   # Parser/renderer for the AsciiDoc format that uses Asciidoctor and filters
+@@ -9,10 +10,14 @@ module Gitlab
+   module Asciidoc
+     DEFAULT_ADOC_ATTRS = [
+       'showtitle', 'idprefix=user-content-', 'idseparator=-', 'env=gitlab',
+-      'env-gitlab', 'source-highlighter=html-pipeline', 'icons=font',
++      'env-gitlab', 'source-highlighter=rouge', 'icons=font',
+       'sectanchors'
+     ].freeze
+ 
++    Asciidoctor::Extensions.register do
++      treeprocessor Asciidoctor::Rouge::Treeprocessor.new(formatter_opts: { line_id: 'LC%i' })
++    end
++
+     # Public: Converts the provided Asciidoc markup into HTML.
+     #
+     # input         - the source text in Asciidoc format
+@@ -46,7 +51,7 @@ module Gitlab
        end
      end
  

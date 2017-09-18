@@ -1,0 +1,59 @@
+From f3222936c813f1ef8daf52be9397258d2ad68595 Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Thu, 14 Sep 2017 16:55:13 +0200
+Subject: [PATCH] Fix /help page
+
+This reverts commit 7188b4d83989dcfcc672f88e19d1ddb550b4917a -
+Make the revision on the `/help` page clickable.
+---
+ app/views/help/index.html.haml          | 2 +-
+ lib/gitlab.rb                           | 4 +---
+ spec/views/help/index.html.haml_spec.rb | 2 +-
+ 3 files changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/app/views/help/index.html.haml b/app/views/help/index.html.haml
+index c25eae6..528f551 100644
+--- a/app/views/help/index.html.haml
++++ b/app/views/help/index.html.haml
+@@ -9,7 +9,7 @@
+     Community Edition
+     - if user_signed_in?
+       %span= Gitlab::VERSION
+-      %small= link_to Gitlab::REVISION, Gitlab::COM_URL + namespace_project_commits_path('gitlab-org', 'gitlab-ce', Gitlab::REVISION)
++      %small= Gitlab::REVISION
+       = version_status_badge
+   %p.slead
+     GitLab is open source software to collaborate on code.
+diff --git a/lib/gitlab.rb b/lib/gitlab.rb
+index 11f7c8b..c306416 100644
+--- a/lib/gitlab.rb
++++ b/lib/gitlab.rb
+@@ -1,11 +1,9 @@
+ require_dependency 'gitlab/git'
+ 
+ module Gitlab
+-  COM_URL = 'https://gitlab.com'.freeze
+-
+   def self.com?
+     # Check `staging?` as well to keep parity with gitlab.com
+-    Gitlab.config.gitlab.url == COM_URL || staging?
++    Gitlab.config.gitlab.url == 'https://gitlab.com' || staging?
+   end
+ 
+   def self.staging?
+diff --git a/spec/views/help/index.html.haml_spec.rb b/spec/views/help/index.html.haml_spec.rb
+index 1f8261c..6b07fcf 100644
+--- a/spec/views/help/index.html.haml_spec.rb
++++ b/spec/views/help/index.html.haml_spec.rb
+@@ -21,7 +21,7 @@ describe 'help/index' do
+       render
+ 
+       expect(rendered).to match '8.0.2'
+-      expect(rendered).to have_link('abcdefg', 'https://gitlab.com/gitlab-org/gitlab-ce/commits/abcdefg')
++      expect(rendered).to match 'abcdefg'
+     end
+   end
+ 
+-- 
+2.10.1 (Apple Git-78)
+
