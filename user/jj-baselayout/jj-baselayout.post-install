@@ -3,10 +3,5 @@ set -eu
 
 if [ ! -d /etc/.git ]; then
 	echo "* Initializing git repository in /etc..."
-
-	git init /etc
-
-	for hook in /usr/share/git-metafile/hooks/*; do
-		ln -s "$hook" /etc/.git/hooks/$(basename "$hook")
-	done
+	git-etc-init
 fi
