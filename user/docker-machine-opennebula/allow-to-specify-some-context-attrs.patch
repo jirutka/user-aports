@@ -1,0 +1,58 @@
+Allow to specify context attributes FILES_DS and INIT_SCRIPTS
+
+--- a/opennebula.go
++++ b/opennebula.go
+@@ -37,6 +37,8 @@ type Driver struct {
+ 	Xmlrpcurl	   string
+ 	Config		   goca.OneConfig
+ 	DisableVNC	   bool
++	FilesDs        string
++	InitScripts    string
+ }
+ 
+ const (
+@@ -221,6 +223,18 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
+ 				Usage:	"Set the url for one xmlrpc server",
+ 				EnvVar: "ONE_XMLRPC",
+ 		},
++		mcnflag.StringFlag{
++			Name:	"opennebula-files-ds",
++			Usage:	"Files that will be included in the contextualization image",
++			EnvVar:	"ONE_FILES_DS",
++			Value:	"",
++		},
++		mcnflag.StringFlag{
++			Name:	"opennebula-init-scripts",
++			Usage:	"Space-separated names of scripts to run after VM start",
++			EnvVar:	"ONE_INIT_SCRIPTS",
++			Value:	"",
++		},
+ 	}
+ }
+ 
+@@ -261,6 +275,10 @@ func (d *Driver) SetConfigFromFlags(flags drivers.DriverOptions) error {
+ 	// VNC
+ 	d.DisableVNC = flags.Bool("opennebula-disable-vnc")
+ 
++	// Context
++	d.FilesDs = flags.String("opennebula-files-ds")
++	d.InitScripts = flags.String("opennebula-init-scripts")
++
+ 	// Either TemplateName or TemplateId
+ 	if d.TemplateName != "" && d.TemplateId != "" {
+ 		return errors.New("Please specify only one of: --opennebula-template-name or --opennebula-template-id, not both.")
+@@ -451,6 +469,14 @@ func (d *Driver) Create() error {
+ 	contextScript64 := base64.StdEncoding.EncodeToString([]byte(contextScript))
+ 	vector.AddValue("START_SCRIPT_BASE64", contextScript64)
+ 
++	if d.FilesDs != "" {
++		vector.AddValue("FILES_DS", d.FilesDs)
++	}
++
++	if d.InitScripts != "" {
++		vector.AddValue("INIT_SCRIPTS", d.InitScripts)
++	}
++
+ 	// Instantiate
+ 	log.Infof("Starting	 VM...")
+ 
