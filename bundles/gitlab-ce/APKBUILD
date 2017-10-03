@@ -3,7 +3,7 @@
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
 pkgver=9.4.6
-pkgrel=5
+pkgrel=6
 pkgdesc="A version control for your server"
 url="https://github.com/gitlabhq/gitlabhq"
 arch="all"
@@ -75,6 +75,8 @@ source="$pkgname-$pkgver.tar.gz::https://github.com/gitlabhq/gitlabhq/archive/v$
 	asciidoc-disable-html-sanitization.patch
 	fix-help-page.patch
 	fix-issue-board-on-ruby2.4.patch
+	fix-project-feature-being-deleted-when-updating-proj.patch
+	add-migration-to-fix-corrupted-projects.patch
 	"
 builddir="$srcdir/gitlabhq-$pkgver"
 
@@ -362,4 +364,6 @@ f46b783dc0760522ad45f7f83ef2bd4f4161696413193f3bb779cfd0789e8713e3797361dc68e9e7
 9da1a8733917cdc1aef15bff7d5c2076a8071a34013923a5a0b3a62b4da66c905d9c0bb4761baa8fbbff2c73dc363d7179128df2c5631ac9c84260abcbed38d2  asciidoctor-html5s.patch
 bb1e670239d495db138fa61c8738d090a5fc76ae1a66f84bcaf9a628b838e50e45cae4db1ff0edaf24157e22b20f86f712de5545aa646a93f19b6be8d2eddc37  asciidoc-disable-html-sanitization.patch
 86c80ec86abaf19cae061a13c869585b21f86875baa1c8434b7cd37078333cb70dba6884da5a63a460713915fdde5020161069e768853885b4c622f80810cecd  fix-help-page.patch
-2f4350833c6e51805ae4d8a6ca6aecc9bb2ab238370cb8376cab3e30d4ec2e43c42fb41943dd37f2a5fc3f0bc0977394e22af419947d12499423023d0d1aa3ff  fix-issue-board-on-ruby2.4.patch"
+2f4350833c6e51805ae4d8a6ca6aecc9bb2ab238370cb8376cab3e30d4ec2e43c42fb41943dd37f2a5fc3f0bc0977394e22af419947d12499423023d0d1aa3ff  fix-issue-board-on-ruby2.4.patch
+b353a85c9d2386f658a4b0039238479b2fa230e841dc9953d502d0d9a6dcc3117dfc2a852a9165b010eccb375c2259c5f8208a5d41321429917ce88e5190da63  fix-project-feature-being-deleted-when-updating-proj.patch
+f4131dfccf0d26c5dfd09cbbcb316ff29c3f05be4bcd7141124eb4848deebc74efcdd8e632e71e7e4c07e6b391c5fd8ebdc17e507ab337980a3f0029f6dde8d2  add-migration-to-fix-corrupted-projects.patch"

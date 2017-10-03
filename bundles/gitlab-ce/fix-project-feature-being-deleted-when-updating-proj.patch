@@ -1,0 +1,59 @@
+From be9ba83033b79a50c128a6a0975d4aaf0841113f Mon Sep 17 00:00:00 2001
+From: Felipe Artur <felipefac@gmail.com>
+Date: Tue, 12 Sep 2017 18:07:11 -0300
+Subject: [PATCH 1/2] Fix project feature being deleted when updating project
+ with invalid visibility level
+
+Patch-Source: https://gitlab.com/gitlab-org/gitlab-ce/commit/05cb181682acbf64da0013ec4031903344af7352
+
+diff --git a/app/models/project.rb b/app/models/project.rb
+index fce66d4..a6ae5f5 100644
+--- a/app/models/project.rb
++++ b/app/models/project.rb
+@@ -160,7 +160,7 @@ class Project < ActiveRecord::Base
+   has_many :notification_settings, as: :source, dependent: :delete_all # rubocop:disable Cop/ActiveRecordDependent
+ 
+   has_one :import_data, class_name: 'ProjectImportData'
+-  has_one :project_feature
++  has_one :project_feature, inverse_of: :project
+   has_one :statistics, class_name: 'ProjectStatistics'
+ 
+   # Container repositories need to remove data from the container registry,
+@@ -187,7 +187,7 @@ class Project < ActiveRecord::Base
+   has_many :active_runners, -> { active }, through: :runner_projects, source: :runner, class_name: 'Ci::Runner'
+ 
+   accepts_nested_attributes_for :variables, allow_destroy: true
+-  accepts_nested_attributes_for :project_feature
++  accepts_nested_attributes_for :project_feature, update_only: true
+ 
+   delegate :name, to: :owner, allow_nil: true, prefix: true
+   delegate :count, to: :forks, prefix: true
+diff --git a/app/models/project_feature.rb b/app/models/project_feature.rb
+index c8fabb1..9ab6929 100644
+--- a/app/models/project_feature.rb
++++ b/app/models/project_feature.rb
+@@ -41,6 +41,8 @@ class ProjectFeature < ActiveRecord::Base
+   # http://stackoverflow.com/questions/1540645/how-to-disable-default-scope-for-a-belongs-to
+   belongs_to :project, -> { unscope(where: :pending_delete) }
+ 
++  validates :project, presence: true
++
+   validate :repository_children_level
+ 
+   default_value_for :builds_access_level,         value: ENABLED, allows_nil: false
+diff --git a/app/services/projects/update_service.rb b/app/services/projects/update_service.rb
+index ca02b45..876fc78 100644
+--- a/app/services/projects/update_service.rb
++++ b/app/services/projects/update_service.rb
+@@ -28,7 +28,10 @@ module Projects
+ 
+         success
+       else
+-        error('Project could not be updated!')
++        model_errors = project.errors.full_messages.to_sentence
++        error_message = model_errors.presence || 'Project could not be updated!'
++
++        error(error_message)
+       end
+     end
+ 
