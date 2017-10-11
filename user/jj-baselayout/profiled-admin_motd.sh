@@ -19,7 +19,7 @@ git -C /etc log \
 	--decorate \
 	--date=short \
 	--format=format:'* %ad: %s  %C(dim white)<%an>%C(reset)' \
-	--reverse -3
+	-3
 
 logged=$(ps -o args \
 	| sed -En 's/^sshd: (\w+) \[priv\].*/\1/p' \
