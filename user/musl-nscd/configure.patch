@@ -1,0 +1,55 @@
+From 833736962168d5735b0f4449caebe0f3d6f4b995 Mon Sep 17 00:00:00 2001
+From: Kylie McClain <kylie@somasis.com>
+Date: Mon, 5 Sep 2016 13:47:17 -0400
+Subject: [PATCH 1/2] configure: GNU coding standards say libdir defaults to
+ $(exec_prefix)/lib
+
+Patch-Source: https://github.com/pikhq/musl-nscd/pull/1
+---
+ configure | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/configure b/configure
+index 7155642..a610366 100755
+--- a/configure
++++ b/configure
+@@ -19,7 +19,7 @@ Installation directories:
+ Fine tuning of the installation directories:
+   --bindir=DIR            user executables [EPREFIX/bin]
+   --sbindir=DIR		  system executables [EPREFIX/sbin]
+-  --libdir=DIR            library files for the linker [PREFIX/lib]
++  --libdir=DIR            library files for the linker [EPREFIX/lib]
+   --includedir=DIR        include files for the C compiler [PREFIX/include]
+   --syslibdir=DIR         location for the dynamic linker [/lib]
+ 
+@@ -136,7 +136,7 @@ prefix=/usr/local/
+ exec_prefix='$(prefix)'
+ sbindir='$(exec_prefix)/sbin'
+ bindir='$(exec_prefix)/bin'
+-libdir='$(prefix)/lib'
++libdir='$(exec_prefix)/lib'
+ includedir='$(prefix)/include'
+ syslibdir='/lib'
+ target=
+
+From 7a22bbc5091623c0b6b242ed888fc300dfb18b8d Mon Sep 17 00:00:00 2001
+From: Kylie McClain <kylie@somasis.com>
+Date: Mon, 5 Sep 2016 13:47:50 -0400
+Subject: [PATCH 2/2] configure: Make --sbindir=.* actually work
+
+---
+ configure | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/configure b/configure
+index a610366..25c605d 100755
+--- a/configure
++++ b/configure
+@@ -151,6 +151,7 @@ case "$arg" in
+ --prefix=*) prefix=${arg#*=} ;;
+ --exec-prefix=*) exec_prefix=${arg#*=} ;;
+ --bindir=*) bindir=${arg#*=} ;;
++--sbindir=*) sbindir=${arg#*=} ;;
+ --libdir=*) libdir=${arg#*=} ;;
+ --includedir=*) includedir=${arg#*=} ;;
+ --syslibdir=*) syslibdir=${arg#*=} ;;

@@ -1,0 +1,50 @@
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+# Contributor: Josiah Worcester <josiahw@gmail.com>
+pkgname=musl-nscd
+pkgver=1.0_git20170815
+_gitrev=77fc40c4ef0a3c9c56462c526e56205c06f850c0
+pkgrel=0
+pkgdesc="Implementation of nscd for nsswitch modules for musl"
+url="https://github.com/pikhq/musl-nscd"
+arch="all"
+license="MIT"
+makedepends="bison flex"
+install="$pkgname.pre-install"
+subpackages="$pkgname-dev $pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/pikhq/$pkgname/archive/$_gitrev.tar.gz
+	configure.patch
+	musl-nscd.initd"
+builddir="$srcdir/$pkgname-$_gitrev"
+options="!check"  # upstream does not provide any tests
+
+build() {
+	cd "$builddir"
+
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var
+	make
+}
+
+package() {
+	cd "$builddir"
+
+	make DESTDIR="$pkgdir" install
+
+	cd "$pkgdir"
+
+	mv ./usr/sbin/nscd ./usr/sbin/musl-nscd
+
+	install -m644 -D "$builddir"/COPYRIGHT \
+		./usr/share/licenses/$pkgname/COPYRIGHT
+
+	install -m755 -D "$srcdir"/$pkgname.initd ./etc/init.d/$pkgname
+}
+
+sha512sums="5bd4e646021df22e82ffc0a8da32c5a470b4e3cdfb32219ae9b468bb8a6dfa3952f68949628694c1ea6372ae72de2f08a3e7c21a9091bf09073fff45ac6fba4f  musl-nscd-1.0_git20170815.tar.gz
+f658d956603f15a57114434b7815e2e64ddaf41779d6d9d7c15954cade66e8f23420dfb956f6de571400f11fdc4de949867f28e897ad72ee363c5fbde4e74558  configure.patch
+bc981911916efcfbaa95d28b998e2376240942f6df310c959ba79340383fc801d6863c7d432f204992c816f1659c1776746ac56909ab5ee2be3fe539f8040b43  musl-nscd.initd"

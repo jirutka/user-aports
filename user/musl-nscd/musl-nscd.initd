@@ -1,0 +1,18 @@
+#!/sbin/openrc-run
+
+: ${cfgfile:="/etc/nsswitch.conf"}
+: ${socket_path:="/run/nscd/socket"}
+: ${command_user:="nscd:nscd"}
+
+command="/usr/sbin/musl-nscd"
+command_args="-c $cfgfile -s $socket_path"
+command_background="yes"
+pidfile="/run/$RC_SVCNAME.pid"
+
+required_files="$cfgfile"
+
+start_pre() {
+	if [ ! -d "${socket_path%/*}" ]; then
+		checkpath -d -o $command_user "${socket_path%/*}"
+	fi
+}
