@@ -1,0 +1,242 @@
+--- /dev/null
++++ openldap-2.4.45/contrib/slapd-modules/cvut_fullname/Makefile
+@@ -0,0 +1,43 @@
++LDAP_SRC = ../../..
++LDAP_BUILD = $(LDAP_SRC)
++LDAP_INC = -I$(LDAP_BUILD)/include -I$(LDAP_SRC)/include -I$(LDAP_SRC)/servers/slapd
++LDAP_LIB = $(LDAP_BUILD)/libraries/libldap_r/libldap_r.la \
++	$(LDAP_BUILD)/libraries/liblber/liblber.la
++
++LIBTOOL = $(LDAP_BUILD)/libtool
++CC = gcc
++OPT = -O2 -Wall -Wno-discarded-qualifiers -Wno-format-extra-args -pedantic
++DEFS =
++INCS = $(LDAP_INC)
++LIBS = $(LDAP_LIB)
++
++PROGRAMS = cvut_fullname.la
++LTVER = 0:0:0
++
++prefix=/usr/local
++exec_prefix=$(prefix)
++ldap_subdir=/openldap
++
++libdir=$(exec_prefix)/lib
++libexecdir=$(exec_prefix)/libexec
++moduledir = $(libexecdir)$(ldap_subdir)
++
++.SUFFIXES: .c .o .lo
++
++.c.lo:
++	$(LIBTOOL) --mode=compile $(CC) $(OPT) $(DEFS) $(INCS) -c $<
++
++all: $(PROGRAMS)
++
++cvut_fullname.la: cvut_fullname.lo
++	$(LIBTOOL) --mode=link $(CC) $(OPT) -version-info $(LTVER) \
++	-rpath $(moduledir) -module -o $@ $? $(LIBS)
++
++clean:
++	rm -rf *.o *.lo *.la .libs
++
++install: $(PROGRAMS)
++	mkdir -p $(DESTDIR)$(moduledir)
++	for p in $(PROGRAMS) ; do \
++		$(LIBTOOL) --mode=install cp $$p $(DESTDIR)$(moduledir) ; \
++	done
+--- /dev/null
++++ openldap-2.4.45/contrib/slapd-modules/cvut_fullname/cvut_fullname.c
+@@ -0,0 +1,193 @@
++/**
++ * This overlay adds virtual attribute "name" with person's full name into
++ * response entry.
++ */
++#include "portable.h"
++
++//#ifdef SLAPD_OVER_CVUT_FULLNAME
++
++#include <stdio.h>
++
++#include <ac/string.h>
++#include <ac/socket.h>
++
++#include "slap.h"
++#include "config.h"
++
++// Name of "virtual" attribute.
++static const char *ATTR_FULLNAME = "name";
++
++// Names of source attributes.
++static const char *ATTR_GIVENNAME = "givenName";
++static const char *ATTR_SN = "sn";
++static const char *ATTR_DEGREEHEAD = "cvutDegreeHead";
++static const char *ATTR_DEGREETAIL = "cvutDegreeTail";
++static const char *SOURCE_ATTRS = "givenName,sn,cvutDegreeHead,cvutDegreeTail";
++
++static AttributeDescription *fullname_ad;
++static AttributeDescription *givenname_ad;
++static AttributeDescription *sn_ad;
++static AttributeDescription *degreehead_ad;
++static AttributeDescription *degreetail_ad;
++
++static slap_overinst cvut_fullname;
++
++
++static struct berval *read_attr( Entry *entry, AttributeDescription *attr_desc ) {
++    const Attribute *attr = attr_find( entry->e_attrs, attr_desc );
++
++    return attr ? &attr->a_vals[0] : NULL;
++}
++
++/**
++ * If client has specified attributes to retrieve and the list contains
++ * ATTR_FULLNAME, add SOURCE_ATTRS to the list.
++ *
++ * This is needed for e.g. ldap backend, otherwise the source attributes
++ * would not be available for this overlay. However, there's no code to
++ * remove extra attributes after processing by this overlay, which is not
++ * very nice, but whatever...
++ */
++static int cvut_fullname_search( Operation *op, SlapReply *rs ) {
++
++    // Is this our own internal search? Ignore it.
++    if ( op->o_no_schema_check ) {
++        return SLAP_CB_CONTINUE;
++    }
++
++    // If there are some requested attributes.
++    if ( op->ors_attrs ) {
++        // If requested attributes contains fullName.
++        if ( an_find( op->ors_attrs, &fullname_ad->ad_cname )) {
++            // Append needed source attributes to it.
++            str2anlist( op->ors_attrs, SOURCE_ATTRS, "," );
++        }
++    }
++    return SLAP_CB_CONTINUE;
++}
++
++/**
++ * Add virtual attribute ATTR_FULLNAME to the search response.
++ * This function is invoked on every return from LDAP to the client.
++ */
++static int cvut_fullname_response( Operation *op, SlapReply *rs ) {
++
++    // Do nothing if we are connected as admin; admin "view"
++    // is not altered in any way.
++    if ( be_isroot( op )) {
++        return SLAP_CB_CONTINUE;
++    }
++
++    // Do nothing if not in the search operation. "Search" is in LDAP what
++    // you would usually call "retrieve" or something.
++    // TODO: support for compare op.
++    if ( rs->sr_type != REP_SEARCH ) {
++        return SLAP_CB_CONTINUE;
++    }
++
++    // The usual setup you'll see in any overlay's _response function.
++    const slap_overinst *on = (slap_overinst *) op->o_bd->bd_info;
++    op->o_bd->bd_info = (BackendInfo *) on->on_info;
++
++    struct berval *sn_bv = read_attr( rs->sr_entry, sn_ad );
++    // If attribute "sn" is not set, do nothing.
++    if ( ! sn_bv ) {
++        return SLAP_CB_CONTINUE;
++    }
++
++    // The current entry may live in a cache, so don't modify it directly.
++    // Make a copy and work with that instead.
++    (void) rs_entry2modifiable( op, rs, on );
++    const Entry *entry = rs->sr_entry;
++
++    struct berval *givenname_bv = read_attr( entry, givenname_ad );
++    struct berval *degreehead_bv = read_attr( entry, degreehead_ad );
++    struct berval *degreetail_bv = read_attr( entry, degreetail_ad );
++
++    const int fullname_len = sn_bv->bv_len
++        + ( degreehead_bv ? degreehead_bv->bv_len + 1 : 0 )
++        + ( givenname_bv  ? givenname_bv->bv_len  + 1 : 0 )
++        + ( degreetail_bv ? degreetail_bv->bv_len + 2 : 0 );
++    char *fullname = ch_malloc( fullname_len + 1 );
++    fullname[0] = '\0';
++
++    if ( degreehead_bv ) {
++        strncat( fullname, degreehead_bv->bv_val, degreehead_bv->bv_len );
++        strcat( fullname, " " );
++    }
++    if ( givenname_bv ) {
++        strncat( fullname, givenname_bv->bv_val, givenname_bv->bv_len );
++        strcat( fullname, " " );
++    }
++    strncat( fullname, sn_bv->bv_val, sn_bv->bv_len );
++    if ( degreetail_bv ) {
++        strcat( fullname, ", " );
++        strncat( fullname, degreetail_bv->bv_val, degreetail_bv->bv_len );
++    }
++
++    struct berval fullname_bv;
++    (void) ber_str2bv( fullname, fullname_len, 0, &fullname_bv );
++
++    // Add/replace attribute ATTR_FULLNAME in the entry.
++    (void) attr_delete( &entry->e_attrs, fullname_ad );
++    (void) attr_merge_normalize_one( entry, fullname_ad, &fullname_bv, op->o_tmpmemctx );
++
++    return SLAP_CB_CONTINUE;
++}
++
++static int cvut_fullname_db_destroy( BackendDB *be, ConfigReply *cr ) {
++    return LDAP_SUCCESS;
++}
++
++static int cvut_fullname_db_init( BackendDB *be, ConfigReply *cr ) {
++    const char *err_msg;
++
++    if ( slap_str2ad( ATTR_GIVENNAME, &givenname_ad, &err_msg ) != LDAP_SUCCESS ) {
++        Debug( LDAP_DEBUG_ANY, "cvutFullname: attribute '%s': %s.\n", ATTR_GIVENNAME, err_msg, 0 );
++        return -1;
++    }
++    if ( slap_str2ad( ATTR_SN, &sn_ad, &err_msg ) != LDAP_SUCCESS ) {
++        Debug( LDAP_DEBUG_ANY, "cvutFullname: attribute '%s': %s.\n", ATTR_SN, err_msg, 0 );
++        return -1;
++    }
++    if ( slap_str2ad( ATTR_DEGREEHEAD, &degreehead_ad, &err_msg ) != LDAP_SUCCESS ) {
++        Debug( LDAP_DEBUG_ANY, "cvutFullname: attribute '%s': %s.\n", ATTR_DEGREEHEAD, err_msg, 0 );
++        return -1;
++    }
++    if ( slap_str2ad( ATTR_DEGREETAIL, &degreetail_ad, &err_msg ) != LDAP_SUCCESS ) {
++        Debug( LDAP_DEBUG_ANY, "cvutFullname: attribute '%s': %s.\n", ATTR_DEGREETAIL, err_msg, 0 );
++        return -1;
++    }
++    if ( slap_str2ad( ATTR_FULLNAME, &fullname_ad, &err_msg ) != LDAP_SUCCESS ) {
++        Debug( LDAP_DEBUG_ANY, "cvutFullname: attribute '%s': %s.\n", ATTR_FULLNAME, err_msg, 0 );
++        return -1;
++    }
++    return LDAP_SUCCESS;
++}
++
++/**
++ * The easily recognizable init function, similarly done in all projects
++ * providing dynamic modules functionality.
++ *
++ * You fill in hooks for functions you want to intercept with your
++ * own code.
++ */
++int cvut_fullname_initialize() {
++
++    // Register name and callbacks.
++    cvut_fullname.on_bi.bi_type = "cvut_fullname";
++    cvut_fullname.on_bi.bi_db_init = cvut_fullname_db_init;
++    cvut_fullname.on_bi.bi_db_destroy = cvut_fullname_db_destroy;
++    cvut_fullname.on_bi.bi_op_search = cvut_fullname_search;
++    cvut_fullname.on_response = cvut_fullname_response;
++
++    return overlay_register( &cvut_fullname );
++}
++
++//#if SLAPD_OVER_CVUT_FULLNAME == SLAPD_MOD_DYNAMIC && defined(PIC)
++int init_module( int argc, char *argv[] ) {
++    return cvut_fullname_initialize();
++}
++//#endif
++
++//#endif // SLAPD_OVER_CVUT_FULLNAME
