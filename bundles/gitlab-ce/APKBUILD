@@ -2,8 +2,8 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
-pkgver=9.4.6
-pkgrel=6
+pkgver=9.4.7
+pkgrel=0
 pkgdesc="A version control for your server"
 url="https://github.com/gitlabhq/gitlabhq"
 arch="all"
@@ -341,7 +341,7 @@ assets() {
 	mv "${pkgdir}$_prefix"/public/assets "$destdir"/public/
 }
 
-sha512sums="2a4e021edc8c9c1260141426ab4609d355f28c1423dabd4daae1f457bec807a9ff28e4b470e952432cd72ecfb5c5509ab35daa734605a3cd3cdc3f1ab66f566e  gitlab-ce-9.4.6.tar.gz
+sha512sums="5187ade5c85a30f32abb24e1a33cde638ab64b0a95e3c32a6bc6b83b3aa2cd24cf0f02629bb052f59bca99e7f1e20d680217f224616d7e6ffbcf6f3f185a093c  gitlab-ce-9.4.7.tar.gz
 31c65c03a8e4fd1cd0f4e95939137404b96a2551d228e7d5bc0e47cc9cb3893e46e2a58405aba1ce04584a6f64120162db3e5ecd0713bb7ec9256308cafaf187  gitlab.initd
 d56587e94db0f607d4d37dbc1952914e2d6628405b3c2fe9f7548f27ca70f5393bf4fdebc7fa192b9bad7d07706a55cd77a910bd127236422f0f6d4a5a46be25  gitlab.mailroom.initd
 84c51a03e938c39b3081cb55b115148e087a1f58a4b9cc43b76be93aee67b7e04f41f42e6594d5810946a701cf3554ac26851b2f9de91e73927e7ef70945e2ba  gitlab.sidekiq.initd
