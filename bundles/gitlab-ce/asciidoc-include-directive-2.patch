@@ -46,7 +46,7 @@ diff --git a/lib/gitlab/asciidoc.rb b/lib/gitlab/asciidoc.rb
 index 58947f9..f1cc604 100644
 --- a/lib/gitlab/asciidoc.rb
 +++ b/lib/gitlab/asciidoc.rb
-@@ -2,6 +2,7 @@ require 'asciidoctor'
+@@ -2,6 +2,7 @@
  require 'asciidoctor/extensions'
  require 'asciidoctor-html5s'
  require "asciidoctor-plantuml"
@@ -54,7 +54,16 @@ index 58947f9..f1cc604 100644
  require 'asciidoctor/rouge/treeprocessor'
  
  module Gitlab
-@@ -80,9 +81,10 @@ module Gitlab
+@@ -28,7 +29,7 @@
+         include_processor GitlabIncludeProcessor.new(context)
+       end
+ 
+-      asciidoc_opts = { safe: :secure,
++      asciidoc_opts = { safe: :server,
+                         backend: :gitlab_html5,
+                         attributes: DEFAULT_ADOC_ATTRS,
+                         extensions: extensions }
+@@ -77,9 +78,10 @@
  
      # Asciidoctor extension for processing includes (macro include::[]) within
      # documents inside the same repository.
@@ -68,22 +77,22 @@ index 58947f9..f1cc604 100644
  
          @context = context
          @repository = context[:project].try(:repository)
-@@ -94,34 +96,38 @@ module Gitlab
+@@ -91,34 +93,38 @@
          }
        end
  
 -      def process(doc, reader, target, attributes)
 -        return reader unless @repository.try(:exists?)
 +      protected
-+
-+      # Overrides super class method.
-+      def resolve_target_path(target, reader)
-+        return unless @repository.try(:exists?)
  
 -        # Resolve relative target path against the requested path (path of the
 -        # file user wants to see), or against path of the currently processed
 -        # include if processing nested include (i.e. A includes B,
 -        # B includes C, ...).
++      # Overrides super class method.
++      def resolve_target_path(target, reader)
++        return unless @repository.try(:exists?)
++
          base_path = reader.include_stack.empty? ? requested_path : reader.file
          path = resolve_relative_path(target, base_path)
  
@@ -126,6 +135,3 @@ index 58947f9..f1cc604 100644
  
        # Resolves the given relative path of file in repository into canonical
        # path based on the specified base_path.
--- 
-2.10.1 (Apple Git-78)
-
