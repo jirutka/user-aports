@@ -78,6 +78,7 @@ source="$pkgname-$pkgver.tar.gz::https://github.com/gitlabhq/gitlabhq/archive/v$
 	fix-project-feature-being-deleted-when-updating-proj.patch
 	add-migration-to-fix-corrupted-projects.patch
 	asciidoc-include-directive-2.patch
+	asciidoc-outfilesuffix.patch
 	"
 builddir="$srcdir/gitlabhq-$pkgver"
 
@@ -369,4 +370,5 @@ bb1e670239d495db138fa61c8738d090a5fc76ae1a66f84bcaf9a628b838e50e45cae4db1ff0edaf
 2f4350833c6e51805ae4d8a6ca6aecc9bb2ab238370cb8376cab3e30d4ec2e43c42fb41943dd37f2a5fc3f0bc0977394e22af419947d12499423023d0d1aa3ff  fix-issue-board-on-ruby2.4.patch
 b353a85c9d2386f658a4b0039238479b2fa230e841dc9953d502d0d9a6dcc3117dfc2a852a9165b010eccb375c2259c5f8208a5d41321429917ce88e5190da63  fix-project-feature-being-deleted-when-updating-proj.patch
 f4131dfccf0d26c5dfd09cbbcb316ff29c3f05be4bcd7141124eb4848deebc74efcdd8e632e71e7e4c07e6b391c5fd8ebdc17e507ab337980a3f0029f6dde8d2  add-migration-to-fix-corrupted-projects.patch
-436cb8361fe1baef97944c0f8db37ae82936b23e9e9eae42fb9473acb52ccc7640a37aace06c220dc95ff6a6bb81abee42c300bc410aa078591607834582da77  asciidoc-include-directive-2.patch"
+436cb8361fe1baef97944c0f8db37ae82936b23e9e9eae42fb9473acb52ccc7640a37aace06c220dc95ff6a6bb81abee42c300bc410aa078591607834582da77  asciidoc-include-directive-2.patch
+4b5b3ede16c350dbc48627186bbfeec41f0b00c15c10e43e59cd2e73d31302688de648e16e93dd61b291e09612223b6d897239f5026bb79425bd6244746027cc  asciidoc-outfilesuffix.patch"

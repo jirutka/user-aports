@@ -1,0 +1,25 @@
+From 1117d89666f2ac610cc64161268bcbc65f17c159 Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Wed, 13 Dec 2017 21:47:04 +0100
+Subject: [PATCH] Set Asciidoctor attribute outfilesuffix=.adoc
+
+---
+ lib/gitlab/asciidoc.rb | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/gitlab/asciidoc.rb b/lib/gitlab/asciidoc.rb
+index f1cc604..a34684b 100644
+--- a/lib/gitlab/asciidoc.rb
++++ b/lib/gitlab/asciidoc.rb
+@@ -12,7 +12,7 @@ module Gitlab
+     DEFAULT_ADOC_ATTRS = [
+       'showtitle', 'idprefix=user-content-', 'idseparator=-', 'env=gitlab',
+       'env-gitlab', 'source-highlighter=rouge', 'icons=font',
+-      'sectanchors'
++      'sectanchors', 'outfilesuffix=.adoc'
+     ].freeze
+ 
+     Asciidoctor::Extensions.register do
+-- 
+2.10.1 (Apple Git-78)
+
