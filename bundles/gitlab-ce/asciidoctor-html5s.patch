@@ -21,7 +21,7 @@ index 84e26c2..fc31dbc 100644
  gem 'asciidoctor', '~> 1.5.2'
 +gem 'asciidoctor-html5s', '= 0.1.0.beta.4'
  gem 'asciidoctor-plantuml', '0.0.7'
-+gem 'asciidoctor-rouge', '~> 0.1.0', require: false
++gem 'asciidoctor-rouge', '~> 0.2.0', require: false
  gem 'rouge', '~> 2.0'
  gem 'truncato', '~> 0.7.9'
  gem 'bootstrap_form', '~> 2.7.0'
@@ -38,7 +38,7 @@ index 283f360..26b883a 100644
 +      thread_safe (~> 0.3.4)
      asciidoctor-plantuml (0.0.7)
        asciidoctor (~> 1.5)
-+    asciidoctor-rouge (0.1.0)
++    asciidoctor-rouge (0.2.0)
 +      asciidoctor (~> 1.5.6)
 +      rouge (~> 2.2)
      ast (2.3.0)
@@ -50,7 +50,7 @@ index 283f360..26b883a 100644
    asciidoctor (~> 1.5.2)
 +  asciidoctor-html5s (= 0.1.0.beta.4)
    asciidoctor-plantuml (= 0.0.7)
-+  asciidoctor-rouge (~> 0.1.0)
++  asciidoctor-rouge (~> 0.2.0)
    attr_encrypted (~> 3.0.0)
    awesome_print (~> 1.2.0)
    babosa (~> 1.0.2)
