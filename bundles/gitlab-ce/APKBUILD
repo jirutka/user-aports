@@ -312,6 +312,7 @@ package() {
 	ln -sf /var/lib/gitlab/uploads public/uploads
 	ln -sf /var/log/gitlab log
 	ln -sf /tmp/gitlab tmp
+	ln -sf ../../tmp/gitlab "$datadir"/tmp
 
 	# See the last comment in the build() function.
 	#ln -sf /usr/bin/ruby$_rubyslot bin/ruby
