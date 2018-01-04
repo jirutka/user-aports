@@ -18,7 +18,7 @@ auth:
 
 # Uncomment and modify to enable authentication via LDAP.
 #  ldap:
-#    type: ldap 
+#    type: ldap
 #    client_options:
 #      url: 'ldaps://ldap.example.org'
 #      searchBase: 'ou=People,dc=example,dc=org'
@@ -37,6 +37,9 @@ uplinks:
     # Amount of time to wait for repository to respond
     # before giving up and use the local cached copy.
     timeout: 5s
+
+    # Maximum time in which data is considered up to date.
+    maxage: 10m
 
 # A map of packages patterns for managing access.
 packages:
