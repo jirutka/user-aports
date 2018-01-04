@@ -1,6 +1,7 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitlab-ci-multi-runner
+_pkgname=$pkgname-backup
 pkgver=9.4.0
 pkgrel=0
 pkgdesc="Official GitLab Runner written in Go"
@@ -11,7 +12,7 @@ pkgusers="gitlab-runner"
 pkggroups="$pkgusers"
 makedepends="docker go go-bindata"
 install="$pkgname.pre-install"
-source="$pkgname-$pkgver.tar.gz::https://gitlab.com/gitlab-org/$pkgname/repository/archive.tar.gz?ref=v$pkgver
+source="$pkgname-$pkgver.tar.gz::https://gitlab.com/gitlab-org/$_pkgname/repository/archive.tar.gz?ref=v$pkgver
 	$pkgname-$pkgver-prebuilt-x86_64.tar.xz.bin::https://$pkgname-downloads.s3.amazonaws.com/v$pkgver/docker/prebuilt-x86_64.tar.xz
 	$pkgname-$pkgver-prebuilt-arm.tar.xz.bin::https://$pkgname-downloads.s3.amazonaws.com/v$pkgver/docker/prebuilt-arm.tar.xz
 	$pkgname.initd
@@ -26,11 +27,11 @@ _shortname="gitlab-runner"
 prepare() {
 	cd "$srcdir"
 
-	local dirname=$(basename $pkgname-v$pkgver-*)
+	local dirname=$(basename $_pkgname-v$pkgver-*)
 	_gitrev=${dirname##*-}
 
 	mkdir -p "${builddir%/*}"
-	mv $pkgname-v$pkgver-* "$builddir"
+	mv $_pkgname-v$pkgver-* "$builddir"
 
 	default_prepare
 
@@ -73,7 +74,7 @@ package() {
 	ln -s /etc/$_shortname "$pkgdir"/var/lib/$_shortname/.gitlab-runner
 }
 
-sha512sums="5f33b7bb1a1b5efd51d3def03fa66e84ab791403e1c36250f35a9174dc3881df11d87df940d052c288b0753ed4aef9aeb79cb60f490e44dac3ddd94156966923  gitlab-ci-multi-runner-9.4.0.tar.gz
+sha512sums="50062fc305f2ef5788aa8e12e3ced23df4887cb4a1e29bc6f81df861bf692d968c81d65acfa90681465b9216d17301f1feb718f8785a931eefbce4a6d070e3e0  gitlab-ci-multi-runner-9.4.0.tar.gz
 1672866a6fa04914f9ee4606ef3318d32eae9f47fedbda4f659097517fe5df43f83952d9a4cc6dd3d5f32292bc6234be8de36d81bcaca336b2f8ff19dd472a98  gitlab-ci-multi-runner-9.4.0-prebuilt-x86_64.tar.xz.bin
 8317250579625e8939e88dd6d51c33092c3f329cacbe62f4d880733c85c4942305315a4f468b30d3a4b80c8a171108677e193f90087ec4a28a351394587c596e  gitlab-ci-multi-runner-9.4.0-prebuilt-arm.tar.xz.bin
 9b9e09af635aebd4b682a12b671b22c786862394e85a57519e0f1c3d9ae97a173ee0a8526e81394c2a2d9f51527f8b264e5ebeff2d479513213c8114305c2441  gitlab-ci-multi-runner.initd
