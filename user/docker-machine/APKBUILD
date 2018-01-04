@@ -33,6 +33,4 @@ package() {
 	install -D -m 755 "$builddir"/bin/$pkgname "$pkgdir"/usr/bin/$pkgname
 }
 
-md5sums="7c5969980b58b2c014bea5d9c804ca91  docker-machine-0.9.0.tar.gz"
-sha256sums="8e445e70a92c98a5e73594d8aea07b31dda6fa4ed2d1e7643663f0267e05f25f  docker-machine-0.9.0.tar.gz"
-sha512sums="f405f4b50e493d8c3e7526e89c8b45edf9167c9c04a1dfc9dafad3070f32a9a38570f02b900ceb322a43c596558c07b8f0b060cc4afe1fe2b6b6f4af0179a779  docker-machine-0.9.0.tar.gz"
+sha512sums="301958c8ec1025cd9d00fc9cf8b082ca2407a96eaa0b9a9058783f221b7b4ad5bf600475f74bb58aba8075354316c352996d9bd3d4c71d0a771dba1990fabff7  docker-machine-0.9.0.tar.gz"
