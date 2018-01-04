@@ -18,6 +18,11 @@ builddir="$srcdir/build"
 
 _prefix="/usr/lib/bundles/$pkgname"
 
+# Note: We need to apply patches later.
+prepare() {
+	mkdir -p "$builddir"
+}
+
 build() {
 	local file
 	cd "$srcdir"
