@@ -2,7 +2,7 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=verdaccio
 pkgver=2.7.1
-pkgrel=0
+pkgrel=1
 pkgdesc="Private npm repository server (fork of Sinopia)"
 url="https://github.com/verdaccio/verdaccio"
 arch="noarch"
@@ -39,7 +39,7 @@ package() {
 	cd "$builddir"
 
 	mkdir -p "$pkgdir"/$_prefix
-	cp -rl bin src node_modules index.js package.json "$pkgdir"/$_prefix/
+	cp -rl bin src node_modules index.js package.json static "$pkgdir"/$_prefix/
 
 	mkdir -p "$pkgdir"/usr/bin
 	ln -s $_prefix/bin/verdaccio "$pkgdir"/usr/bin/$pkgname
