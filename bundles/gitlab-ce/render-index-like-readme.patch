@@ -1,0 +1,41 @@
+From d446af65dd891779ae0a73bad3b8bc410251542c Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Thu, 18 Jan 2018 14:16:31 +0100
+Subject: [PATCH] Render index.* like README.* when it's present in a directory
+
+Backported from https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/16550
+---
+ lib/gitlab/file_detector.rb           | 2 +-
+ spec/lib/gitlab/file_detector_spec.rb | 6 +++++-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/lib/gitlab/file_detector.rb b/lib/gitlab/file_detector.rb
+index a8cb7fc..7565779 100644
+--- a/lib/gitlab/file_detector.rb
++++ b/lib/gitlab/file_detector.rb
+@@ -6,7 +6,7 @@ module Gitlab
+   module FileDetector
+     PATTERNS = {
+       # Project files
+-      readme: /\Areadme/i,
++      readme: /\A(readme|index)/i,
+       changelog: /\A(changelog|history|changes|news)/i,
+       license: /\A(licen[sc]e|copying)(\..+|\z)/i,
+       contributing: /\Acontributing/i,
+diff --git a/spec/lib/gitlab/file_detector_spec.rb b/spec/lib/gitlab/file_detector_spec.rb
+index 695fd6f..9d65968 100644
+--- a/spec/lib/gitlab/file_detector_spec.rb
++++ b/spec/lib/gitlab/file_detector_spec.rb
+@@ -15,7 +15,11 @@ describe Gitlab::FileDetector do
+
+   describe '.type_of' do
+     it 'returns the type of a README file' do
+-      expect(described_class.type_of('README.md')).to eq(:readme)
++      %w(README readme INDEX index).each do |filename|
++        %w(.md .adoc).each do |extname|
++          expect(described_class.type_of(filename + extname)).to eq(:readme)
++        end
++      end
+     end
+
+     it 'returns the type of a changelog file' do

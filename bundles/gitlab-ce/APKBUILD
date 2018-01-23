@@ -3,7 +3,7 @@
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
 pkgver=9.4.7
-pkgrel=2
+pkgrel=3
 pkgdesc="A version control for your server"
 url="https://github.com/gitlabhq/gitlabhq"
 arch="all"
@@ -79,6 +79,7 @@ source="$pkgname-$pkgver.tar.gz::https://github.com/gitlabhq/gitlabhq/archive/v$
 	add-migration-to-fix-corrupted-projects.patch
 	asciidoc-include-directive-2.patch
 	asciidoc-outfilesuffix.patch
+	render-index-like-readme.patch
 	"
 builddir="$srcdir/gitlabhq-$pkgver"
 
@@ -371,4 +372,5 @@ bb1e670239d495db138fa61c8738d090a5fc76ae1a66f84bcaf9a628b838e50e45cae4db1ff0edaf
 b353a85c9d2386f658a4b0039238479b2fa230e841dc9953d502d0d9a6dcc3117dfc2a852a9165b010eccb375c2259c5f8208a5d41321429917ce88e5190da63  fix-project-feature-being-deleted-when-updating-proj.patch
 f4131dfccf0d26c5dfd09cbbcb316ff29c3f05be4bcd7141124eb4848deebc74efcdd8e632e71e7e4c07e6b391c5fd8ebdc17e507ab337980a3f0029f6dde8d2  add-migration-to-fix-corrupted-projects.patch
 e6257944fdb3d6bc3d7b7aad24fa81653751ff8c6d0a2ec5eea6af564d8dc9113d24c412bff9ced8fcd1104894b57f3197a65b64766e79af80befc306102a48b  asciidoc-include-directive-2.patch
-4b5b3ede16c350dbc48627186bbfeec41f0b00c15c10e43e59cd2e73d31302688de648e16e93dd61b291e09612223b6d897239f5026bb79425bd6244746027cc  asciidoc-outfilesuffix.patch"
+4b5b3ede16c350dbc48627186bbfeec41f0b00c15c10e43e59cd2e73d31302688de648e16e93dd61b291e09612223b6d897239f5026bb79425bd6244746027cc  asciidoc-outfilesuffix.patch
+aa3d30e7ef7b3a2b87237cc7b997d9abb26bff2b664582b109813e03a9e8512f789165f642818152d0dfe366766f15ea076f1201021c314b7619c2b4b7c276eb  render-index-like-readme.patch"
