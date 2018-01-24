@@ -1,0 +1,23 @@
+From 90990b574e695ed50764f82c87a3420d78537953 Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Wed, 24 Jan 2018 18:36:27 +0100
+Subject: [PATCH] katex: Render unsupported command as text instead of throwing
+ error
+
+---
+ app/assets/javascripts/render_math.js | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/app/assets/javascripts/render_math.js b/app/assets/javascripts/render_math.js
+index 8b3fee4..c47cf4f 100644
+--- a/app/assets/javascripts/render_math.js
++++ b/app/assets/javascripts/render_math.js
+@@ -20,7 +20,7 @@
+
+       var display = $this.attr('data-math-style') === 'display';
+       try {
+-        katex.render($this.text(), mathNode.get(0), { displayMode: display });
++        katex.render($this.text(), mathNode.get(0), { displayMode: display, throwOnError: false });
+         mathNode.insertAfter($this);
+         $this.remove();
+       } catch (err) {

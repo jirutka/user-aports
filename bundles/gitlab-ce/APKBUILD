@@ -3,12 +3,13 @@
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
 pkgver=9.4.7
-pkgrel=3
+pkgrel=4
 pkgdesc="A version control for your server"
 url="https://github.com/gitlabhq/gitlabhq"
 arch="all"
 license="MIT"
 _rubyslot=""
+_katex_ver=0.8.3
 # ruby-irb is needed only for Rails console (gitlab-rails console)
 depends="$pkgname-assets=$pkgver-r$pkgrel
 	gitaly>=0.21.2
@@ -52,6 +53,7 @@ pkggroups="git"
 install="$pkgname.pre-install $pkgname.post-install $pkgname.post-upgrade"
 subpackages="$pkgname-assets::noarch"
 source="$pkgname-$pkgver.tar.gz::https://github.com/gitlabhq/gitlabhq/archive/v$pkgver.tar.gz
+	katex-$_katex_ver.tar.gz::https://github.com/Khan/KaTeX/releases/download/v$_katex_ver/katex.tar.gz
 	$_pkgname.initd
 	$_pkgname.mailroom.initd
 	$_pkgname.sidekiq.initd
@@ -81,6 +83,7 @@ source="$pkgname-$pkgver.tar.gz::https://github.com/gitlabhq/gitlabhq/archive/v$
 	asciidoc-outfilesuffix.patch
 	render-index-like-readme.patch
 	gemfile-update-asciidoctor-1.5.7.dev.patch
+	katex-disable-throwOnError.patch
 	"
 builddir="$srcdir/gitlabhq-$pkgver"
 
@@ -127,6 +130,12 @@ prepare() {
 			vendor/gems/grpc/grpc.gemspec
 	cp "$sysgemdir"/extensions/*/*/grpc-*/grpc/grpc_c.so \
 		vendor/gems/grpc/src/ruby/lib/grpc/
+
+	# Update bundled KaTeX
+	sed -e 's|fonts/||' -e 's/url\(([^)]*)\)/url(font-path\1)/g' \
+		"$srcdir"/katex/katex.css > vendor/assets/stylesheets/katex.scss
+	cp "$srcdir"/katex/katex.js vendor/assets/javascripts/
+	cp "$srcdir"/katex/fonts/* vendor/assets/fonts/
 }
 
 build() {
@@ -347,6 +356,7 @@ assets() {
 }
 
 sha512sums="5187ade5c85a30f32abb24e1a33cde638ab64b0a95e3c32a6bc6b83b3aa2cd24cf0f02629bb052f59bca99e7f1e20d680217f224616d7e6ffbcf6f3f185a093c  gitlab-ce-9.4.7.tar.gz
+4c1865059860b2e0c1d3d1cda47c3eb9d2fa089d203f35daa5928f33064dd74f86cf1999028bd4a8de4151855b15b619161babfe2a438a0938778522a84a0083  katex-0.8.3.tar.gz
 31c65c03a8e4fd1cd0f4e95939137404b96a2551d228e7d5bc0e47cc9cb3893e46e2a58405aba1ce04584a6f64120162db3e5ecd0713bb7ec9256308cafaf187  gitlab.initd
 d56587e94db0f607d4d37dbc1952914e2d6628405b3c2fe9f7548f27ca70f5393bf4fdebc7fa192b9bad7d07706a55cd77a910bd127236422f0f6d4a5a46be25  gitlab.mailroom.initd
 84c51a03e938c39b3081cb55b115148e087a1f58a4b9cc43b76be93aee67b7e04f41f42e6594d5810946a701cf3554ac26851b2f9de91e73927e7ef70945e2ba  gitlab.sidekiq.initd
@@ -375,4 +385,5 @@ f4131dfccf0d26c5dfd09cbbcb316ff29c3f05be4bcd7141124eb4848deebc74efcdd8e632e71e7e
 e6257944fdb3d6bc3d7b7aad24fa81653751ff8c6d0a2ec5eea6af564d8dc9113d24c412bff9ced8fcd1104894b57f3197a65b64766e79af80befc306102a48b  asciidoc-include-directive-2.patch
 4b5b3ede16c350dbc48627186bbfeec41f0b00c15c10e43e59cd2e73d31302688de648e16e93dd61b291e09612223b6d897239f5026bb79425bd6244746027cc  asciidoc-outfilesuffix.patch
 aa3d30e7ef7b3a2b87237cc7b997d9abb26bff2b664582b109813e03a9e8512f789165f642818152d0dfe366766f15ea076f1201021c314b7619c2b4b7c276eb  render-index-like-readme.patch
-7ec20f56e0d717dbcb1676fb63263b4f7407555dd3ec8f1a15de74494de8e7536d84ef6ced6e3afb7fb46d71f2862f5127927edd5bd905ebcc8e7ef308c1bc94  gemfile-update-asciidoctor-1.5.7.dev.patch"
+7ec20f56e0d717dbcb1676fb63263b4f7407555dd3ec8f1a15de74494de8e7536d84ef6ced6e3afb7fb46d71f2862f5127927edd5bd905ebcc8e7ef308c1bc94  gemfile-update-asciidoctor-1.5.7.dev.patch
+3b1bd66b37b42bd501b2d7e69bd62581d355fc18d1cc03dcac3ff41ad0d717abf956ca017110bb5c1794873b579c87f9d84c37a3250c55677287ab80be87a494  katex-disable-throwOnError.patch"
