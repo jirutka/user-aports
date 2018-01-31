@@ -3,7 +3,7 @@
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
 pkgver=9.4.7
-pkgrel=4
+pkgrel=5
 pkgdesc="A version control for your server"
 url="https://github.com/gitlabhq/gitlabhq"
 arch="all"
@@ -42,6 +42,7 @@ makedepends="
 	libressl-dev
 	postgresql-dev
 	protobuf-dev
+	python2
 	nodejs>=4.3.0
 	re2-dev
 	ruby$_rubyslot-dev
@@ -156,7 +157,7 @@ build() {
 		vendor/bundle/ruby/*/gems/gitlab-markup-*/lib/github/markups.rb
 
 	msg "Installing npm modules..."
-	yarn install --production --pure-lockfile
+	yarn install --production --pure-lockfile --build-from-source
 
 
 	# Since we have moved assets gems into a group, they are not implicitly
@@ -285,7 +286,7 @@ package() {
 	find gems/ -name '*.so' -delete
 
 	# Remove build logs and cache.
-	rm -R build_info/ cache/
+	rm -Rf build_info/ cache/
 	find extensions/ \
 		-name gem_make.out -delete \
 		-o -name mkmf.log -delete
