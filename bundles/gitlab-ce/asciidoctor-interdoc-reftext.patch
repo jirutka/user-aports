@@ -1,0 +1,280 @@
+From d04946c69735928d7c4278a6de66b63e8475b1a8 Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Wed, 31 Jan 2018 01:27:32 +0100
+Subject: [PATCH 1/2] Refactor Gitlab::Asciidoc, prepare it for more extensions
+
+---
+ lib/gitlab/asciidoc.rb | 117 ++++++++++++++++++++++++++++---------------------
+ 1 file changed, 66 insertions(+), 51 deletions(-)
+
+diff --git a/lib/gitlab/asciidoc.rb b/lib/gitlab/asciidoc.rb
+index a34684b..90205b7 100644
+--- a/lib/gitlab/asciidoc.rb
++++ b/lib/gitlab/asciidoc.rb
+@@ -28,8 +28,10 @@ module Gitlab
+     # context       - :commit, :project, :ref, :requested_path
+     #
+     def self.render(input, context)
++      repository_tree = RepositoryTree.new(context)
++
+       extensions = proc do
+-        include_processor GitlabIncludeProcessor.new(context)
++        include_processor GitlabIncludeProcessor.new(repository_tree)
+       end
+
+       asciidoc_opts = { safe: :server,
+@@ -79,75 +81,37 @@ module Gitlab
+       end
+     end
+
+-    # Asciidoctor extension for processing includes (macro include::[]) within
+-    # documents inside the same repository.
+-    class GitlabIncludeProcessor < Asciidoctor::IncludeExt::IncludeProcessor
+-      # Overrides super class method.
++    class RepositoryTree
+       def initialize(context)
+-        super(logger: Gitlab::AppLogger)
+-
+         @context = context
+         @repository = context[:project].try(:repository)
+-
+-        # Note: Asciidoctor calls #freeze on extensions, so we can't set new
+-        # instance variables after initialization.
+         @cache = {
+           uri_types: {}
+         }
+       end
+
+-      protected
+-
+-      # Overrides super class method.
+-      def resolve_target_path(target, reader)
+-        return unless @repository.try(:exists?)
+-
+-        base_path = reader.include_stack.empty? ? requested_path : reader.file
+-        path = resolve_relative_path(target, base_path)
+-
+-        path if Gitlab::Git::Blob.find(@repository, ref, path)
+-      end
+-
+-      # Overrides super class method.
+-      def read_lines(filename, selector)
+-        blob = @repository.blob_at(ref, filename)
+-
+-        raise 'Blob not found' unless blob
+-        raise 'File is not readable' unless blob.readable_text?
+-
+-        if selector
+-          blob.data.each_line.select.with_index(1, &selector)
+-        else
+-          blob.data
+-        end
+-      end
+-
+-      # Overrides super class method.
+-      def unresolved_include!(target, reader)
+-        reader.unshift_line("*[ERROR: include::#{target}[] - unresolved directive]*")
+-      end
+-
+-      private
+-
+-      # Resolves the given relative path of file in repository into canonical
+-      # path based on the specified base_path.
++      # Resolves the given path of file in repository into canonical path
++      # based on the specified base_path (defaults to requested_path).
+       #
+       # Examples:
+       #
+       #   # File in the same directory as the current path
+-      #   resolve_relative_path("users.adoc", "doc/api/README.adoc")
++      #   resolve_file_path("users.adoc", "doc/api/README.adoc")
+       #   # => "doc/api/users.adoc"
+       #
+       #   # File in the same directory, which is also the current path
+-      #   resolve_relative_path("users.adoc", "doc/api")
++      #   resolve_file_path("users.adoc", "doc/api")
+       #   # => "doc/api/users.adoc"
+       #
+       #   # Going up one level to a different directory
+-      #   resolve_relative_path("../update/7.14-to-8.0.adoc", "doc/api/README.adoc")
++      #   resolve_file_path("../update/7.14-to-8.0.adoc", "doc/api/README.adoc")
+       #   # => "doc/update/7.14-to-8.0.adoc"
+       #
+-      # Returns a String
+-      def resolve_relative_path(path, base_path)
++      # Returns a String, or nil if files does not exist
++      def resolve_file_path(path, base_path = nil)
++        base_path ||= requested_path
++
++        return unless @repository.try(:exists?)
+         return base_path if path.empty?
+         return path unless base_path
+         return path[1..-1] if path.start_with?('/')
+@@ -161,10 +125,27 @@ module Gitlab
+           parts.pop
+           path.sub!('../', '')
+         end
++        path = parts.push(path).join('/')
+
+-        parts.push(path).join('/')
++        path if file_exist? path
+       end
+
++      def file_exist?(filename)
++        Gitlab::Git::Blob.find(@repository, ref, filename)
++      end
++
++      # Returns a String
++      def read_file(filename)
++        blob = @repository.blob_at(ref, filename)
++
++        raise 'Blob not found' unless blob
++        raise 'File is not readable' unless blob.readable_text?
++
++        blob.data
++      end
++
++      private
++
+       def current_commit
+         @cache[:current_commit] ||= @context[:commit] || @repository.commit(ref)
+       end
+@@ -181,5 +162,39 @@ module Gitlab
+         @cache[:uri_types][path] ||= current_commit.uri_type(path)
+       end
+     end
++
++    # Asciidoctor extension for processing includes (macro include::[]) within
++    # documents inside the same repository.
++    class GitlabIncludeProcessor < Asciidoctor::IncludeExt::IncludeProcessor
++      # Overrides super class method.
++      def initialize(repository_tree)
++        super(logger: Gitlab::AppLogger)
++        @repository_tree = repository_tree
++      end
++
++      protected
++
++      # Overrides super class method.
++      def resolve_target_path(target, reader)
++        base_path = reader.file unless reader.include_stack.empty?
++        @repository_tree.resolve_file_path(target, base_path)
++      end
++
++      # Overrides super class method.
++      def read_lines(filename, selector)
++        data = @repository_tree.read_file(filename)
++
++        if selector
++          data.each_line.select.with_index(1, &selector)
++        else
++          data
++        end
++      end
++
++      # Overrides super class method.
++      def unresolved_include!(target, reader)
++        reader.unshift_line("*[ERROR: include::#{target}[] - unresolved directive]*")
++      end
++    end
+   end
+ end
+--
+2.10.1 (Apple Git-78)
+
+
+From db4691a67ce789afdc065b44ada4cf5ab593dc1f Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Tue, 30 Jan 2018 20:29:40 +0100
+Subject: [PATCH 2/2] Integrate Asciidoctor extension interdoc-reftext
+
+---
+ Gemfile                |  1 +
+ Gemfile.lock           |  3 +++
+ lib/gitlab/asciidoc.rb | 27 +++++++++++++++++++++++++++
+ 3 files changed, 31 insertions(+)
+
+diff --git a/Gemfile b/Gemfile
+index e0af6fb..b019b3b 100644
+--- a/Gemfile
++++ b/Gemfile
+@@ -123,6 +123,7 @@ gem 'asciidoctor', github: 'asciidoctor/asciidoctor', ref: '6eff25d'
+ gem 'asciidoctor-html5s', '= 0.1.0.beta.4'
+ gem 'asciidoctor-plantuml', '0.0.7'
+ gem 'asciidoctor-include-ext', '~> 0.1.1', require: false
++gem 'asciidoctor-interdoc-reftext', '~> 0.1.0', require: false
+ gem 'asciidoctor-rouge', '~> 0.2.0', require: false
+ gem 'rouge', '~> 2.0'
+ gem 'truncato', '~> 0.7.9'
+diff --git a/Gemfile.lock b/Gemfile.lock
+index 5790192..f9e5bdd 100644
+--- a/Gemfile.lock
++++ b/Gemfile.lock
+@@ -70,6 +70,8 @@ GEM
+       thread_safe (~> 0.3.4)
+     asciidoctor-include-ext (0.1.1)
+       asciidoctor (~> 1.5.6)
++    asciidoctor-interdoc-reftext (0.1.0)
++      asciidoctor (~> 1.5.6)
+     asciidoctor-plantuml (0.0.7)
+       asciidoctor (~> 1.5)
+     asciidoctor-rouge (0.2.0)
+@@ -940,6 +942,7 @@ DEPENDENCIES
+   asana (~> 0.6.0)
+   asciidoctor-html5s (= 0.1.0.beta.4)
+   asciidoctor-include-ext (~> 0.1.1)
++  asciidoctor-interdoc-reftext (~> 0.1.0)
+   asciidoctor-plantuml (= 0.0.7)
+   asciidoctor-rouge (~> 0.2.0)
+   attr_encrypted (~> 3.0.0)
+diff --git a/lib/gitlab/asciidoc.rb b/lib/gitlab/asciidoc.rb
+index 90205b7..81e2583 100644
+--- a/lib/gitlab/asciidoc.rb
++++ b/lib/gitlab/asciidoc.rb
+@@ -3,6 +3,7 @@ require 'asciidoctor/extensions'
+ require 'asciidoctor-html5s'
+ require "asciidoctor-plantuml"
+ require 'asciidoctor/include_ext/include_processor'
++require 'asciidoctor/interdoc_reftext/processor'
+ require 'asciidoctor/rouge/treeprocessor'
+
+ module Gitlab
+@@ -32,6 +33,11 @@ module Gitlab
+
+       extensions = proc do
+         include_processor GitlabIncludeProcessor.new(repository_tree)
++
++        tree_processor ::Asciidoctor::InterdocReftext::Processor.new(
++          resolver_class: GitlabInterdocReftextResolver,
++          repository_tree: repository_tree
++        )
+       end
+
+       asciidoc_opts = { safe: :server,
+@@ -196,5 +202,26 @@ module Gitlab
+         reader.unshift_line("*[ERROR: include::#{target}[] - unresolved directive]*")
+       end
+     end
++
++    # Resolver of implicit reference text (label) for inter-document cross references.
++    class GitlabInterdocReftextResolver < Asciidoctor::InterdocReftext::Resolver
++      # Overrides super class method.
++      def initialize(document, repository_tree:, **)
++        super(document, logger: Gitlab::AppLogger, raise_exceptions: false)
++        @repository_tree = repository_tree
++      end
++
++      protected
++
++      # Overrides super class method.
++      def resolve_target_path(target_path)
++        @repository_tree.resolve_file_path(target_path + '.adoc')
++      end
++
++      # Overrides super class method.
++      def read_file(filename)
++        @repository_tree.read_file(filename).try(:each_line)
++      end
++    end
+   end
+ end
