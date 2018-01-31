@@ -163,7 +163,7 @@ build() {
 		vendor/bundle/ruby/*/gems/gitlab-markup-*/lib/github/markups.rb
 
 	msg "Installing npm modules..."
-	yarn install --production --pure-lockfile
+	yarn install --production --frozen-lockfile
 
 
 	# Since we have moved assets gems into a group, they are not implicitly
