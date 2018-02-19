@@ -1,0 +1,674 @@
+From 5a48ea648691a5471ff2b08fbdff6d836e88320c Mon Sep 17 00:00:00 2001
+From: Eric <eric.yu@twosigma.com>
+Date: Wed, 2 Aug 2017 10:16:17 +0000
+Subject: [PATCH] Extending API for protected branches
+
+Backported from 9.5.0
+
+---
+ app/models/concerns/protected_branch_access.rb     |  12 +-
+ .../unreleased/ericy_ts-protected_branches_api.yml |   5 +
+ doc/api/README.md                                  |   1 +
+ doc/api/branches.md                                |   4 +
+ doc/api/protected_branches.md                      | 145 +++++++++++++
+ lib/api/api.rb                                     |   1 +
+ lib/api/branches.rb                                |   6 +-
+ lib/api/entities.rb                                |  15 +-
+ lib/api/protected_branches.rb                      |  83 ++++++++
+ spec/factories/protected_branches.rb               |   6 +
+ spec/requests/api/protected_branches_spec.rb       | 232 +++++++++++++++++++++
+ 11 files changed, 502 insertions(+), 8 deletions(-)
+ create mode 100644 changelogs/unreleased/ericy_ts-protected_branches_api.yml
+ create mode 100644 doc/api/protected_branches.md
+ create mode 100644 lib/api/protected_branches.rb
+ create mode 100644 spec/requests/api/protected_branches_spec.rb
+
+diff --git a/app/models/concerns/protected_branch_access.rb b/app/models/concerns/protected_branch_access.rb
+index a40148a..fde1cc4 100644
+--- a/app/models/concerns/protected_branch_access.rb
++++ b/app/models/concerns/protected_branch_access.rb
+@@ -1,6 +1,12 @@
+ module ProtectedBranchAccess
+   extend ActiveSupport::Concern
+
++  ALLOWED_ACCESS_LEVELS ||= [
++    Gitlab::Access::MASTER,
++    Gitlab::Access::DEVELOPER,
++    Gitlab::Access::NO_ACCESS
++  ].freeze
++
+   included do
+     include ProtectedRefAccess
+
+@@ -9,11 +15,7 @@ module ProtectedBranchAccess
+     delegate :project, to: :protected_branch
+
+     validates :access_level, presence: true, inclusion: {
+-      in: [
+-        Gitlab::Access::MASTER,
+-        Gitlab::Access::DEVELOPER,
+-        Gitlab::Access::NO_ACCESS
+-      ]
++      in: ALLOWED_ACCESS_LEVELS
+     }
+
+     def self.human_access_levels
+diff --git a/changelogs/unreleased/ericy_ts-protected_branches_api.yml b/changelogs/unreleased/ericy_ts-protected_branches_api.yml
+new file mode 100644
+index 0000000..4cd275c
+--- /dev/null
++++ b/changelogs/unreleased/ericy_ts-protected_branches_api.yml
+@@ -0,0 +1,5 @@
++---
++title: Add API for protected branches to allow for wildcard matching and no access
++  restrictions
++merge_request: 12756
++author: Eric Yu
+diff --git a/doc/api/README.md b/doc/api/README.md
+index 95e7a45..78e5ce5 100644
+--- a/doc/api/README.md
++++ b/doc/api/README.md
+@@ -41,6 +41,7 @@ following locations:
+ - [Project Access Requests](access_requests.md)
+ - [Project Members](members.md)
+ - [Project Snippets](project_snippets.md)
++- [Protected Branches](protected_branches.md)
+ - [Repositories](repositories.md)
+ - [Repository Files](repository_files.md)
+ - [Runners](runners.md)
+diff --git a/doc/api/branches.md b/doc/api/branches.md
+index dfaa7d6..8074425 100644
+--- a/doc/api/branches.md
++++ b/doc/api/branches.md
+@@ -95,6 +95,8 @@ Example response:
+
+ ## Protect repository branch
+
++>**Note:** This API endpoint is deprecated in favor of `POST /projects/:id/protected_branches`.
++
+ Protects a single project repository branch. This is an idempotent function,
+ protecting an already protected repository branch still returns a `200 OK`
+ status code.
+@@ -143,6 +145,8 @@ Example response:
+
+ ## Unprotect repository branch
+
++>**Note:** This API endpoint is deprecated in favor of `DELETE /projects/:id/protected_branches/:name`
++
+ Unprotects a single project repository branch. This is an idempotent function,
+ unprotecting an already unprotected repository branch still returns a `200 OK`
+ status code.
+diff --git a/doc/api/protected_branches.md b/doc/api/protected_branches.md
+new file mode 100644
+index 0000000..10faa95
+--- /dev/null
++++ b/doc/api/protected_branches.md
+@@ -0,0 +1,145 @@
++# Protected branches API
++
++>**Note:** This feature was introduced in GitLab 9.5
++
++**Valid access levels**
++
++The access levels are defined in the `ProtectedBranchAccess::ALLOWED_ACCESS_LEVELS` constant. Currently, these levels are recognized:
++```
++0  => No access
++30 => Developer access
++40 => Master access
++```
++
++## List protected branches
++
++Gets a list of protected branches from a project.
++
++```
++GET /projects/:id/protected_branches
++```
++
++| Attribute | Type | Required | Description |
++| --------- | ---- | -------- | ----------- |
++| `id` | integer/string | yes | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user |
++
++```bash
++curl --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" 'https://gitlab.example.com/api/v4/projects/5/protected_branches'
++```
++
++Example response:
++
++```json
++[
++  {
++    "name": "master",
++    "push_access_levels": [
++      {
++        "access_level": 40,
++        "access_level_description": "Masters"
++      }
++    ],
++    "merge_access_levels": [
++      {
++        "access_level": 40,
++        "access_level_description": "Masters"
++      }
++    ]
++  },
++  ...
++]
++```
++
++## Get a single protected branch or wildcard protected branch
++
++Gets a single protected branch or wildcard protected branch.
++
++```
++GET /projects/:id/protected_branches/:name
++```
++
++| Attribute | Type | Required | Description |
++| --------- | ---- | -------- | ----------- |
++| `id` | integer/string | yes | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user |
++| `name` | string | yes | The name of the branch or wildcard |
++
++```bash
++curl --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" 'https://gitlab.example.com/api/v4/projects/5/protected_branches/master'
++```
++
++Example response:
++
++```json
++{
++  "name": "master",
++  "push_access_levels": [
++    {
++      "access_level": 40,
++      "access_level_description": "Masters"
++    }
++  ],
++  "merge_access_levels": [
++    {
++      "access_level": 40,
++      "access_level_description": "Masters"
++    }
++  ]
++}
++```
++
++## Protect repository branches
++
++Protects a single repository branch or several project repository
++branches using a wildcard protected branch.
++
++```
++POST /projects/:id/protected_branches
++```
++
++```bash
++curl --request POST --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" 'https://gitlab.example.com/api/v4/projects/5/protected_branches?name=*-stable&push_access_level=30&merge_access_level=30'
++```
++
++| Attribute | Type | Required | Description |
++| --------- | ---- | -------- | ----------- |
++| `id` | integer/string | yes | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user |
++| `name` | string | yes | The name of the branch or wildcard |
++| `push_access_level` | string | no | Access levels allowed to push (defaults: `40`, master access level) |
++| `merge_access_level` | string | no | Access levels allowed to merge (defaults: `40`, master access level) |
++
++Example response:
++
++```json
++{
++  "name": "*-stable",
++  "push_access_levels": [
++    {
++      "access_level": 30,
++      "access_level_description": "Developers + Masters"
++    }
++  ],
++  "merge_access_levels": [
++    {
++      "access_level": 30,
++      "access_level_description": "Developers + Masters"
++    }
++  ]
++}
++```
++
++## Unprotect repository branches
++
++Unprotects the given protected branch or wildcard protected branch.
++
++```
++DELETE /projects/:id/protected_branches/:name
++```
++
++```bash
++curl --request PUT --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" 'https://gitlab.example.com/api/v4/projects/5/protected_branches/*-stable'
++```
++
++| Attribute | Type | Required | Description |
++| --------- | ---- | -------- | ----------- |
++| `id` | integer/string | yes | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user |
++| `name` | string | yes | The name of the branch |
+diff --git a/lib/api/api.rb b/lib/api/api.rb
+index efcf097..a1b2c0c 100644
+--- a/lib/api/api.rb
++++ b/lib/api/api.rb
+@@ -118,6 +118,7 @@ module API
+     mount ::API::ProjectHooks
+     mount ::API::Projects
+     mount ::API::ProjectSnippets
++    mount ::API::ProtectedBranches
+     mount ::API::Repositories
+     mount ::API::Runner
+     mount ::API::Runners
+diff --git a/lib/api/branches.rb b/lib/api/branches.rb
+index 3d816f8..fdfaa89 100644
+--- a/lib/api/branches.rb
++++ b/lib/api/branches.rb
+@@ -35,6 +35,7 @@ module API
+         present branch, with: Entities::RepoBranch, project: user_project
+       end
+
++      # Note: This API will be deprecated in favor of the protected branches API.
+       # Note: The internal data model moved from `developers_can_{merge,push}` to `allowed_to_{merge,push}`
+       # in `gitlab-org/gitlab-ce!5081`. The API interface has not been changed (to maintain compatibility),
+       # but it works with the changed data model to infer `developers_can_merge` and `developers_can_push`.
+@@ -63,9 +64,9 @@ module API
+         service_args = [user_project, current_user, protected_branch_params]
+
+         protected_branch = if protected_branch
+-                             ProtectedBranches::ApiUpdateService.new(*service_args).execute(protected_branch)
++                             ::ProtectedBranches::ApiUpdateService.new(*service_args).execute(protected_branch)
+                            else
+-                             ProtectedBranches::ApiCreateService.new(*service_args).execute
++                             ::ProtectedBranches::ApiCreateService.new(*service_args).execute
+                            end
+
+         if protected_branch.valid?
+@@ -75,6 +76,7 @@ module API
+         end
+       end
+
++      # Note: This API will be deprecated in favor of the protected branches API.
+       desc 'Unprotect a single branch' do
+         success Entities::RepoBranch
+       end
+diff --git a/lib/api/entities.rb b/lib/api/entities.rb
+index 47742a1..de3a6d4 100644
+--- a/lib/api/entities.rb
++++ b/lib/api/entities.rb
+@@ -208,7 +208,7 @@ module API
+       end
+
+       expose :protected do |repo_branch, options|
+-        ProtectedBranch.protected?(options[:project], repo_branch.name)
++        ::ProtectedBranch.protected?(options[:project], repo_branch.name)
+       end
+
+       expose :developers_can_push do |repo_branch, options|
+@@ -267,6 +267,19 @@ module API
+       expose :deleted_file?, as: :deleted_file
+     end
+
++    class ProtectedRefAccess < Grape::Entity
++      expose :access_level
++      expose :access_level_description do |protected_ref_access|
++        protected_ref_access.humanize
++      end
++    end
++
++    class ProtectedBranch < Grape::Entity
++      expose :name
++      expose :push_access_levels, using: Entities::ProtectedRefAccess
++      expose :merge_access_levels, using: Entities::ProtectedRefAccess
++    end
++
+     class Milestone < Grape::Entity
+       expose :id, :iid
+       expose(:project_id) { |entity| entity&.project_id }
+diff --git a/lib/api/protected_branches.rb b/lib/api/protected_branches.rb
+new file mode 100644
+index 0000000..89ada94
+--- /dev/null
++++ b/lib/api/protected_branches.rb
+@@ -0,0 +1,83 @@
++module API
++  class ProtectedBranches < Grape::API
++    include PaginationParams
++
++    before { authorize_admin_project }
++
++    params do
++      requires :id, type: String, desc: 'The ID of a project'
++    end
++    resource :projects, requirements: { id: %r{[^/]+} } do
++      desc "Get a project's protected branches" do
++        success Entities::ProtectedBranch
++      end
++      params do
++        use :pagination
++      end
++      get ':id/protected_branches' do
++        protected_branches = user_project.protected_branches.preload(:push_access_levels, :merge_access_levels)
++
++        present paginate(protected_branches), with: Entities::ProtectedBranch, project: user_project
++      end
++
++      desc 'Get a single protected branch' do
++        success Entities::ProtectedBranch
++      end
++      params do
++        requires :name, type: String, desc: 'The name of the branch or wildcard'
++      end
++      get ':id/protected_branches/:name', requirements: { branch: /.+/ } do
++        protected_branch = user_project.protected_branches.find_by!(name: params[:name])
++
++        present protected_branch, with: Entities::ProtectedBranch, project: user_project
++      end
++
++      desc 'Protect a single branch or wildcard' do
++        success Entities::ProtectedBranch
++      end
++      params do
++        requires :name, type: String, desc: 'The name of the protected branch'
++        optional :push_access_level, type: Integer, default: Gitlab::Access::MASTER,
++                                     values: ProtectedBranchAccess::ALLOWED_ACCESS_LEVELS,
++                                     desc: 'Access levels allowed to push (defaults: `40`, master access level)'
++        optional :merge_access_level, type: Integer, default: Gitlab::Access::MASTER,
++                                      values: ProtectedBranchAccess::ALLOWED_ACCESS_LEVELS,
++                                      desc: 'Access levels allowed to merge (defaults: `40`, master access level)'
++      end
++      post ':id/protected_branches' do
++        protected_branch = user_project.protected_branches.find_by(name: params[:name])
++        if protected_branch
++          conflict!("Protected branch '#{params[:name]}' already exists")
++        end
++
++        protected_branch_params = {
++          name: params[:name],
++          push_access_levels_attributes: [{ access_level: params[:push_access_level] }],
++          merge_access_levels_attributes: [{ access_level: params[:merge_access_level] }]
++        }
++
++        service_args = [user_project, current_user, protected_branch_params]
++
++        protected_branch = ::ProtectedBranches::CreateService.new(*service_args).execute
++
++        if protected_branch.persisted?
++          present protected_branch, with: Entities::ProtectedBranch, project: user_project
++        else
++          render_api_error!(protected_branch.errors.full_messages, 422)
++        end
++      end
++
++      desc 'Unprotect a single branch'
++      params do
++        requires :name, type: String, desc: 'The name of the protected branch'
++      end
++      delete ':id/protected_branches/:name', requirements: { branch: /.+/ } do
++        protected_branch = user_project.protected_branches.find_by!(name: params[:name])
++
++        protected_branch.destroy
++
++        status 204
++      end
++    end
++  end
++end
+diff --git a/spec/factories/protected_branches.rb b/spec/factories/protected_branches.rb
+index b2695e0..4edd9e0 100644
+--- a/spec/factories/protected_branches.rb
++++ b/spec/factories/protected_branches.rb
+@@ -25,5 +25,11 @@ FactoryGirl.define do
+         protected_branch.push_access_levels.first.update!(access_level: Gitlab::Access::NO_ACCESS)
+       end
+     end
++
++    trait :no_one_can_merge do
++      after(:create) do |protected_branch|
++        protected_branch.merge_access_levels.first.update!(access_level: Gitlab::Access::NO_ACCESS)
++      end
++    end
+   end
+ end
+diff --git a/spec/requests/api/protected_branches_spec.rb b/spec/requests/api/protected_branches_spec.rb
+new file mode 100644
+index 0000000..e4f9c47
+--- /dev/null
++++ b/spec/requests/api/protected_branches_spec.rb
+@@ -0,0 +1,232 @@
++require 'spec_helper'
++
++describe API::ProtectedBranches do
++  let(:user) { create(:user) }
++  let!(:project) { create(:project, :repository) }
++  let(:protected_name) { 'feature' }
++  let(:branch_name) { protected_name }
++  let!(:protected_branch) do
++    create(:protected_branch, project: project, name: protected_name)
++  end
++
++  describe "GET /projects/:id/protected_branches" do
++    let(:route) { "/projects/#{project.id}/protected_branches" }
++
++    shared_examples_for 'protected branches' do
++      it 'returns the protected branches' do
++        get api(route, user), per_page: 100
++
++        expect(response).to have_gitlab_http_status(200)
++        expect(response).to include_pagination_headers
++        expect(json_response).to be_an Array
++
++        protected_branch_names = json_response.map { |x| x['name'] }
++        expected_branch_names = project.protected_branches.map { |x| x['name'] }
++        expect(protected_branch_names).to match_array(expected_branch_names)
++      end
++    end
++
++    context 'when authenticated as a master' do
++      before do
++        project.add_master(user)
++      end
++
++      it_behaves_like 'protected branches'
++    end
++
++    context 'when authenticated as a guest' do
++      before do
++        project.add_guest(user)
++      end
++
++      it_behaves_like '403 response' do
++        let(:request) { get api(route, user) }
++      end
++    end
++  end
++
++  describe "GET /projects/:id/protected_branches/:branch" do
++    let(:route) { "/projects/#{project.id}/protected_branches/#{branch_name}" }
++
++    shared_examples_for 'protected branch' do
++      it 'returns the protected branch' do
++        get api(route, user)
++
++        expect(response).to have_gitlab_http_status(200)
++        expect(json_response['name']).to eq(branch_name)
++        expect(json_response['push_access_levels'][0]['access_level']).to eq(::Gitlab::Access::MASTER)
++        expect(json_response['merge_access_levels'][0]['access_level']).to eq(::Gitlab::Access::MASTER)
++      end
++
++      context 'when protected branch does not exist' do
++        let(:branch_name) { 'unknown' }
++
++        it_behaves_like '404 response' do
++          let(:request) { get api(route, user) }
++          let(:message) { '404 Not found' }
++        end
++      end
++    end
++
++    context 'when authenticated as a master' do
++      before do
++        project.add_master(user)
++      end
++
++      it_behaves_like 'protected branch'
++
++      context 'when protected branch contains a wildcard' do
++        let(:protected_name) { 'feature*' }
++
++        it_behaves_like 'protected branch'
++      end
++    end
++
++    context 'when authenticated as a guest' do
++      before do
++        project.add_guest(user)
++      end
++
++      it_behaves_like '403 response' do
++        let(:request) { get api(route, user) }
++      end
++    end
++  end
++
++  describe 'POST /projects/:id/protected_branches' do
++    let(:branch_name) { 'new_branch' }
++
++    context 'when authenticated as a master' do
++      before do
++        project.add_master(user)
++      end
++
++      it 'protects a single branch' do
++        post api("/projects/#{project.id}/protected_branches", user), name: branch_name
++
++        expect(response).to have_gitlab_http_status(201)
++        expect(json_response['name']).to eq(branch_name)
++        expect(json_response['push_access_levels'][0]['access_level']).to eq(Gitlab::Access::MASTER)
++        expect(json_response['merge_access_levels'][0]['access_level']).to eq(Gitlab::Access::MASTER)
++      end
++
++      it 'protects a single branch and developers can push' do
++        post api("/projects/#{project.id}/protected_branches", user),
++            name: branch_name, push_access_level: 30
++
++        expect(response).to have_gitlab_http_status(201)
++        expect(json_response['name']).to eq(branch_name)
++        expect(json_response['push_access_levels'][0]['access_level']).to eq(Gitlab::Access::DEVELOPER)
++        expect(json_response['merge_access_levels'][0]['access_level']).to eq(Gitlab::Access::MASTER)
++      end
++
++      it 'protects a single branch and developers can merge' do
++        post api("/projects/#{project.id}/protected_branches", user),
++            name: branch_name, merge_access_level: 30
++
++        expect(response).to have_gitlab_http_status(201)
++        expect(json_response['name']).to eq(branch_name)
++        expect(json_response['push_access_levels'][0]['access_level']).to eq(Gitlab::Access::MASTER)
++        expect(json_response['merge_access_levels'][0]['access_level']).to eq(Gitlab::Access::DEVELOPER)
++      end
++
++      it 'protects a single branch and developers can push and merge' do
++        post api("/projects/#{project.id}/protected_branches", user),
++            name: branch_name, push_access_level: 30, merge_access_level: 30
++
++        expect(response).to have_gitlab_http_status(201)
++        expect(json_response['name']).to eq(branch_name)
++        expect(json_response['push_access_levels'][0]['access_level']).to eq(Gitlab::Access::DEVELOPER)
++        expect(json_response['merge_access_levels'][0]['access_level']).to eq(Gitlab::Access::DEVELOPER)
++      end
++
++      it 'protects a single branch and no one can push' do
++        post api("/projects/#{project.id}/protected_branches", user),
++            name: branch_name, push_access_level: 0
++
++        expect(response).to have_gitlab_http_status(201)
++        expect(json_response['name']).to eq(branch_name)
++        expect(json_response['push_access_levels'][0]['access_level']).to eq(Gitlab::Access::NO_ACCESS)
++        expect(json_response['merge_access_levels'][0]['access_level']).to eq(Gitlab::Access::MASTER)
++      end
++
++      it 'protects a single branch and no one can merge' do
++        post api("/projects/#{project.id}/protected_branches", user),
++            name: branch_name, merge_access_level: 0
++
++        expect(response).to have_gitlab_http_status(201)
++        expect(json_response['name']).to eq(branch_name)
++        expect(json_response['push_access_levels'][0]['access_level']).to eq(Gitlab::Access::MASTER)
++        expect(json_response['merge_access_levels'][0]['access_level']).to eq(Gitlab::Access::NO_ACCESS)
++      end
++
++      it 'protects a single branch and no one can push or merge' do
++        post api("/projects/#{project.id}/protected_branches", user),
++            name: branch_name, push_access_level: 0, merge_access_level: 0
++
++        expect(response).to have_gitlab_http_status(201)
++        expect(json_response['name']).to eq(branch_name)
++        expect(json_response['push_access_levels'][0]['access_level']).to eq(Gitlab::Access::NO_ACCESS)
++        expect(json_response['merge_access_levels'][0]['access_level']).to eq(Gitlab::Access::NO_ACCESS)
++      end
++
++      it 'returns a 409 error if the same branch is protected twice' do
++        post api("/projects/#{project.id}/protected_branches", user), name: protected_name
++        expect(response).to have_gitlab_http_status(409)
++      end
++
++      context 'when branch has a wildcard in its name' do
++        let(:branch_name) { 'feature/*' }
++
++        it "protects multiple branches with a wildcard in the name" do
++          post api("/projects/#{project.id}/protected_branches", user), name: branch_name
++
++          expect(response).to have_gitlab_http_status(201)
++          expect(json_response['name']).to eq(branch_name)
++          expect(json_response['push_access_levels'][0]['access_level']).to eq(Gitlab::Access::MASTER)
++          expect(json_response['merge_access_levels'][0]['access_level']).to eq(Gitlab::Access::MASTER)
++        end
++      end
++    end
++
++    context 'when authenticated as a guest' do
++      before do
++        project.add_guest(user)
++      end
++
++      it "returns a 403 error if guest" do
++        post api("/projects/#{project.id}/protected_branches/", user), name: branch_name
++
++        expect(response).to have_gitlab_http_status(403)
++      end
++    end
++  end
++
++  describe "DELETE /projects/:id/protected_branches/unprotect/:branch" do
++    before do
++      project.add_master(user)
++    end
++
++    it "unprotects a single branch" do
++      delete api("/projects/#{project.id}/protected_branches/#{branch_name}", user)
++
++      expect(response).to have_gitlab_http_status(204)
++    end
++
++    it "returns 404 if branch does not exist" do
++      delete api("/projects/#{project.id}/protected_branches/barfoo", user)
++
++      expect(response).to have_gitlab_http_status(404)
++    end
++
++    context 'when branch has a wildcard in its name' do
++      let(:protected_name) { 'feature*' }
++
++      it "unprotects a wildcard branch" do
++        delete api("/projects/#{project.id}/protected_branches/#{branch_name}", user)
++
++        expect(response).to have_gitlab_http_status(204)
++      end
++    end
++  end
++end
+--
+2.10.1 (Apple Git-78)
+
