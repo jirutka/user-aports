@@ -5,7 +5,7 @@ _goname=github.com/minio/$pkgname
 pkgver=20180209
 _srcver="${pkgver:0:4}-${pkgver:4:2}-${pkgver:6:2}T22:40:05Z"
 _srctag="RELEASE.${_srcver//:/-}"
-pkgrel=0
+pkgrel=1
 pkgdesc="An open source object storage server compatible with Amazon S3 APIs"
 url="https://minio.io"
 arch="all"
@@ -20,6 +20,8 @@ source="$pkgname-$pkgver.tar.gz::https://github.com/minio/$pkgname/archive/$_src
 	$pkgname.logrotate
 	remove-update-cmd.patch"
 builddir="$srcdir/src/$_goname"
+# Go doesn't play well with strip tool. http://bit.ly/2jlJsSU
+options="!strip"
 
 prepare() {
 	mkdir -p "${builddir%/*}"
@@ -29,13 +31,14 @@ prepare() {
 }
 
 build() {
-	local ldflags="-X $_goname/cmd.Version=$_srcver
+	local ldflags="-s -w
+		-X $_goname/cmd.Version=$_srcver
 		-X $_goname/cmd.ReleaseTag=$_srctag"
 
 	cd "$builddir"
 	GOPATH="$srcdir" go build -v \
 		-buildmode=pie \
-		--ldflags "$ldflags" \
+		-ldflags="$ldflags" \
 		-o $pkgname
 }
 
