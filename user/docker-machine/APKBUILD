@@ -2,12 +2,12 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=docker-machine
 _pkgname=machine
-pkgver=0.9.0
+pkgver=0.13.0
 pkgrel=0
 pkgdesc="Machine management for a shit-centric world"
 url="https://github.com/docker/machine"
 arch="all"
-license="ASL-2.0"
+license="Apache-2.0"
 makedepends="go"
 source="$pkgname-$pkgver.tar.gz::https://github.com/docker/machine/archive/v$pkgver.tar.gz"
 builddir="$srcdir/src/github.com/docker/machine"
@@ -21,7 +21,10 @@ prepare() {
 
 build() {
 	cd "$builddir"
-	GOPATH="$srcdir" make VERBOSE=true build
+	make build \
+		GOPATH="$srcdir" \
+		GO_LDFLAGS="-X $(go list ./version).GitCommit=0000000" \
+		VERBOSE=true
 }
 
 check() {
@@ -33,4 +36,4 @@ package() {
 	install -D -m 755 "$builddir"/bin/$pkgname "$pkgdir"/usr/bin/$pkgname
 }
 
-sha512sums="301958c8ec1025cd9d00fc9cf8b082ca2407a96eaa0b9a9058783f221b7b4ad5bf600475f74bb58aba8075354316c352996d9bd3d4c71d0a771dba1990fabff7  docker-machine-0.9.0.tar.gz"
+sha512sums="c31b3505e475f5e55310cc3b8805db8b94522703956a640954c3898c584fc3a07830c346535855cbb2fb10016dd0e7ef72e7174e919a3651f05e18b652132121  docker-machine-0.13.0.tar.gz"
