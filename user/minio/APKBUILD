@@ -2,15 +2,15 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=minio
 _goname=github.com/minio/$pkgname
-pkgver=20170125
-_srcver="${pkgver:0:4}-${pkgver:4:2}-${pkgver:6:2}T03:14:52Z"
+pkgver=20180209
+_srcver="${pkgver:0:4}-${pkgver:4:2}-${pkgver:6:2}T22:40:05Z"
 _srctag="RELEASE.${_srcver//:/-}"
-pkgrel=1
+pkgrel=0
 pkgdesc="An open source object storage server compatible with Amazon S3 APIs"
 url="https://minio.io"
 arch="all"
-license="ASL-2.0"
-makedepends="go"
+license="Apache-2.0"
+makedepends="go>=1.9.4"
 pkgusers="minio"
 pkggroups="$pkgusers"
 install="$pkgname.pre-install"
@@ -36,11 +36,16 @@ build() {
 	GOPATH="$srcdir" go build -v \
 		-buildmode=pie \
 		--ldflags "$ldflags" \
-		-o bin/$pkgname
+		-o $pkgname
+}
+
+check() {
+	cd "$builddir"
+	./minio version
 }
 
 package() {
-	install -D -m 755 "$builddir"/bin/$pkgname "$pkgdir"/usr/bin/$pkgname
+	install -D -m 755 "$builddir"/$pkgname "$pkgdir"/usr/bin/$pkgname
 
 	install -D -m 755 "$srcdir"/$pkgname.initd "$pkgdir"/etc/init.d/$pkgname
 	install -D -m 644 "$srcdir"/$pkgname.confd "$pkgdir"/etc/conf.d/$pkgname
@@ -54,8 +59,8 @@ package() {
 		"$pkgdir"/var/lib/$pkgname/data
 }
 
-sha512sums="3e547d59f6218ea85aebf404751c1afe4ea066f726290c143371a2be9ac4778431318ab47c2a73875cc829684342efb46031932a518ff7854c1477899466efd0  minio-20170125.tar.gz
+sha512sums="12efe6e43be6db63fa84966310662371c4eb8082be1b146dc554d9858251ae1beadea42513863a0358b96c6e021cab808fb6e6b3b2b721aae137f5d860c55b44  minio-20180209.tar.gz
 2eab23752e941f6e90365e9f88a22ec2a6b842bc62019790ada1b034a1caa458f443276ac6b17619242e60cb2b951fbe50c80f13a8519aec4300595f65905397  minio.initd
 bdf16f637f61ab2604a07ef30dfb3f39cb020a6bcdf946c01cfdbbabbc57d4551ec332e578a91ab7bd0da71d9096c83de54af8ffcf898bb7d59151ed5461b63a  minio.confd
 3bca81d1601bd5af20e803ca033a777d83fe62bc90f876b27d1b7e7b98eeb62a0dd52ec2a957f64737edb1c289d73f81824169b054e2c88a52b6e99c3868df1c  minio.logrotate
-80227166fe33ae975b32488b388458495e08ccf47032fae83654baa4e8b9c5162315b67f09df7068a6af0d50ae496ab898243e3600e4d4759bdcee43e97218cf  remove-update-cmd.patch"
+2eeb8be5c7799c3d26d7e6d4e73fa27b41f40418315e42fbc8243542c551b5ec877d00f7af5127d1c1f75c9f61eed4b59b213db52d6b86e388ae9e5bb423410e  remove-update-cmd.patch"
