@@ -15,13 +15,13 @@ replaces="gitlab-ci-multi-runner"  # for backward compatibility
 install="$pkgname.pre-install"
 source="$pkgname-$pkgver.tar.gz::https://gitlab.com/gitlab-org/$pkgname/repository/archive.tar.gz?ref=v$pkgver
 	$pkgname-$pkgver-prebuilt-x86_64.tar.xz.bin::https://$pkgname-downloads.s3.amazonaws.com/v$pkgver/docker/prebuilt-x86_64.tar.xz
-	$pkgname-$pkgver-prebuilt-arm.tar.xz.bin::https://$pkgname-downloads.s3.amazonaws.com/v$pkgver/docker/prebuilt-arm.tar.xz
 	$pkgname.initd
 	$pkgname.logrotate
 	makefile-verbose.patch
 	dont-build-images.patch
 	log-timestamp.patch
-	log-without-colors.patch"
+	log-without-colors.patch
+	remove-prebuilt-arm.patch"
 builddir="$srcdir/src/gitlab.com/gitlab-org/$pkgname"
 
 prepare() {
@@ -36,10 +36,8 @@ prepare() {
 	default_prepare
 
 	mkdir -p "$builddir"/out/docker
-	local arch; for arch in x86_64 arm; do
-		cp -L "$srcdir"/*-prebuilt-$arch.* \
-			"$builddir"/out/docker/prebuilt-$arch.tar.xz
-	done
+	cp -L "$srcdir"/*-prebuilt-x86_64.* \
+		"$builddir"/out/docker/prebuilt-x86_64.tar.xz
 }
 
 build() {
@@ -77,10 +75,10 @@ package() {
 
 sha512sums="a65ea858cc66e55c48aa921fba9a98e850d4ec51b18ffc0442c5bf337fccff2d5ac00dc1ed8e5e2c3b07c2daaf7e6498a98d08ebd6ff4193e708056f3c742dff  gitlab-runner-10.5.0.tar.gz
 e3516d53711153166fb37aac9f84292d439340e92c995992254af2f7c9f07f3a3b22740c1fbc33f045110b48e47253bd56927a6f751fb982592de60202e16dc3  gitlab-runner-10.5.0-prebuilt-x86_64.tar.xz.bin
-7d10fed0033ed95113b45ea1e4430db9879cccaa8f13bcbd8303373a7b276a448af4c2e43fd5b42ecdbff8c98ae4aa1d63c2e323a0c054d29cf2411a86da6ae4  gitlab-runner-10.5.0-prebuilt-arm.tar.xz.bin
 4ea48f61a6810ea67827baf7c6ec7a389054cd086f99214f3c1706b74b5ea6c075d9b1f78a407f0b32b8806fbb994a224904e39ae8e75b67d794af056d05711d  gitlab-runner.initd
 27d4d8eb83da3a1c9771fbdbcce177306907e9f772e3ced3f70038e46d2b0b979e00af5e9d49f68cec8253b2348fffcb0bd74767c2e8908e584d341318b90bb7  gitlab-runner.logrotate
 d002cae1c73c725260750d576c4277224d76a78f730557bc232614d7f19de5e038594556963596f59d6e2c8adfeb638cef68ce7cbc27d6e752edffff3e745043  makefile-verbose.patch
 acbcba4905017c4f617a01dbc64c09b9fa6d1f1c0427c7c069b1f27f55ca8c1eda563e3692084105e4f0cd98ee1bdf44a32609093b86a00698f99f21b794a2f5  dont-build-images.patch
 a0c808f39a5dca4fa6885b80ecb10e4a09302330bd4aedb9c799fc8a4888c42e5045961b60659ff98bd4264b9ddc2ad9f242b1175755d4bc3c438c6c19b980ff  log-timestamp.patch
-2dcbcc7d0999ad84eb407c5f74b6dfb60ec91fad1a0feb4e4ee2758e177bd0004d9766ebb8b59b8dbb8413f28f339b7696ebcedbdb17c30ebb2e96fc6d0a71a9  log-without-colors.patch"
+2dcbcc7d0999ad84eb407c5f74b6dfb60ec91fad1a0feb4e4ee2758e177bd0004d9766ebb8b59b8dbb8413f28f339b7696ebcedbdb17c30ebb2e96fc6d0a71a9  log-without-colors.patch
+cc85561e9d9e13894526ddf07e4644c9e032316bbc1ad437dfc01a7baaf2a5eb2f7de3dade72bc147e3f044251ec0f036d796e37f8375346292ef178dd57b476  remove-prebuilt-arm.patch"
