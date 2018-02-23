@@ -56,6 +56,13 @@ build() {
 		build_current
 }
 
+check() {
+	cd "$builddir"
+
+	out/binaries/gitlab-runner --version
+	dockerfiles/build/gitlab-runner-helper --version
+}
+
 package() {
 	cd "$builddir"
 
