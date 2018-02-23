@@ -1,9 +1,9 @@
 --- a/Makefile
 +++ b/Makefile
-@@ -105,59 +105,11 @@
+@@ -105,59 +105,17 @@
  	# Create directory
  	mkdir -p out/docker
- 
+
 -ifneq (, $(shell docker info))
 -	# Building gitlab-runner-helper
 -	gox -osarch=linux/amd64 \
@@ -31,14 +31,17 @@
  out/docker/prebuilt-arm.tar.xz: $(GO_FILES) $(GOX)
  	# Create directory
  	mkdir -p out/docker
- 
+
 -ifneq (, $(shell docker info))
--	# Building gitlab-runner-helper
++dockerfiles/build/gitlab-runner-helper: $(GOPATH_SETUP)
+ 	# Building gitlab-runner-helper
 -	gox -osarch=linux/arm \
 -		-ldflags "$(GO_LDFLAGS)" \
 -		-output="dockerfiles/build/gitlab-runner-helper" \
--		$(PKG)/apps/gitlab-runner-helper
--
++	go build -v -ldflags "$(GO_LDFLAGS)" \
++		-o "dockerfiles/build/gitlab-runner-helper" \
+ 		$(PKG)/apps/gitlab-runner-helper
+
 -	# Build docker images
 -	docker build -t gitlab/gitlab-runner-helper:arm-$(REVISION) -f dockerfiles/build/Dockerfile.arm dockerfiles/build
 -	-docker rm -f gitlab-runner-prebuilt-arm-$(REVISION)
@@ -61,3 +64,12 @@
  	# Generating embedded data
  	go-bindata \
  		-pkg docker \
+@@ -186,7 +144,7 @@
+ 		-o "out/binaries/$(NAME)" \
+ 		$(PKG)
+
+-build_current: executors/docker/bindata.go build_simple
++build_current: executors/docker/bindata.go build_simple dockerfiles/build/gitlab-runner-helper
+
+ check_race_conditions: executors/docker/bindata.go
+ 	@./scripts/check_race_conditions $(OUR_PACKAGES)
