@@ -3,7 +3,7 @@
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
 pkgver=9.4.7
-pkgrel=6
+pkgrel=7
 pkgdesc="A version control for your server"
 url="https://github.com/gitlabhq/gitlabhq"
 arch="all"
@@ -87,6 +87,8 @@ source="$pkgname-$pkgver.tar.gz::https://github.com/gitlabhq/gitlabhq/archive/v$
 	katex-disable-throwOnError.patch
 	asciidoctor-interdoc-reftext.patch
 	extend-api-for-protected-branches.patch
+	asciidoc-line-through.patch
+	asciidoc-expose-metadata-as-attributes.patch
 	"
 builddir="$srcdir/gitlabhq-$pkgver"
 
@@ -391,4 +393,6 @@ aa3d30e7ef7b3a2b87237cc7b997d9abb26bff2b664582b109813e03a9e8512f789165f642818152
 7ec20f56e0d717dbcb1676fb63263b4f7407555dd3ec8f1a15de74494de8e7536d84ef6ced6e3afb7fb46d71f2862f5127927edd5bd905ebcc8e7ef308c1bc94  gemfile-update-asciidoctor-1.5.7.dev.patch
 3b1bd66b37b42bd501b2d7e69bd62581d355fc18d1cc03dcac3ff41ad0d717abf956ca017110bb5c1794873b579c87f9d84c37a3250c55677287ab80be87a494  katex-disable-throwOnError.patch
 dfd1f030b24dfe24839719ce07ed347d4326ea43dfede5c75ccf0d4b8d3ee8f8011688e2c0e88d142fc0a6f52d4d20b2250185c95d2259ebd827b9ff190cbabd  asciidoctor-interdoc-reftext.patch
-330fc1176c4cd25180037fc1c9da933b5a60922df204c6c43c3e4ba75af22eda3c1e5025cde44b5428121797d2dfbc75c6eac4cfcac49120fdb271a6581545a3  extend-api-for-protected-branches.patch"
+330fc1176c4cd25180037fc1c9da933b5a60922df204c6c43c3e4ba75af22eda3c1e5025cde44b5428121797d2dfbc75c6eac4cfcac49120fdb271a6581545a3  extend-api-for-protected-branches.patch
+20bf65bb778a7024eba821bfa3bc7be1c6bb213b4ed6aeeb1c3e3d4d8c7d5db7fec3427ac94093a9cc04a3b6ffae50763d37f0f8935d2bdbd571a90f47c076c9  asciidoc-line-through.patch
+55228b45357588cad012b2daf3a213c2e6d19639660e40ec77880a8cb26ff393309d54e6dae9181b5b1f8659ec44131884b3051dc14066775a53573367ba1a48  asciidoc-expose-metadata-as-attributes.patch"

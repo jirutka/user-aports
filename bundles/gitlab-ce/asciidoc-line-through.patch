@@ -1,0 +1,30 @@
+From dc2363bc44e3dd39eb5e5a447d1b7f5913c08167 Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Wed, 28 Feb 2018 16:48:48 +0100
+Subject: [PATCH] Add CSS rule span.line-through needed for AsciiDoc
+
+---
+ app/assets/stylesheets/framework/asciidoctor.scss | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/app/assets/stylesheets/framework/asciidoctor.scss b/app/assets/stylesheets/framework/asciidoctor.scss
+index f5c837a..8d6cdc3 100644
+--- a/app/assets/stylesheets/framework/asciidoctor.scss
++++ b/app/assets/stylesheets/framework/asciidoctor.scss
+@@ -78,6 +78,13 @@
+     @extend .fa-angle-right;
+   }
+ 
++  // Example: [line-through]#strike this#
++  // or alternatively: [del]#strike this# (non-standard, but shorter)
++  span.line-through,
++  span.del {
++    text-decoration: line-through;
++  }
++
+   // Code callout (a mark inside the code).
+   .code b.conum {
+     @include black-circle-bg;
+-- 
+2.10.1 (Apple Git-78)
+

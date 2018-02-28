@@ -1,0 +1,40 @@
+From c6d37fb5998d4c08e2c8e0bb6116d39cb62a7a65 Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Wed, 28 Feb 2018 18:03:29 +0100
+Subject: [PATCH] Expose some project metadata as AsciiDoc attributes
+
+---
+ lib/gitlab/asciidoc.rb | 15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
+
+diff --git a/lib/gitlab/asciidoc.rb b/lib/gitlab/asciidoc.rb
+index 81e2583..09dde7b 100644
+--- a/lib/gitlab/asciidoc.rb
++++ b/lib/gitlab/asciidoc.rb
+@@ -40,9 +40,22 @@ module Gitlab
+         )
+       end
+ 
++      project = context[:project]
++      attributes = {
++        'gl-commit-ref' => context[:ref] || context[:project].default_branch,
++        'gl-project-namespace' => project.namespace.full_path,
++        'gl-project-path' => project.full_path,
++        'gl-project-title' => project.title,
++        'gl-project-url' => project.web_url,
++        'gl-repo-http-url' => project.http_url_to_repo,
++        'gl-repo-ssh-url' => project.ssh_url_to_repo,
++        'gl-server-host' => Gitlab.config.gitlab.host,
++        'gl-server-url' => Gitlab.config.gitlab.base_url,
++      }.map { |k, v| "#{k}=#{v}" }
++
+       asciidoc_opts = { safe: :server,
+                         backend: :gitlab_html5,
+-                        attributes: DEFAULT_ADOC_ATTRS,
++                        attributes: DEFAULT_ADOC_ATTRS + attributes,
+                         extensions: extensions }
+ 
+       context[:pipeline] = :ascii_doc
+-- 
+2.10.1 (Apple Git-78)
+
