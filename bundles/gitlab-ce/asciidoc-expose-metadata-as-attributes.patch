@@ -28,7 +28,7 @@ index 81e2583..ce84709 100644
 +          'gl-server-url' => Gitlab.config.gitlab.base_url,
 +        }.map { |k, v| "#{k}=#{v}" }
 +      else
-+        {}
++        []
 +      end
 +
        asciidoc_opts = { safe: :server,
@@ -38,6 +38,6 @@ index 81e2583..ce84709 100644
                          extensions: extensions }
  
        context[:pipeline] = :ascii_doc
--- 
+--
 2.10.1 (Apple Git-78)
 

@@ -3,7 +3,7 @@
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
 pkgver=9.4.7
-pkgrel=8
+pkgrel=9
 pkgdesc="A version control for your server"
 url="https://github.com/gitlabhq/gitlabhq"
 arch="all"
@@ -395,4 +395,4 @@ aa3d30e7ef7b3a2b87237cc7b997d9abb26bff2b664582b109813e03a9e8512f789165f642818152
 dfd1f030b24dfe24839719ce07ed347d4326ea43dfede5c75ccf0d4b8d3ee8f8011688e2c0e88d142fc0a6f52d4d20b2250185c95d2259ebd827b9ff190cbabd  asciidoctor-interdoc-reftext.patch
 330fc1176c4cd25180037fc1c9da933b5a60922df204c6c43c3e4ba75af22eda3c1e5025cde44b5428121797d2dfbc75c6eac4cfcac49120fdb271a6581545a3  extend-api-for-protected-branches.patch
 20bf65bb778a7024eba821bfa3bc7be1c6bb213b4ed6aeeb1c3e3d4d8c7d5db7fec3427ac94093a9cc04a3b6ffae50763d37f0f8935d2bdbd571a90f47c076c9  asciidoc-line-through.patch
-892e773498c163aaa37bbbc7aed12b471ca181b46ba781a82582ef52e1dfecffdd970899f7ac16f61e9213a0bd4dbfafc7a31c4a1deeb70d3ba0027d8d8499d8  asciidoc-expose-metadata-as-attributes.patch"
+bb2b97c545689668004d35ace5bd4ad7309eb6a64c4dc1ebcdb3b0d53cfab32867bf6da71f2f0b83a8c8cbeb8af65f5ce2f080663640fa5790ef1e89e58b3561  asciidoc-expose-metadata-as-attributes.patch"
