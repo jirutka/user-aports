@@ -52,6 +52,15 @@ wget https://raw.githubusercontent.com/{gh-name}/{gh-branch}/.keys/{key-file}
 . Add repositories that you want to use (see above) to `/etc/apk/repositories`.
 
 
+== Git Hooks
+
+You can find some useful git hooks in the `.githooks` directory.
+To use them, run the following command after cloning this repository:
+
+[source, sh]
+git config --local core.hooksPath .githooks
+
+
 == How to setup your own repository
 :remote-user: alpine
 :remote-host: alpine.example.org
