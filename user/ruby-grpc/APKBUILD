@@ -11,7 +11,7 @@ pkgdesc="An RPC library and framework"
 url="https://github.com/grpc/grpc"
 arch="all"
 license="BSD-3-Clause"
-depends="ruby-google-protobuf"
+depends="ca-certificates ruby-google-protobuf"
 makedepends="c-ares-dev libressl-dev ruby ruby-dev zlib-dev"
 source="$_pkgname-$pkgver.tar.gz::https://github.com/grpc/$_pkgname/archive/v$pkgver.tar.gz
 	use-system-provided-deps.patch
