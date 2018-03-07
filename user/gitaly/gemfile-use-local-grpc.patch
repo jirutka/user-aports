@@ -1,0 +1,55 @@
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Wed, 07 Mar 2018 17:24:00 +0200
+Subject: Don't fetch grpc gem from RubyGems
+
+Grpc gem is total shit, doesn't build from source without patching,
+embeds three third-party libs including Google's very own fork of
+OpenSSL and root CAs, contains a lot of bloat etc.
+
+Therefore I install this shit from my Alpine package and
+copy it into vendor/ before running bundler.
+
+diff --git a/Gemfile b/Gemfile
+--- a/ruby/Gemfile
++++ b/ruby/Gemfile
+@@ -7,6 +7,9 @@
+ gem 'gollum-lib', '~> 4.2', require: false
+ gem 'gollum-rugged_adapter', '~> 0.4.4', require: false
+ 
++# This Google gem is totally messed, we handle it specially.
++gem 'grpc', path: 'vendor/grpc', require: false
++
+ group :development, :test do
+   gem 'gitlab-styles', '~> 2.0.0', require: false
+ end
+diff --git a/Gemfile.lock b/Gemfile.lock
+--- a/ruby/Gemfile.lock
++++ b/ruby/Gemfile.lock
+@@ -1,3 +1,9 @@
++PATH
++  remote: vendor/grpc
++  specs:
++    grpc (1.4.5)
++      google-protobuf (~> 3.1)
++
+ GEM
+   remote: https://rubygems.org/
+   specs:
+@@ -57,9 +63,6 @@
+       multi_json (~> 1.11)
+       os (~> 0.9)
+       signet (~> 0.7)
+-    grpc (1.6.0)
+-      google-protobuf (~> 3.1)
+-      googleauth (~> 0.5.1)
+     i18n (0.8.1)
+     json (2.1.0)
+     jwt (1.5.6)
+@@ -125,6 +128,7 @@
+   gitlab-styles (~> 2.0.0)
+   gollum-lib (~> 4.2)
+   gollum-rugged_adapter (~> 0.4.4)
++  grpc!
+   rdoc (~> 4.2)
+ 
+ BUNDLED WITH

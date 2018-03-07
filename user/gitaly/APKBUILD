@@ -1,44 +1,109 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitaly
-# Note: When updating check changes in config.toml.example!
-pkgver=0.21.2
-pkgrel=1
+pkgver=0.66.0
+pkgrel=0
 pkgdesc="A Git RPC service for handling all the git calls made by GitLab"
-pkgusers="git"
 url="https://gitlab.com/gitlab-org/gitaly/"
 arch="all"
 license="MIT"
-depends="git"
-makedepends="go>=1.8"
+pkgusers="git"
+depends="git>=2.8.4 ruby ruby-bigdecimal ruby-bundler ruby-io-console ruby-json"
+makedepends="
+	go>=1.8
+	icu-dev
+	libgit2-dev=~0.26
+	libxml2-dev
+	libxslt-dev
+	ruby-dev
+	ruby-grpc
+	zlib-dev
+	"
 source="$pkgname-$pkgver.tar.gz::https://gitlab.com/gitlab-org/$pkgname/repository/archive.tar.gz?ref=v$pkgver
-	$pkgname.initd
-	config.toml"
+	gemfile-use-local-grpc.patch
+	config.patch
+	$pkgname.initd"
 builddir="$srcdir/$pkgname-$pkgver"
 options="!check"
 
 prepare() {
+	local sysgemdir=$(ruby$_rubyslot -rubygems -e 'puts Gem.default_dir')
+
 	# Top-level directory inside the tar archive contains SHA of a commit...
 	mv "$srcdir"/$pkgname-v$pkgver-* "$builddir"
 
 	default_prepare
+
+	# This Google gem is totally messed, so we copy our fixed version
+	# instead of installing it from RubyGems using Bundler.
+	mkdir -p ruby/vendor/grpc
+	cp -r "$sysgemdir"/gems/grpc-*/* ruby/vendor/grpc/
+	cp "$sysgemdir"/specifications/grpc-*.gemspec \
+		ruby/vendor/grpc/grpc.gemspec
+	cp "$sysgemdir"/extensions/*/*/grpc-*/grpc/grpc_c.so \
+		ruby/vendor/grpc/src/ruby/lib/grpc/
 }
 
 build() {
-	cd "$builddir"
+	cd "$builddir"/ruby
+	bundle config build.nokogiri --use-system-libraries
+	bundle config build.rugged --use-system-libraries
 
-	make VERSION=$pkgver
+	cd "$builddir"
+	make VERSION=$pkgver \
+		BUNDLE_FLAGS="--deployment --jobs=${JOBS:-2} --no-cache --without development test"
 }
 
 package() {
+	local rubydir="$pkgdir/usr/lib/bundles/$pkgname-ruby"
+
+	## Go part
+
 	cd "$builddir"
 
-	install -m755 -D _build/bin/gitaly "$pkgdir"/usr/bin/gitaly
-
-	install -m644 -D "$srcdir"/config.toml "$pkgdir"/etc/gitlab/gitaly.toml
+	make install VERSION=$pkgver DESTDIR="$pkgdir" PREFIX=/usr
+	install -m644 -D config.toml.example "$pkgdir"/etc/gitlab/gitaly.toml
 	install -m755 -D "$srcdir"/$pkgname.initd "$pkgdir"/etc/init.d/gitlab.gitaly
+
+	## Ruby part
+
+	mkdir -p "${rubydir%/*}"
+	cp -a ruby "$rubydir"
+
+	cd "$rubydir"/vendor/bundle/ruby/*/gems
+
+	# Remove tests, docs and other unnecessary files.
+	rm -Rf */spec \
+		*/test \
+		*/tests \
+		*/*.md \
+		*/*.rdoc \
+		*/*.txt \
+		*/CHANGELOG* \
+		*/CONTRIBUT* \
+		*/*LICENSE* \
+		*/Rakefile \
+		*/README*
+
+	# Remove bundled libgit2 sources.
+	rm -R rugged-*/vendor/libgit2
+
+	# Remove assets, they are not used in gitaly-ruby.
+	rm -R gemojione-*/assets
+
+	# Remove sources and binaries of native extensions (they are installed
+	# in extensions directory).
+	find . -type d -name ext -maxdepth 2 -exec rm -frv '{}' +
+	find . -name '*.so' -delete
+
+	# Remove build logs and cache.
+	rm -R ../build_info/ ../cache/
+	find ../extensions/ \
+		-name gem_make.out -delete \
+		-o -name mkmf.log -delete
 }
 
-sha512sums="985971c0207fdc42ccfc8f51da23966fcf217585134ca788ae0e88db8961cd0febcc7b645a428045e36f64502f362141cd831666a07d16ee30751aa86006022a  gitaly-0.21.2.tar.gz
-89fc0b1c1fa95071ae5ede0ba73bba99ef3a6cd726d39297c146248a633580d8d04c2ddbff182d33cb7d2b09dfa7fca6fe5167bc8a38e173c0b2505f4467453b  gitaly.initd
-66f7cfb84193d8ee65672f0f48c188d9b58946f35c0a77c1676a871154e59b6a05abd970cc5375df9e39b1cf3a37b1a3c17c3e6fd45afbdbe1d24502a375fbf0  config.toml"
+sha512sums="45cdc9c5a0c0018e45969f1287b55916eb5f6bada2db4413fc6615b8937b744c01fbdf00c6d49b3c26394a7519518502366260ed9ee65906130ad38f89e19578  gitaly-0.66.0.tar.gz
+e2a5553b0a2b7a66b02971a335c7f1b7ae798702391dbf74e82578dc56107a6b1b4c1ad4eee3a9b769442a73885579077911495301e48b4a083b44d5c96a79ae  gemfile-use-local-grpc.patch
+41ff891361a4199a550b22bdffa99d2b8ce395fa0a86461713ea539ea03ad0b6ef701e53ec6788d0999df44912016d13c5d815170d8e0edba279b6ef016b649b  config.patch
+89fc0b1c1fa95071ae5ede0ba73bba99ef3a6cd726d39297c146248a633580d8d04c2ddbff182d33cb7d2b09dfa7fca6fe5167bc8a38e173c0b2505f4467453b  gitaly.initd"
