@@ -5,18 +5,17 @@
 # all conventions and best-practices, that's why so much patching...
 pkgname=ruby-grpc
 _pkgname=grpc
-pkgver=1.3.2
+pkgver=1.4.5
 pkgrel=0
 pkgdesc="An RPC library and framework"
 url="https://github.com/grpc/grpc"
 arch="all"
-license="BSD3"
+license="BSD-3-Clause"
 depends="ruby-google-protobuf"
 makedepends="c-ares-dev libressl-dev ruby ruby-dev zlib-dev"
 source="$_pkgname-$pkgver.tar.gz::https://github.com/grpc/$_pkgname/archive/v$pkgver.tar.gz
 	use-system-provided-deps.patch
 	use-system-certs.patch
-	fix-require-grpc_c.patch
 	fix-extconf.patch"
 builddir="$srcdir/$_pkgname-$pkgver"
 options="!check"  # XXX: we need ruby-rspec package...
@@ -64,8 +63,7 @@ package() {
 	rm -r bin ext lib/grpc/grpc_c.so pb/README.md pb/src pb/test spec || true
 }
 
-sha512sums="e8e85c92b8ed3d4d6cc17f5f034bd58c9c7815c8eb8859d5efbff99c1bd915cf273ece7b99bf6cd3247ae426163c60427ef6b11e4b5af304d85dfabebc53aae6  grpc-1.3.2.tar.gz
+sha512sums="d2ed49ae48575ba96f99d55050a377ef2610dffd2ba2ead041c1d4d61b19f7097ff5523a5bad6234377d3ec776eb1a6e436792d90f48298440cf57b0647ceda7  grpc-1.4.5.tar.gz
 7bb065c56ab84bb064294b7d5f7fc85f98b139a853d1465a42b553977db41311c506ac21e905a5109eeccea6c283f97c4be40073d1e00ac85b6186a9e2e182b9  use-system-provided-deps.patch
 13c68b45c06b4d27aa4099f6e76bcf09e7a7077bc4a712e4421bca6ead487cdd1b67c281e515460c002cc87134401be3b171cc7a2446e945352a0b45f76f2ff3  use-system-certs.patch
-e02f209869e72d251cb6fbebda8501e0c38ff6d92a00a794ada38e0dab71127794838c6e6c0bc478943eeedcc9ee41537fe2aaa53581463b76bdcbb8c5afdbec  fix-require-grpc_c.patch
 becc7ee297b98c3ee24c9d0ef506de0d0ba1e30cc73074f114d9b724dedcea1d3617df50936d7b9ae2913403314d2f0816b1b2efd4bc99b22f2d2df82ee291d7  fix-extconf.patch"
