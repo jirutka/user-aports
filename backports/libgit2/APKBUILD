@@ -1,0 +1,60 @@
+# Contributor: Sergei Lukin <sergej.lukin@gmail.com>
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Contributor: Pierre-Gilas MILLON <pgmillon@gmail.com>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=libgit2
+pkgver=0.26.3
+pkgrel=0
+pkgdesc="A linkable library for Git"
+url="https://libgit2.github.com/"
+arch="all"
+license="GPL-2.0-only-WITH-GCC-exception-2.0"
+depends_dev="curl-dev libssh2-dev"
+makedepends="$depends_dev python2 cmake zlib-dev libressl-dev"
+subpackages="$pkgname-dev $pkgname-tests::noarch"
+provides="$pkgname-libs"  # for backward compatibility with v3.4
+replaces="$pkgname-libs"  # for backward compatibility with v3.4
+source="$pkgname-$pkgver.tar.gz::https://github.com/$pkgname/$pkgname/archive/v$pkgver.tar.gz
+	build-both-static-dynamic.patch
+	"
+builddir="$srcdir/$pkgname-$pkgver"
+
+# secfixes:
+#   0.25.1-r0:
+#   - CVE-2016-10128
+#   - CVE-2016-10129
+#   - CVE-2016-10130
+#   0.24.3-r0:
+#   - CVE-2016-8568
+#   - CVE-2016-8569
+
+build() {
+	mkdir -p "$builddir"/build
+	cd "$builddir"/build
+
+	cmake .. \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_C_FLAGS="$CFLAGS"
+	make
+}
+
+check() {
+	cd "$builddir"/build
+	make test
+}
+
+package() {
+	cd "$builddir"/build
+	make DESTDIR="$pkgdir" install
+}
+
+tests() {
+	pkgdesc="$pkgdesc (tests)"
+
+	mkdir -p "$subpkgdir"/usr/src/$pkgname/
+	cp -a "$builddir"/tests "$subpkgdir"/usr/src/$pkgname/
+}
+
+sha512sums="abcd3a904bed05c1f200be2ffbc2c44cebd1b548459ee834d5635c5eaf7bcd551a4993bcc1cb9fbeae9ea990c5ebc07655007ff4e623fa7c697f326c0ce12c3e  libgit2-0.26.3.tar.gz
+6817cae286f663c6ceb890576c491d89ffe0cf57b96a7340b8b4ef2c021a35d7672ce76b6e875ed72155e960455d29973329782850bd9cca543c6f74a9a6f93f  build-both-static-dynamic.patch"
