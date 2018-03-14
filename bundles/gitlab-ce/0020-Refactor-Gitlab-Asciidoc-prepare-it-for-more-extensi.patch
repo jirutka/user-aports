@@ -1,0 +1,185 @@
+From 0054c5f5ba81e3e5608b35b66d2665e772947563 Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Wed, 31 Jan 2018 01:27:32 +0100
+Subject: [PATCH 20/25] Refactor Gitlab::Asciidoc, prepare it for more
+ extensions
+
+---
+ lib/gitlab/asciidoc.rb | 117 ++++++++++++++++++++++++++++---------------------
+ 1 file changed, 66 insertions(+), 51 deletions(-)
+
+diff --git a/lib/gitlab/asciidoc.rb b/lib/gitlab/asciidoc.rb
+index 48925dd..ca30dd0 100644
+--- a/lib/gitlab/asciidoc.rb
++++ b/lib/gitlab/asciidoc.rb
+@@ -30,8 +30,10 @@ module Gitlab
+     # context       - :commit, :project, :ref, :requested_path
+     #
+     def self.render(input, context)
++      repository_tree = RepositoryTree.new(context)
++
+       extensions = proc do
+-        include_processor GitlabIncludeProcessor.new(context)
++        include_processor GitlabIncludeProcessor.new(repository_tree)
+       end
+ 
+       asciidoc_opts = { safe: :server,
+@@ -81,75 +83,37 @@ module Gitlab
+       end
+     end
+ 
+-    # Asciidoctor extension for processing includes (macro include::[]) within
+-    # documents inside the same repository.
+-    class GitlabIncludeProcessor < Asciidoctor::IncludeExt::IncludeProcessor
+-      # Overrides super class method.
++    class RepositoryTree
+       def initialize(context)
+-        super(logger: Gitlab::AppLogger)
+-
+         @context = context
+         @repository = context[:project].try(:repository)
+-
+-        # Note: Asciidoctor calls #freeze on extensions, so we can't set new
+-        # instance variables after initialization.
+         @cache = {
+           uri_types: {}
+         }
+       end
+ 
+-      protected
+-
+-      # Overrides super class method.
+-      def resolve_target_path(target, reader)
+-        return unless @repository.try(:exists?)
+-
+-        base_path = reader.include_stack.empty? ? requested_path : reader.file
+-        path = resolve_relative_path(target, base_path)
+-
+-        path if Gitlab::Git::Blob.find(@repository, ref, path)
+-      end
+-
+-      # Overrides super class method.
+-      def read_lines(filename, selector)
+-        blob = @repository.blob_at(ref, filename)
+-
+-        raise 'Blob not found' unless blob
+-        raise 'File is not readable' unless blob.readable_text?
+-
+-        if selector
+-          blob.data.each_line.select.with_index(1, &selector)
+-        else
+-          blob.data
+-        end
+-      end
+-
+-      # Overrides super class method.
+-      def unresolved_include!(target, reader)
+-        reader.unshift_line("*[ERROR: include::#{target}[] - unresolved directive]*")
+-      end
+-
+-      private
+-
+-      # Resolves the given relative path of file in repository into canonical
+-      # path based on the specified base_path.
++      # Resolves the given path of file in repository into canonical path
++      # based on the specified base_path (defaults to requested_path).
+       #
+       # Examples:
+       #
+       #   # File in the same directory as the current path
+-      #   resolve_relative_path("users.adoc", "doc/api/README.adoc")
++      #   resolve_file_path("users.adoc", "doc/api/README.adoc")
+       #   # => "doc/api/users.adoc"
+       #
+       #   # File in the same directory, which is also the current path
+-      #   resolve_relative_path("users.adoc", "doc/api")
++      #   resolve_file_path("users.adoc", "doc/api")
+       #   # => "doc/api/users.adoc"
+       #
+       #   # Going up one level to a different directory
+-      #   resolve_relative_path("../update/7.14-to-8.0.adoc", "doc/api/README.adoc")
++      #   resolve_file_path("../update/7.14-to-8.0.adoc", "doc/api/README.adoc")
+       #   # => "doc/update/7.14-to-8.0.adoc"
+       #
+-      # Returns a String
+-      def resolve_relative_path(path, base_path)
++      # Returns a String, or nil if files does not exist
++      def resolve_file_path(path, base_path = nil)
++        base_path ||= requested_path
++
++        return unless @repository.try(:exists?)
+         return base_path if path.empty?
+         return path unless base_path
+         return path[1..-1] if path.start_with?('/')
+@@ -163,10 +127,27 @@ module Gitlab
+           parts.pop
+           path.sub!('../', '')
+         end
++        path = parts.push(path).join('/')
+ 
+-        parts.push(path).join('/')
++        path if file_exist? path
+       end
+ 
++      def file_exist?(filename)
++        Gitlab::Git::Blob.find(@repository, ref, filename)
++      end
++
++      # Returns a String
++      def read_file(filename)
++        blob = @repository.blob_at(ref, filename)
++
++        raise 'Blob not found' unless blob
++        raise 'File is not readable' unless blob.readable_text?
++
++        blob.data
++      end
++
++      private
++
+       def current_commit
+         @cache[:current_commit] ||= @context[:commit] || @repository.commit(ref)
+       end
+@@ -183,5 +164,39 @@ module Gitlab
+         @cache[:uri_types][path] ||= current_commit.uri_type(path)
+       end
+     end
++
++    # Asciidoctor extension for processing includes (macro include::[]) within
++    # documents inside the same repository.
++    class GitlabIncludeProcessor < Asciidoctor::IncludeExt::IncludeProcessor
++      # Overrides super class method.
++      def initialize(repository_tree)
++        super(logger: Gitlab::AppLogger)
++        @repository_tree = repository_tree
++      end
++
++      protected
++
++      # Overrides super class method.
++      def resolve_target_path(target, reader)
++        base_path = reader.file unless reader.include_stack.empty?
++        @repository_tree.resolve_file_path(target, base_path)
++      end
++
++      # Overrides super class method.
++      def read_lines(filename, selector)
++        data = @repository_tree.read_file(filename)
++
++        if selector
++          data.each_line.select.with_index(1, &selector)
++        else
++          data
++        end
++      end
++
++      # Overrides super class method.
++      def unresolved_include!(target, reader)
++        reader.unshift_line("*[ERROR: include::#{target}[] - unresolved directive]*")
++      end
++    end
+   end
+ end
+-- 
+2.10.1 (Apple Git-78)
+

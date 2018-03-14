@@ -37,7 +37,7 @@ ruby <<-EOF
 	prod['secret_key_base'] ||= ( changed = true; SecureRandom.hex(64) )
 	prod['otp_key_base'] ||= ( changed = true; SecureRandom.hex(64) )
 	prod['db_key_base'] ||= ( changed = true; SecureRandom.hex(64) )
-	prod['jws_private_key'] ||= ( changed = true; OpenSSL::PKey::RSA.new(2048).to_pem )
+	prod['openid_connect_signing_key'] ||= ( changed = true; OpenSSL::PKey::RSA.new(2048).to_pem )
 
 	if changed
 	  STDERR.puts "* Generating random secrets into #{secrets_file}"

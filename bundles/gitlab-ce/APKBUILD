@@ -2,22 +2,22 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
-pkgver=9.4.6
-pkgrel=6
+pkgver=10.4.6
+pkgrel=0
 pkgdesc="A version control for your server"
-url="https://github.com/gitlabhq/gitlabhq"
+url="https://gitlab.com/gitlab-org/gitlab-ce"
 arch="all"
 license="MIT"
 _rubyslot=""
 # ruby-irb is needed only for Rails console (gitlab-rails console)
 depends="$pkgname-assets=$pkgver-r$pkgrel
-	gitaly>=0.21.2
-	gitlab-shell>=5.3.1
-	gitlab-workhorse>=2.3.0
+	gitaly>=0.66.0
+	gitlab-shell>=5.11.0
+	gitlab-workhorse>=3.3.1
 	ca-certificates
 	git>=2.8.3
 	http-parser
-	libgit2>=0.24
+	libgit2=~0.26
 	procps
 	py-docutils
 	python3
@@ -29,10 +29,12 @@ depends="$pkgname-assets=$pkgver-r$pkgrel
 	ruby$_rubyslot-json
 	ruby$_rubyslot-rake
 	ruby$_rubyslot-irb
-	ruby$_rubyslot-bundler>=1.5.2
+	ruby$_rubyslot-bundler>=1.15.4
 	"
 makedepends="
+	gpgme-dev
 	icu-dev
+	libffi-dev
 	libgcrypt-dev
 	libgit2-dev>=0.25
 	libxml2-dev
@@ -41,7 +43,7 @@ makedepends="
 	libressl-dev
 	postgresql-dev
 	protobuf-dev
-	nodejs>=4.3.0
+	nodejs>=6.0.0
 	re2-dev
 	ruby$_rubyslot-dev
 	ruby$_rubyslot-grpc
@@ -51,6 +53,7 @@ pkgusers="git"
 pkggroups="git"
 install="$pkgname.pre-install $pkgname.post-install $pkgname.post-upgrade"
 subpackages="$pkgname-assets::noarch"
+# NOTE: Patches are exported from https://github.com/jirutka/gitlabhq/tree/10-4-stable
 source="$pkgname-$pkgver.tar.gz::https://github.com/gitlabhq/gitlabhq/archive/v$pkgver.tar.gz
 	$_pkgname.initd
 	$_pkgname.mailroom.initd
@@ -58,25 +61,31 @@ source="$pkgname-$pkgver.tar.gz::https://github.com/gitlabhq/gitlabhq/archive/v$
 	$_pkgname.confd
 	$_pkgname.logrotate
 	bin-wrapper.in
-	gemfile-exclude-unnecessary-gems.patch
-	default-configs.patch
-	dont-dump-schema.patch
-	fix-setup-task.patch
-	fix-check-task.patch
-	replace-sys-filesystem.patch
-	gitlab-revision.patch
-	gemfile-use-local-grpc.patch
-	gemfile-update-asciidoctor.patch
-	gemfile-update-google-protobuf.patch
-	asciidoc-enable-setanchors-by-default.patch
-	asciidoc-include-directive.patch
-	dont-load-prometheus-when-not-installed.patch
-	asciidoctor-html5s.patch
-	asciidoc-disable-html-sanitization.patch
-	fix-help-page.patch
-	fix-issue-board-on-ruby2.4.patch
-	fix-project-feature-being-deleted-when-updating-proj.patch
-	add-migration-to-fix-corrupted-projects.patch
+	0001-Move-some-unnecessary-gems-to-groups-i.e.-exclude-th.patch
+	0002-Adjust-paths-and-remove-some-boilerplate-from-config.patch
+	0003-Disable-dumping-schema.rb-after-db-migrate.patch
+	0004-Fix-gitlab-setup-task-to-not-drop-create-database.patch
+	0005-Disable-checking-init-script-in-gitlab-check-task.patch
+	0006-Replace-Sys-Filesystem-with-non-FFI-code.patch
+	0007-Don-t-read-GitLab-revision-using-git.patch
+	0008-Don-t-fetch-grpc-gem-from-RubyGems.patch
+	0009-Don-t-load-prometheus-when-not-installed-enabled.patch
+	0010-Fix-help-page.patch
+	0011-Disable-throwOnError-in-KaTeX-to-reveal-user-where-i.patch
+	0012-Update-asciidoctor-to-1.5.6.2.patch
+	0013-Set-Asciidoctor-outfilesuffix-to-default-.adoc.patch
+	0014-Enable-Asciidoctor-s-attribute-sectanchors-by-defaul.patch
+	0015-Significantly-improve-AsciiDoc-rendering.patch
+	0016-Disable-HTML-sanitization-filter-for-AsciiDoc.patch
+	0017-Add-support-for-AsciiDoc-include-directive.patch
+	0018-Change-Asciidoctor-safe-level-to-server.patch
+	0019-Render-index.-like-README.-when-it-s-present-in-a-di.patch
+	0020-Refactor-Gitlab-Asciidoc-prepare-it-for-more-extensi.patch
+	0021-Integrate-Asciidoctor-extension-interdoc-reftext.patch
+	0022-Expose-some-project-metadata-as-AsciiDoc-attributes.patch
+	0023-Make-support-of-ED25519-SSH-host-key-support-optiona.patch
+	0024-Don-t-eager-load-google-apis.patch
+	0025-Disable-Auto-DevOps-banner-completely.patch
 	"
 builddir="$srcdir/gitlabhq-$pkgver"
 
@@ -127,14 +136,16 @@ prepare() {
 
 build() {
 	local bundle="bundle$_rubyslot"
+	# ed25519 is excluded mainly because it depends on rbnacl that requires ffi.
 	local bundle_opts="--deployment --jobs=${JOBS:-2} --no-cache
-		--without exclude development kerberos metrics mysql test"
+		--without ed25519 exclude development kerberos metrics mysql test"
 
 	cd "$builddir"
 
 	msg "Installing Ruby gems..."
 	$bundle config build.nokogiri --use-system-libraries
 	$bundle config build.rugged --use-system-libraries
+	$bundle config build.gpgme --use-system-libraries
 	$bundle $bundle_opts
 
 	# Patch installed gem gitlab-markup to use python3.
@@ -181,7 +192,8 @@ build() {
 	$bundle $bundle_opts assets --clean
 
 	# Create executables in bin/*.
-	$bundle binstubs --force mail_room sidekiq unicorn
+	# See also https://github.com/bundler/bundler/issues/6149.
+	$bundle binstubs --force bundler mail_room sidekiq unicorn
 
 	# When GitLab executes a system command, it leaks some Bundler
 	# env. variables. The problem may occur when it execute a Ruby script
@@ -270,7 +282,7 @@ package() {
 	find gems/ -name '*.so' -delete
 
 	# Remove build logs and cache.
-	rm -R build_info/ cache/
+	rm -Rf build_info/ cache/
 	find extensions/ \( -name gem_make.out -o -name mkmf.log \) -delete
 
 
@@ -337,29 +349,35 @@ assets() {
 	mv "${pkgdir}$_prefix"/public/assets "$destdir"/public/
 }
 
-sha512sums="2a4e021edc8c9c1260141426ab4609d355f28c1423dabd4daae1f457bec807a9ff28e4b470e952432cd72ecfb5c5509ab35daa734605a3cd3cdc3f1ab66f566e  gitlab-ce-9.4.6.tar.gz
+sha512sums="2001ec6bf272c36d411908bb43c19e4cf73a12daf546f8d5e1f76309c16ac9168e7953e1ff8d002c36f5249960a66a4fcebefdc47075880dcc11772d9cdef267  gitlab-ce-10.4.6.tar.gz
 31c65c03a8e4fd1cd0f4e95939137404b96a2551d228e7d5bc0e47cc9cb3893e46e2a58405aba1ce04584a6f64120162db3e5ecd0713bb7ec9256308cafaf187  gitlab.initd
 478759565c27d7e300e69715ed069ca6689fc0f33781a99e4ca9f52a49763e3a46d6a1ca7fa61879b200156543e534f652deec1367c31a52154db6f0f8ecb779  gitlab.mailroom.initd
 84c51a03e938c39b3081cb55b115148e087a1f58a4b9cc43b76be93aee67b7e04f41f42e6594d5810946a701cf3554ac26851b2f9de91e73927e7ef70945e2ba  gitlab.sidekiq.initd
 2b771e23326c5e4f590ea1ba5e12bd44d3d6d6515edf8a79cf2722fb7d3968e60887c4b085a474100ac7562f645bff06b8a085755acd4ce533c5837392e749f2  gitlab.confd
 d711d9c0a17a8a6f862f5505da1eb65a701917155207b5864b40e8acfaf958c68a2d8f9b01a92871b3d630e00c78df38b24701e4adcba8f1d35cdc69dedf2df6  gitlab.logrotate
 a944c3886388ba1574bf8c96b6de4d9f24ef4a83f553c31a224e17a3b01f2a5c65b60c59b7ed7ca4b25670c60ea8dd41b96a8a623d909d2bb09bdf2520ed7f23  bin-wrapper.in
-1c8562768e49c2fd97b20a1c28fd175c355d5f5bad949d1e7b72e004cd5aee57fa68cfa457a286055b8bcfe2095c7f297c2a348c49694370c4be2004a98f9930  gemfile-exclude-unnecessary-gems.patch
-313262ed9bdf6b742c91e60ec6b27d64084b7bbb2569fb001660ff1d54513e5bf3f278774ca683fc594d0e49d4b9e93303d2d06d80c1e36fc2961e9a96bc540d  default-configs.patch
-a7d85acec2486f2292fc5af03b4fa04be1d65e030acc7fab4f33b343a3ac09ecb7bbd9c7e13ed65f6d68293207b0804ea117156594a146fa467b4574c7da0179  dont-dump-schema.patch
-71b5cd6f57cb3b722e8528a5b1fe1fad739bbf146671e90e9be176aaa7eb584f7674b7382c38e469921ea90a3381807cf41d5a59840a1c0c468f24de5da9cfa7  fix-setup-task.patch
-54b684460efadc2bebe97f55a72623fa4c6d5e20e8b838eb16031a57275a2b726696baecc0e9f41dc486e3518088bb1030600571b24093f69d7a69ecb754a3f1  fix-check-task.patch
-b6580385ea9900e26ae4b594699c68da90241ab466a3ec1567b33362cdd92ff3ed972eed562753b1d1f80c1fd0cb6ae7fecb83990f6a9e904b075e7ee025fe57  replace-sys-filesystem.patch
-7c3cafc4c2e54487fe651ea3137f923d291084b03e77e855e7b5893dfab266278956f0be2b6639993c9040f5cff05a9a83afa24052f09981cfc678c7dff7ca13  gitlab-revision.patch
-d6e0a20b9089da0c97bb9468cde5213c777db8e7812f99ec15645776e80a3786d44f1d20cc0798e1db1cdcd970b626d79b4357ab51bdc55d503ca1f1d7a9aa36  gemfile-use-local-grpc.patch
-d23d8d0cacc1050a39ceb89ed132ae5e04d2df9c58abdea9c8bc7b95ed665b9c12a29240cf14efd6492fa5960f7be81a7efcf6003f1b2074e80b0f911ac710b3  gemfile-update-asciidoctor.patch
-f46b783dc0760522ad45f7f83ef2bd4f4161696413193f3bb779cfd0789e8713e3797361dc68e9e73a72dfb0531c64dba9d80f14a9d600eeadfc680abfead4ad  gemfile-update-google-protobuf.patch
-98e12ad483c870dc944369c70fb3f1fea52564d03cad0865017e7247617597bd1d85318f9a5d51826a582147e9f3e3683a152ea9c773714ae7e99343ff93ca6c  asciidoc-enable-setanchors-by-default.patch
-2d2ad2a1d6e4ebe9d8df5dfd11dee619dcd704063ab9fb5108dcd62e047e043d621b707f8b1012508a08dfa36594d623a34be310bf5e17422b8d63808f83630c  asciidoc-include-directive.patch
-4392608507241eb318c8c42149968a85f5bc379d037612180100135be6612b7da664cef7f004412c19bd8d3c8e4040ef479bae4d4f591aef4372c198f6a7f8fb  dont-load-prometheus-when-not-installed.patch
-9da1a8733917cdc1aef15bff7d5c2076a8071a34013923a5a0b3a62b4da66c905d9c0bb4761baa8fbbff2c73dc363d7179128df2c5631ac9c84260abcbed38d2  asciidoctor-html5s.patch
-bb1e670239d495db138fa61c8738d090a5fc76ae1a66f84bcaf9a628b838e50e45cae4db1ff0edaf24157e22b20f86f712de5545aa646a93f19b6be8d2eddc37  asciidoc-disable-html-sanitization.patch
-86c80ec86abaf19cae061a13c869585b21f86875baa1c8434b7cd37078333cb70dba6884da5a63a460713915fdde5020161069e768853885b4c622f80810cecd  fix-help-page.patch
-2f4350833c6e51805ae4d8a6ca6aecc9bb2ab238370cb8376cab3e30d4ec2e43c42fb41943dd37f2a5fc3f0bc0977394e22af419947d12499423023d0d1aa3ff  fix-issue-board-on-ruby2.4.patch
-b353a85c9d2386f658a4b0039238479b2fa230e841dc9953d502d0d9a6dcc3117dfc2a852a9165b010eccb375c2259c5f8208a5d41321429917ce88e5190da63  fix-project-feature-being-deleted-when-updating-proj.patch
-f4131dfccf0d26c5dfd09cbbcb316ff29c3f05be4bcd7141124eb4848deebc74efcdd8e632e71e7e4c07e6b391c5fd8ebdc17e507ab337980a3f0029f6dde8d2  add-migration-to-fix-corrupted-projects.patch"
+697679bb16212f5d2f35e4535aed706e5323ad9d63198d27101f5af4c1b4f5d5289b47b2a8c6a300e4b3ae97e849ab3930678ee296358f1504a94f07049b098b  0001-Move-some-unnecessary-gems-to-groups-i.e.-exclude-th.patch
+6d21508e1f2d5511e3f3a52427f6cf767aef2a8ab76449890f94a5738f2e49adb1ecdc078e86ffd9c80c5b5c6eb755544956d4b40318416fdb8cf51f847b4724  0002-Adjust-paths-and-remove-some-boilerplate-from-config.patch
+badd34be16e8d2477e52da70cd8b1bbae890db900fa517cacec13dd6a602664fc47e4c43b915a6745f7a7683d3382fcad45670c550b687db0b07e3cd995f7818  0003-Disable-dumping-schema.rb-after-db-migrate.patch
+3b5c118958abeeedaa92e32bf10664abb0c3a921a93293cc2db7cd72ed4bc00b50b2971544653f0285f97e6ad473f59b37e36882c77c229813cbc22f1d3486f1  0004-Fix-gitlab-setup-task-to-not-drop-create-database.patch
+7b50e495e98dd52b8d41ab7dcb956b6b101a0b47c1f153e8d28113cd8b5e777555711b0d029efb0c44cca16844a457d9e02bce17e2ba2b4db1af834aeb85bc57  0005-Disable-checking-init-script-in-gitlab-check-task.patch
+199ea826fa0fbac9e818c629461020fde7aa297de4f50e4c4c394123d8e5c4106a9e91e354fbaada602b9d4b2dd1886c81d2bc676ea0be36ea66b620c2994e64  0006-Replace-Sys-Filesystem-with-non-FFI-code.patch
+bb780b544624db76ab31481c2ed0655282b444eeeaa4f474481258ed018b1b91dcef5fc99a8bc14e9a4037f3ac6b1651a78cc54b6b09af64aa1852d2765b5c7b  0007-Don-t-read-GitLab-revision-using-git.patch
+42f7807be322cbc2acbf52772849a5c61d72bb112ce038e1710c998d2d5b6387f6995499677648b9d889d99ea6601ef00855fe169614263679e7f81d2c5400e7  0008-Don-t-fetch-grpc-gem-from-RubyGems.patch
+1c0833be92707d2b5fc6726ea87c7bee8bf0b0fe664f8fe88f7fa1b83eebbe8d5da2ccab617ac94c9b0c40cfc180bf76366ec1b9726d53fd23602c79fbb2ca83  0009-Don-t-load-prometheus-when-not-installed-enabled.patch
+81820229887f2dc22a567b6bca26a7203d85edd7c5167fe9fc524555df400b32d60096d2decb8445b7fdef4383f11950942ddb1e1e42ec0f4cfa85719ffa3f4b  0010-Fix-help-page.patch
+8144548311ffc37da758aaec25b898fead7e374ead0ad12532cc7f542a4f2198e119ae75a6e3a6572050afb82ed483e9debf7eff11149b6fe4cf58f19cc37cab  0011-Disable-throwOnError-in-KaTeX-to-reveal-user-where-i.patch
+f805a25abbaef7b76287055c204a37126d8cbabb455a54d9022fbf5f411cc9c72f80fccdfd8ca16fe90d38d8b0a9d48c300fcf5e05b10b08340384cd2c5d7a89  0012-Update-asciidoctor-to-1.5.6.2.patch
+1dfbe87cadeb027f43c784c3f686fded99e072318923b493071da71a8018e8dfcce8ddae6d153a3e80786dc48c57660cf0305174c59b531439e1d798c9d0ebf9  0013-Set-Asciidoctor-outfilesuffix-to-default-.adoc.patch
+4e5491e55105a696c68ac0a816fb983b8d51a241363d9356edad574be46e911fc24b798f0e73c8195e404bafbe317a78819703ae55751e1398cc3826e463c2af  0014-Enable-Asciidoctor-s-attribute-sectanchors-by-defaul.patch
+05be51a1468a4e0a36017846eb8c06167d55f2d374595e1e3d72765388514fe85157eec9156c978a479d1e87f880fd70360aa58d8f1b8506155fcfafbdbc19e0  0015-Significantly-improve-AsciiDoc-rendering.patch
+05b3eb103a5f86500aebf9f3d25fbe4998b69b7668024546d25ed0198c6be6add4dc7a3b66ff533917feab83bf7fffd06ac01d138234ef5503297256650498d2  0016-Disable-HTML-sanitization-filter-for-AsciiDoc.patch
+e0fbbb3980e22b2a0a9b483d3df23f5a8fc2e96dcaaeb258555dbda064d4f503e97fe545d2dcc3be8206464d0fca38d3923c81bb17d1d727ca7d16a47d744e34  0017-Add-support-for-AsciiDoc-include-directive.patch
+adc9db7b0aa07c3bb3743bcfec461e2f446208440a044ae2b8f9a754eedaf1820c2583e483e72fcdaa52f4e61eebc1e4f097bc293e6d79094020dbbebcc573e3  0018-Change-Asciidoctor-safe-level-to-server.patch
+74e5c14051d583db5f64f05ebfbe810658658b4fbf377a1bb27bca3c429586cfb10118a381598f9b21149c5f8d3e72cab47d4f24f736ab39211f8569c4651a50  0019-Render-index.-like-README.-when-it-s-present-in-a-di.patch
+6d3feff95a595df325d3d4ede53e2cbdfad0ec3bd04af0e36ebade5e0705dc4fde8f301a279fd8b968083cd45177e7dc5e13c4073cd1b13375a6a88099961ee8  0020-Refactor-Gitlab-Asciidoc-prepare-it-for-more-extensi.patch
+5aa034dfeb403c84de9dd686c76ad5b970f6c7f7bfa72f6eb5ceebab19b166dcdcd19a68cc2ca4425cd056cea119b87389a500c20d088557ce2b2a1631f6599f  0021-Integrate-Asciidoctor-extension-interdoc-reftext.patch
+bdd2c6ccb8a9a4c572795398fb35dd30cfb9a4b614b50d93daf2fcb799b5896ae19b14c8ac7aa3a550cac34c492514afcb68a9e7317c44e72cb28eca80a3ca0f  0022-Expose-some-project-metadata-as-AsciiDoc-attributes.patch
+8cc8131e9c3b33ee96614e6e710ec08bd8f9d45c767827e2d31cfa3b647306102f955396032cda9c60f073b9542c34e727cab2f1a53d162fd665044c0a5aedf1  0023-Make-support-of-ED25519-SSH-host-key-support-optiona.patch
+9011f9e2cb699d573e83d646c61a8c8cc55771d8b9564fbf3494fdbec0cc3d501f7783d9ea93491ead56abe53bc82f413f39266112f688163d4ccbeec8c9eeb7  0024-Don-t-eager-load-google-apis.patch
+69e511d7b06344f9dbf450dd945c3c64c71c7125e59cff7d091dd663c39048f5acd303ad6db634c3f51f838fdc6aa9ef3826a9e0317527d823b8d9dcfe67dff5  0025-Disable-Auto-DevOps-banner-completely.patch"

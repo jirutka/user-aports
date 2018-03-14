@@ -1,7 +1,7 @@
-From 8fba111992c067a8c8c6a1fa1cec6304f1640969 Mon Sep 17 00:00:00 2001
+From 701ee8a733ba68793ce2851904ec35d908b4619a Mon Sep 17 00:00:00 2001
 From: Jakub Jirutka <jakub@jirutka.cz>
 Date: Fri, 29 Apr 2016 00:03:00 +0200
-Subject: [PATCH 04/10] Fix gitlab:setup task to not drop & create database
+Subject: [PATCH 04/25] Fix gitlab:setup task to not drop & create database
 
 ---
  lib/tasks/gitlab/setup.rake | 4 ++--

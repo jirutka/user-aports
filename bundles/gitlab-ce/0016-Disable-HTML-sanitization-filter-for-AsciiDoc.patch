@@ -1,7 +1,7 @@
-From 2f42b8cbef643b589761e810b8699ad9b81a314f Mon Sep 17 00:00:00 2001
+From f13b07cc57cb5837b08fc6a6ec5150594933f37a Mon Sep 17 00:00:00 2001
 From: Jakub Jirutka <jakub@jirutka.cz>
 Date: Tue, 12 Sep 2017 12:35:39 +0200
-Subject: [PATCH] Disable HTML sanitization filter for AsciiDoc
+Subject: [PATCH 16/25] Disable HTML sanitization filter for AsciiDoc
 
 ---
  lib/banzai/pipeline/ascii_doc_pipeline.rb | 1 -
@@ -18,7 +18,7 @@ index 1048b92..1371051 100644
 -          Filter::SanitizationFilter,
            Filter::ExternalLinkFilter,
            Filter::PlantumlFilter,
-           Filter::SyntaxHighlightFilter,
+           Filter::AsciiDocPostProcessingFilter
 -- 
 2.10.1 (Apple Git-78)
 

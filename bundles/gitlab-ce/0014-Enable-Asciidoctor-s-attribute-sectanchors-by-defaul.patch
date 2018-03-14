@@ -1,0 +1,25 @@
+From 906f84073718e625b2904a36068da14b4f64cbe2 Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Thu, 20 Jul 2017 17:43:00 +0200
+Subject: [PATCH 14/25] Enable Asciidoctor's attribute "sectanchors" by default
+
+---
+ lib/gitlab/asciidoc.rb | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/gitlab/asciidoc.rb b/lib/gitlab/asciidoc.rb
+index 11a1230..9d9bafc 100644
+--- a/lib/gitlab/asciidoc.rb
++++ b/lib/gitlab/asciidoc.rb
+@@ -11,7 +11,7 @@ module Gitlab
+     DEFAULT_ADOC_ATTRS = [
+       'showtitle', 'idprefix=user-content-', 'idseparator=-', 'env=gitlab',
+       'env-gitlab', 'source-highlighter=html-pipeline', 'icons=font',
+-      'outfilesuffix=.adoc'
++      'outfilesuffix=.adoc', 'sectanchors'
+     ].freeze
+ 
+     # Public: Converts the provided Asciidoc markup into HTML.
+-- 
+2.10.1 (Apple Git-78)
+

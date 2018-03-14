@@ -1,0 +1,32 @@
+From c5f0e54481b4c7c7d28dba8777c844be282d5f5e Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Wed, 14 Mar 2018 21:40:57 +0100
+Subject: [PATCH 25/25] Disable Auto DevOps banner completely
+
+Let's get rid of this bullshit.
+
+See-Also: https://gitlab.com/gitlab-org/gitlab-ce/issues/38513
+---
+ app/helpers/auto_devops_helper.rb | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/app/helpers/auto_devops_helper.rb b/app/helpers/auto_devops_helper.rb
+index f4310ca..13d4381 100644
+--- a/app/helpers/auto_devops_helper.rb
++++ b/app/helpers/auto_devops_helper.rb
+@@ -1,11 +1,6 @@
+ module AutoDevopsHelper
+   def show_auto_devops_callout?(project)
+-    Feature.get(:auto_devops_banner_disabled).off? &&
+-      show_callout?('auto_devops_settings_dismissed') &&
+-      can?(current_user, :admin_pipeline, project) &&
+-      project.has_auto_devops_implicitly_disabled? &&
+-      !project.repository.gitlab_ci_yml &&
+-      !project.ci_service
++    false
+   end
+ 
+   def auto_devops_warning_message(project)
+-- 
+2.10.1 (Apple Git-78)
+

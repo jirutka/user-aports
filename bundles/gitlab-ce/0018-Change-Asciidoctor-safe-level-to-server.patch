@@ -1,0 +1,27 @@
+From 006e0750ca25546fa95ca7413248d6475ce3eeb8 Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Thu, 17 Aug 2017 21:07:02 +0200
+Subject: [PATCH 18/25] Change Asciidoctor safe level to :server
+
+To enable include::[] macro and other useful features.
+http://asciidoctor.org/docs/user-manual/#running-asciidoctor-securely
+---
+ lib/gitlab/asciidoc.rb | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/gitlab/asciidoc.rb b/lib/gitlab/asciidoc.rb
+index faaa357..48925dd 100644
+--- a/lib/gitlab/asciidoc.rb
++++ b/lib/gitlab/asciidoc.rb
+@@ -34,7 +34,7 @@ module Gitlab
+         include_processor GitlabIncludeProcessor.new(context)
+       end
+ 
+-      asciidoc_opts = { safe: :secure,
++      asciidoc_opts = { safe: :server,
+                         backend: :gitlab_html5,
+                         attributes: DEFAULT_ADOC_ATTRS,
+                         extensions: extensions }
+-- 
+2.10.1 (Apple Git-78)
+

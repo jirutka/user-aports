@@ -1,14 +1,14 @@
-From b2464aabf37637189549db9cd2fb05b2c87c73d0 Mon Sep 17 00:00:00 2001
+From 52380c0e971b6a34136ece35266700e2dfb073ee Mon Sep 17 00:00:00 2001
 From: Jakub Jirutka <jakub@jirutka.cz>
 Date: Tue, 20 Sep 2016 23:51:00 +0200
-Subject: [PATCH 05/10] Disable checking init script in gitlab:check task
+Subject: [PATCH 05/25] Disable checking init script in gitlab:check task
 
 ---
  lib/tasks/gitlab/check.rake | 11 ++---------
  1 file changed, 2 insertions(+), 9 deletions(-)
 
 diff --git a/lib/tasks/gitlab/check.rake b/lib/tasks/gitlab/check.rake
-index 858f1cd..bab6b0d 100644
+index 903e843..4eb2da1 100644
 --- a/lib/tasks/gitlab/check.rake
 +++ b/lib/tasks/gitlab/check.rake
 @@ -27,8 +27,8 @@ namespace :gitlab do
@@ -22,7 +22,7 @@ index 858f1cd..bab6b0d 100644
          SystemCheck::App::ProjectsHaveNamespaceCheck,
          SystemCheck::App::RedisVersionCheck,
          SystemCheck::App::RubyVersionCheck,
-@@ -272,13 +272,6 @@ namespace :gitlab do
+@@ -269,13 +269,6 @@ namespace :gitlab do
          puts "yes".color(:green)
        else
          puts "no".color(:red)

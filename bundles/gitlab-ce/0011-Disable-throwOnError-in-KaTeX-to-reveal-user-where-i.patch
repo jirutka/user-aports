@@ -1,0 +1,49 @@
+From 0d0ffd970d27cdcb5c9f07852dc665f163483488 Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Wed, 24 Jan 2018 18:36:27 +0100
+Subject: [PATCH 11/25] Disable throwOnError in KaTeX to reveal user where is
+ the problem
+
+From KaTeX documentation:
+
+> throwOnError: boolean.  If true, KaTeX will throw a ParseError when
+> it encounters an unsupported command.  If false, KaTeX will render
+> the unsupported command as text in the color given by errorColor.
+> (default: true)
+
+It's better to render the formula and highlight unsupported commands than
+just give up and render whole formula as a code; users are confused and
+don't know what's wrong.
+---
+ app/assets/javascripts/render_math.js                   | 2 +-
+ changelogs/unreleased/disable-throwOnError-in-katex.yml | 5 +++++
+ 2 files changed, 6 insertions(+), 1 deletion(-)
+ create mode 100644 changelogs/unreleased/disable-throwOnError-in-katex.yml
+
+diff --git a/app/assets/javascripts/render_math.js b/app/assets/javascripts/render_math.js
+index a759992..15205d8 100644
+--- a/app/assets/javascripts/render_math.js
++++ b/app/assets/javascripts/render_math.js
+@@ -18,7 +18,7 @@ function renderWithKaTeX(elements) {
+ 
+     const display = $this.attr('data-math-style') === 'display';
+     try {
+-      katex.render($this.text(), mathNode.get(0), { displayMode: display });
++      katex.render($this.text(), mathNode.get(0), { displayMode: display, throwOnError: false });
+       mathNode.insertAfter($this);
+       $this.remove();
+     } catch (err) {
+diff --git a/changelogs/unreleased/disable-throwOnError-in-katex.yml b/changelogs/unreleased/disable-throwOnError-in-katex.yml
+new file mode 100644
+index 0000000..0cd17bb
+--- /dev/null
++++ b/changelogs/unreleased/disable-throwOnError-in-katex.yml
+@@ -0,0 +1,5 @@
++---
++title: Disable throwOnError in KaTeX to reveal user where is the problem
++merge_request: 16684
++author: Jakub Jirutka
++type: other
+-- 
+2.10.1 (Apple Git-78)
+

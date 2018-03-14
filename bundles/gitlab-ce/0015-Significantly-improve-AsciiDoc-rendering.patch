@@ -1,64 +1,64 @@
-From e4d546147b3bf7f0b5df83244447d8e6e3ef6c2d Mon Sep 17 00:00:00 2001
+From a63d4da8bafbd42639fc9f4cdd999259d5540781 Mon Sep 17 00:00:00 2001
 From: Jakub Jirutka <jakub@jirutka.cz>
 Date: Tue, 12 Sep 2017 12:30:36 +0200
-Subject: [PATCH] Significantly improve AsciiDoc rendering
+Subject: [PATCH 15/25] Significantly improve AsciiDoc rendering
 
 ---
  Gemfile                                            |   2 +
  Gemfile.lock                                       |   8 +
- app/assets/stylesheets/framework/asciidoctor.scss  | 180 +++++++++++++++++++--
+ app/assets/stylesheets/framework/asciidoctor.scss  | 187 +++++++++++++++++++--
  .../filter/ascii_doc_post_processing_filter.rb     |  12 ++
- lib/gitlab/asciidoc.rb                             |  11 +-
- 5 files changed, 196 insertions(+), 17 deletions(-)
+ lib/gitlab/asciidoc.rb                             |  15 +-
+ 5 files changed, 207 insertions(+), 17 deletions(-)
 
 diff --git a/Gemfile b/Gemfile
-index 84e26c2..fc31dbc 100644
+index c8f9210..c645c2a 100644
 --- a/Gemfile
 +++ b/Gemfile
-@@ -120,7 +120,9 @@ gem 'org-ruby', '~> 0.9.12'
+@@ -128,7 +128,9 @@ gem 'org-ruby', '~> 0.9.12'
  gem 'creole', '~> 0.5.0'
  gem 'wikicloth', '0.8.1'
- gem 'asciidoctor', '~> 1.5.2'
-+gem 'asciidoctor-html5s', '= 0.1.0.beta.4'
+ gem 'asciidoctor', '~> 1.5.6.2'
++gem 'asciidoctor-html5s', '= 0.1.0.beta.5'
  gem 'asciidoctor-plantuml', '0.0.7'
-+gem 'asciidoctor-rouge', '~> 0.1.0', require: false
++gem 'asciidoctor-rouge', '~> 0.2.0', require: false
  gem 'rouge', '~> 2.0'
  gem 'truncato', '~> 0.7.9'
  gem 'bootstrap_form', '~> 2.7.0'
 diff --git a/Gemfile.lock b/Gemfile.lock
-index 283f360..26b883a 100644
+index 3b70dca..9e0f64b 100644
 --- a/Gemfile.lock
 +++ b/Gemfile.lock
-@@ -59,8 +59,14 @@ GEM
+@@ -62,8 +62,14 @@ GEM
        faraday_middleware-multi_json (~> 0.0)
        oauth2 (~> 1.0)
-     asciidoctor (1.5.6.1)
-+    asciidoctor-html5s (0.1.0.beta.4)
+     asciidoctor (1.5.6.2)
++    asciidoctor-html5s (0.1.0.beta.5)
 +      asciidoctor (~> 1.5.5)
 +      thread_safe (~> 0.3.4)
      asciidoctor-plantuml (0.0.7)
        asciidoctor (~> 1.5)
-+    asciidoctor-rouge (0.1.0)
++    asciidoctor-rouge (0.2.0)
 +      asciidoctor (~> 1.5.6)
 +      rouge (~> 2.2)
-     ast (2.3.0)
-     atomic (1.1.99)
-     attr_encrypted (3.0.3)
-@@ -924,7 +930,9 @@ DEPENDENCIES
+     asset_sync (2.2.0)
+       activemodel (>= 4.1.0)
+       fog-core
+@@ -994,7 +1000,9 @@ DEPENDENCIES
    allocations (~> 1.0)
    asana (~> 0.6.0)
-   asciidoctor (~> 1.5.2)
-+  asciidoctor-html5s (= 0.1.0.beta.4)
+   asciidoctor (~> 1.5.6.2)
++  asciidoctor-html5s (= 0.1.0.beta.5)
    asciidoctor-plantuml (= 0.0.7)
-+  asciidoctor-rouge (~> 0.1.0)
++  asciidoctor-rouge (~> 0.2.0)
+   asset_sync (~> 2.2.0)
    attr_encrypted (~> 3.0.0)
    awesome_print (~> 1.2.0)
-   babosa (~> 1.0.2)
 diff --git a/app/assets/stylesheets/framework/asciidoctor.scss b/app/assets/stylesheets/framework/asciidoctor.scss
-index 62493c3..c9d3542 100644
+index 62493c3..8d6cdc3 100644
 --- a/app/assets/stylesheets/framework/asciidoctor.scss
 +++ b/app/assets/stylesheets/framework/asciidoctor.scss
-@@ -1,27 +1,179 @@
+@@ -1,27 +1,186 @@
 -.admonitionblock td.icon {
 -  width: 1%;
 +// Rules for asciidoctor-html5s converter.
@@ -137,10 +137,8 @@ index 62493c3..c9d3542 100644
 +    &:before {
 +      content: normal;
 +    }
-   }
- 
--  .icon-important {
--    @extend .fa-exclamation-circle;
++  }
++
 +  dt {
 +    margin-bottom: $gl-padding / 2;
 +  }
@@ -153,6 +151,15 @@ index 62493c3..c9d3542 100644
 +    @extend .fa-angle-right;
 +  }
 +
++  // Example: [line-through]#strike this#
++  // or alternatively: [del]#strike this# (non-standard, but shorter)
++  span.line-through,
++  span.del {
++    text-decoration: line-through;
+   }
+ 
+-  .icon-important {
+-    @extend .fa-exclamation-circle;
 +  // Code callout (a mark inside the code).
 +  .code b.conum {
 +    @include black-circle-bg;
@@ -276,36 +283,39 @@ index c9fcf05..c401bd7 100644
        end
      end
 diff --git a/lib/gitlab/asciidoc.rb b/lib/gitlab/asciidoc.rb
-index b7ff4c6..6717c8d 100644
+index 9d9bafc..2f1f8b3 100644
 --- a/lib/gitlab/asciidoc.rb
 +++ b/lib/gitlab/asciidoc.rb
-@@ -1,7 +1,8 @@
+@@ -1,6 +1,8 @@
  require 'asciidoctor'
 -require 'asciidoctor/converter/html5'
- require 'asciidoctor/extensions'
++require 'asciidoctor/extensions'
 +require 'asciidoctor-html5s'
  require "asciidoctor-plantuml"
 +require 'asciidoctor/rouge/treeprocessor'
  
  module Gitlab
    # Parser/renderer for the AsciiDoc format that uses Asciidoctor and filters
-@@ -9,10 +10,14 @@ module Gitlab
-   module Asciidoc
+@@ -10,10 +12,17 @@ module Gitlab
+ 
      DEFAULT_ADOC_ATTRS = [
        'showtitle', 'idprefix=user-content-', 'idseparator=-', 'env=gitlab',
 -      'env-gitlab', 'source-highlighter=html-pipeline', 'icons=font',
 +      'env-gitlab', 'source-highlighter=rouge', 'icons=font',
-       'sectanchors'
+       'outfilesuffix=.adoc', 'sectanchors'
      ].freeze
  
 +    Asciidoctor::Extensions.register do
-+      treeprocessor Asciidoctor::Rouge::Treeprocessor.new(formatter_opts: { line_id: 'LC%i' })
++      treeprocessor Asciidoctor::Rouge::Treeprocessor.new(formatter_opts: {
++        line_id: 'LC%i',
++        highlighted_class: 'hll'
++      })
 +    end
 +
      # Public: Converts the provided Asciidoc markup into HTML.
      #
      # input         - the source text in Asciidoc format
-@@ -46,7 +51,7 @@ module Gitlab
+@@ -41,7 +50,7 @@ module Gitlab
        end
      end
  

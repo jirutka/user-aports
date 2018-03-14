@@ -1,7 +1,7 @@
-From 62ad80b1422e3721006d033177274b4434debf6d Mon Sep 17 00:00:00 2001
+From a57597026308495e43de1c4ef7e2af2726b60f40 Mon Sep 17 00:00:00 2001
 From: Jakub Jirutka <jakub@jirutka.cz>
 Date: Tue, 20 Sep 2016 00:40:00 +0200
-Subject: [PATCH 06/10] Replace Sys::Filesystem with non-FFI code
+Subject: [PATCH 06/25] Replace Sys::Filesystem with non-FFI code
 
 Gem sys-filesystem uses FFI which Grsecurity/PaX doesn't like.
 It's used only in system_info_controller, so better to replace this
@@ -14,10 +14,10 @@ https://github.com/djberg96/sys-filesystem/issues/17
  2 files changed, 34 insertions(+), 4 deletions(-)
 
 diff --git a/Gemfile b/Gemfile
-index 7ad3bba..64385c0 100644
+index 4b4c7da..b31736c 100644
 --- a/Gemfile
 +++ b/Gemfile
-@@ -386,7 +386,8 @@ gem 'health_check', '~> 2.6.0'
+@@ -390,7 +390,8 @@ gem 'health_check', '~> 2.6.0'
  
  # System information
  gem 'vmstat', '~> 2.3.0'
@@ -25,8 +25,8 @@ index 7ad3bba..64385c0 100644
 +# Uses Ruby FFI which Grsecurity/PaX doesn't like.
 +gem 'sys-filesystem', '~> 1.1.6', group: :exclude
  
- # Gitaly GRPC client
- gem 'gitaly', '~> 0.14.0'
+ # SSH host key support
+ gem 'net-ssh', '~> 4.1.0'
 diff --git a/app/controllers/admin/system_info_controller.rb b/app/controllers/admin/system_info_controller.rb
 index 9903972..0456db1 100644
 --- a/app/controllers/admin/system_info_controller.rb
