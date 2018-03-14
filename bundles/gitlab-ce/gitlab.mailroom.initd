@@ -1,5 +1,7 @@
 #!/sbin/openrc-run
 
+supervisor=supervise-daemon
+
 name="GitLab (mailroom)"
 description="GitLab service for processing incoming mails."
 
@@ -13,10 +15,9 @@ command_args="-c $mailroom_config"
 command_background="yes"
 
 user="git"
-start_stop_daemon_args="
+supervise_daemon_args="
 	--chdir $gitlab_base
 	--user $user
-	--interpreted
 	--stdout $mailroom_logfile
 	--stderr $mailroom_logfile
 	--env RAILS_ENV=production
