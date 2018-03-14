@@ -245,20 +245,18 @@ package() {
 
 	rm -r lib/support db/fixtures/development
 	find lib/tasks -maxdepth 1 -type f ! -name cache.rake ! -name setup.rake -delete
-	find lib/tasks/gitlab \
-		-name 'generate_docs.*' -delete \
-		-o -name 'shell.*' -delete \
-		-o -name 'test.*' -delete
+	find lib/tasks/gitlab \( -name 'generate_docs.*' \
+	                      -o -name 'shell.*' \
+	                      -o -name 'test.*' \) -delete
 
 	cd "$destdir"/vendor/bundle/ruby/*/
 
 	# Remove documentations and other unused textual files.
 	find gems/ -name 'doc' -type d -exec rm -frv "{}" +
-	find gems/ \
-		-name 'README*' -delete \
-		-o -name 'CHANGELOG*' -delete \
-		-o -name 'CONTRIBUT*' -delete \
-		-o -name '*LICENSE*' -delete
+	find gems/ \( -name 'README*' \
+	           -o -name 'CHANGELOG*' \
+	           -o -name 'CONTRIBUT*' \
+	           -o -name '*LICENSE*' \) -delete
 
 	# Remove bundled libgit2 sources.
 	rm -R gems/rugged-*/vendor/libgit2
@@ -273,9 +271,7 @@ package() {
 
 	# Remove build logs and cache.
 	rm -R build_info/ cache/
-	find extensions/ \
-		-name gem_make.out -delete \
-		-o -name mkmf.log -delete
+	find extensions/ \( -name gem_make.out -o -name mkmf.log \) -delete
 
 
 	cd "$destdir"
