@@ -3,8 +3,9 @@
 name="GitLab Rails"
 description="GitLab application"
 
-extra_started_commands="reload stop_all"
+extra_started_commands="reload reopen stop_all"
 description_reload="Reload configuration"
+description_reopen="Reopen log files"
 description_stop_all="Stop all GitLab services"
 
 : ${gitlab_base:="/usr/lib/bundles/gitlab"}
@@ -55,8 +56,8 @@ if yesno "$pages_enabled" && [ -e /etc/init.d/gitlab.pages ]; then
 fi
 
 depend() {
-	need redis sshd $subservices
-	use net postgresql
+	need redis $subservices
+	use sshd net postgresql
 }
 
 start_pre() {
@@ -79,6 +80,12 @@ start_pre() {
 reload() {
 	ebegin "Reloading $name"
 	kill -USR2 $(head -n1 $pidfile)
+	eend $?
+}
+
+reopen() {
+	ebegin "Telling $name to reopen log files"
+	kill -USR1 $(head -n1 $pidfile)
 	eend $?
 }
 

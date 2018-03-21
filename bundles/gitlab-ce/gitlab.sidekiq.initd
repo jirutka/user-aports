@@ -1,9 +1,12 @@
 #!/sbin/openrc-run
 
 supervisor=supervise-daemon
+extra_started_commands="finish reopen"
 
 name="GitLab Sidekiq"
 description="GitLab backgroud workers"
+description_finish="Stop fetching new jobs and finish current ones"
+description_reopen="Reopen log files"
 
 : ${gitlab_base:="/usr/lib/bundles/gitlab"}
 : ${sidekiq_config:="/etc/gitlab/sidekiq_queues.yml"}
@@ -36,6 +39,18 @@ depend() {
 start_pre() {
 	checkpath -d -m 755 -o $user "${pidfile%/*}"
 	checkpath -f -m 644 -o $user "$sidekiq_logfile"
+}
+
+finish() {
+	ebegin "Telling $name to stop fetching new jobs"
+	kill -TSTP $(head -n1 $pidfile)
+	eend $?
+}
+
+reopen() {
+	ebegin "Telling $name to reopen log files"
+	kill -USR2 $(head -n1 $pidfile)
+	eend $?
 }
 
 optif() {

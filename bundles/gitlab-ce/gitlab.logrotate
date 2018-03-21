@@ -1,3 +1,29 @@
+/var/log/gitlab/sidekiq.log {
+	compress
+	maxsize 10M
+	minsize 1M
+	missingok
+	postrotate
+		/etc/init.d/gitlab.sidekiq --quiet --ifstarted reopen
+	endscript
+	sharedscripts
+	rotate 10
+	weekly
+}
+
+/var/log/gitlab/workhorse.log {
+	compress
+	maxsize 10M
+	minsize 1M
+	missingok
+	postrotate
+		/etc/init.d/gitlab.workhorse --quiet --ifstarted reopen
+	endscript
+	sharedscripts
+	rotate 5
+	weekly
+}
+
 /var/log/gitlab/*.log {
 	compress
 	copytruncate
@@ -5,6 +31,7 @@
 	maxsize 10M
 	minsize 1M
 	missingok
+	sharedscripts
 	rotate 10
 	weekly
 }
