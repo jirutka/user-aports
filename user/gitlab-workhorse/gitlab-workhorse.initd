@@ -1,7 +1,10 @@
 #!/sbin/openrc-run
 
+extra_started_commands="reopen"
+
 name="GitLab Workhorse"
 description="A reverse proxy for GitLab."
+description_reopen="Reopen log files"
 
 : ${gitlab_base:="/usr/lib/bundles/gitlab"}
 : ${workhorse_listen:="0.0.0.0:8080"}
@@ -48,6 +51,12 @@ start_pre() {
 		$(optif '--env GITLAB_WORKHORSE_SENTRY_DSN' "$workhorse_sentry_dns")"
 
 	checkpath -m 640 -o $user -f "$workhorse_logfile"
+}
+
+reopen() {
+	ebegin "Telling $name to reopen log files"
+	kill -HUP $(head -n1 $pidfile)
+	eend $?
 }
 
 optif() {
