@@ -2,6 +2,7 @@
 set -eu
 
 group='git'
+data_dir='/var/lib/gitlab'
 secrets_file='/etc/gitlab/secrets.yml'
 shell_secret_file='/etc/gitlab/gitlab-shell.secret'
 workhorse_secret_file='/etc/gitlab/gitlab-workhorse.secret'
@@ -61,6 +62,12 @@ if [ ! -f "$workhorse_secret_file" ]; then
 	gen_random_b64 32 > "$workhorse_secret_file"
 	chown root:$group "$workhorse_secret_file"
 	chmod 0640 "$workhorse_secret_file"
+fi
+
+# NOTE: We create this symlink in post-install script instead of APKBULD,
+# so user can decide to have tmp dir inside $data_dir (e.g. it's on bigger disk).
+if [ ! -e "$data_dir"/tmp ]; then
+	ln -s /var/tmp/gitlab "$data_dir"/tmp
 fi
 
 
