@@ -2,7 +2,7 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitlab-shell
 pkgver=5.11.0
-pkgrel=0
+pkgrel=1
 pkgdesc="GitLab Shell handles git commands for GitLab."
 url="https://github.com/gitlabhq/gitlab-shell"
 arch="all"
@@ -65,6 +65,9 @@ package() {
 
 	install -m644 -o git -g git "$srcdir"/gitconfig "$datadir"/.gitconfig
 	install -m644 -D config.yml.example "$pkgdir"/etc/gitlab/gitlab-shell.yml
+
+	# XXX: Both Ruby and Go components expect config here, so link it for now. :(
+	ln -s /etc/gitlab/gitlab-shell.yml "$sharedir"/config.yml
 }
 
 sha512sums="fb1ee919d4604093d57e29488fedd5e8658194f58887fd51a1741b0820309e038fe8859be233c2ea2ae0728505a867b736a19b5a5965e0f95e5a55fd8e365198  gitlab-shell-5.11.0.tar.gz
