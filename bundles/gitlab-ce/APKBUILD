@@ -319,6 +319,8 @@ package() {
 	# Some paths are hard-coded in GitLab, so we must make symlinks. :(
 	ln -sf /var/lib/gitlab/uploads public/uploads
 	ln -sf /var/log/gitlab log
+	ln -sf /var/tmp/gitlab tmp
+	ln -sf /var/tmp/gitlab "$datadir"/tmp
 
 	# See the last comment in the build() function.
 	#ln -sf /usr/bin/ruby$_rubyslot bin/ruby
