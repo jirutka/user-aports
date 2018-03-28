@@ -9,6 +9,7 @@ url="https://gitlab.com/gitlab-org/gitlab-ce"
 arch="all"
 license="MIT"
 _rubyslot=""
+_katex_ver=0.8.3
 # ruby-irb is needed only for Rails console (gitlab-rails console)
 depends="$pkgname-assets=$pkgver-r$pkgrel
 	gitaly>=0.66.0
@@ -55,6 +56,7 @@ install="$pkgname.pre-install $pkgname.post-install $pkgname.post-upgrade"
 subpackages="$pkgname-assets::noarch"
 # NOTE: Patches are exported from https://github.com/jirutka/gitlabhq/tree/10-4-stable
 source="$pkgname-$pkgver.tar.gz::https://github.com/gitlabhq/gitlabhq/archive/v$pkgver.tar.gz
+	katex-$_katex_ver.tar.gz::https://github.com/Khan/KaTeX/releases/download/v$_katex_ver/katex.tar.gz
 	$_pkgname.initd
 	$_pkgname.mailroom.initd
 	$_pkgname.sidekiq.initd
@@ -133,6 +135,12 @@ prepare() {
 			vendor/gems/grpc/grpc.gemspec
 	cp "$sysgemdir"/extensions/*/*/grpc-*/grpc/grpc_c.so \
 		vendor/gems/grpc/src/ruby/lib/grpc/
+
+	# Update bundled KaTeX
+	sed -e 's|fonts/||' -e 's/url\(([^)]*)\)/url(font-path\1)/g' \
+		"$srcdir"/katex/katex.css > vendor/assets/stylesheets/katex.scss
+	cp "$srcdir"/katex/katex.js vendor/assets/javascripts/
+	cp "$srcdir"/katex/fonts/* vendor/assets/fonts/
 }
 
 build() {
