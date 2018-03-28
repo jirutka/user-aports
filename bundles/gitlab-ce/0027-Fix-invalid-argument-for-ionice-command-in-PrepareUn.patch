@@ -1,0 +1,26 @@
+From 847d780f6e1f5a7bf73ce79df730b9bdc40bc8b9 Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Wed, 28 Mar 2018 22:23:21 +0200
+Subject: [PATCH] Fix invalid argument for ionice command in
+ PrepareUntrackedUploads
+
+---
+ lib/gitlab/background_migration/prepare_untracked_uploads.rb | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/gitlab/background_migration/prepare_untracked_uploads.rb b/lib/gitlab/background_migration/prepare_untracked_uploads.rb
+index 9fc46f5..0c1da95 100644
+--- a/lib/gitlab/background_migration/prepare_untracked_uploads.rb
++++ b/lib/gitlab/background_migration/prepare_untracked_uploads.rb
+@@ -103,7 +103,7 @@ module Gitlab
+                  -print0]
+ 
+         ionice = which_ionice
+-        cmd = %W[#{ionice} -c Idle] + cmd if ionice
++        cmd = %W[#{ionice} -c 3] + cmd if ionice
+ 
+         log_msg = "PrepareUntrackedUploads find command: \"#{cmd.join(' ')}\""
+         Rails.logger.info log_msg
+-- 
+2.10.1 (Apple Git-78)
+
