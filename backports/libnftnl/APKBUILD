@@ -1,0 +1,43 @@
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Maintainer: Sören Tempel <soeren+alpine@soeren-tempel.net>
+pkgname=libnftnl
+pkgver=1.0.9
+pkgrel=0
+pkgdesc="Netfilter library providing interface to the nf_tables subsystem"
+url="http://netfilter.org/projects/libnftnl/"
+arch="all"
+license="GPL-2.0"
+depends_dev="libmnl-dev"
+makedepends="$depends_dev bash jansson-dev"
+subpackages="$pkgname-dev $pkgname-libs"
+source="http://netfilter.org/projects/$pkgname/files/$pkgname-$pkgver.tar.bz2"
+builddir="$srcdir/$pkgname-$pkgver"
+
+case "$CARCH" in
+s390x) options="!check" ;; # FIXME
+esac
+
+build() {
+	cd "$builddir"
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var \
+		--with-json-parsing
+	make
+}
+
+check() {
+	cd "$builddir"/tests
+	make check # builds test binaries
+	./test-script.sh
+}
+
+package() {
+	make DESTDIR="$pkgdir" -C "$builddir" install
+}
+
+sha512sums="ca4a9402fba8b1354314aed45637026afa4faf880991baf93b2b7e01ca7f44e75ffedc624728bd5a7aa1b30bcbb83b849d2f9aea55be7a18f49036653c08151b  libnftnl-1.0.9.tar.bz2"
