@@ -1,0 +1,14 @@
+#!/bin/sh
+
+export VIRTUAL_ENV='/usr/lib/bundles/matrix-synapse'
+export PYTHONPATH="$VIRTUAL_ENV/lib/python2.7/site-packages"
+export PATH="$VIRTUAL_ENV/bin:$PATH"
+
+SYNAPSE_USER="${SYNAPSE_USER:-synapse}"
+COMMAND="$VIRTUAL_ENV/bin/python2 -B -m synapse.app.homeserver"
+
+if [ "$(id -un)" != $SYNAPSE_USER ]; then
+	exec su $SYNAPSE_USER -s /bin/sh -c '"$0" "$@"' -- $COMMAND "$@"
+else
+	exec $COMMAND "$@"
+fi

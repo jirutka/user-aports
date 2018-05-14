@@ -1,0 +1,107 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=matrix-synapse
+_pkgname=synapse
+pkgver=0.28.1
+pkgrel=0
+pkgdesc="Matrix reference homeserver"
+url="https://matrix.org"
+arch="all"
+license="Apache-2.0"
+depends="python2"
+makedepends="libffi-dev libjpeg-turbo-dev libressl-dev libsodium-dev
+	linux-headers postgresql-dev python2-dev py2-pip py2-virtualenv
+	yaml-dev zlib-dev"
+pkgusers="synapse"
+pkggroups="synapse"
+install="$pkgname.pre-install $pkgname.post-install"
+source="$_pkgname-$pkgver.tar.gz::https://github.com/matrix-org/$_pkgname/archive/v$pkgver.tar.gz
+	optional-requirements.patch
+	remove-webclient.patch
+	fhs-paths.patch
+	default-config.patch
+	constraints.txt
+	synapse
+	$pkgname.initd"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+_prefix="/usr/lib/bundles/$pkgname"
+
+build() {
+	mkdir "$srcdir"/build
+	cd "$srcdir"/build
+
+	# Create virtualenv.
+	python2 -m virtualenv --no-download --no-wheel .
+
+	export SODIUM_INSTALL=system
+	bin/pip install \
+		--isolated \
+		--no-binary=all \
+		--disable-pip-version-check \
+		--constraint="$srcdir"/constraints.txt \
+		"$builddir" psycopg2
+		#--no-cache-dir \
+
+	bin/pip freeze --disable-pip-version-check \
+		| sed '/^matrix-synapse==.*/d' \
+		> "$startdir"/constraints.txt
+
+	bin/pip uninstall -y pip
+
+	# Remove some useless files.
+	find lib \( \
+		-name 'test_*.py' -o \
+		-name 'test_*.pyc' -o \
+		-name '*.h' -o \
+		-name '*.c' -o \
+		-name '*.pyx' -o \
+		-iname '*.rst' -o \
+		-name README \) -delete
+	find bin ! \( \
+		$(cd "$builddir"/scripts && ls -1 . | xargs -n 1 -I {} printf '-name {} -o ') \
+		-name 'activate' -o \
+		-name 'python' -o \
+		-name 'python2*' -o \
+		-name bin \) -delete
+
+	# Regenerate .pyc files with correct paths.
+	# Note: The excluded jinja2 sources use async keyword.
+	bin/python2 -m compileall -f -d $_prefix/lib \
+		-x '.*/jinja2/(asyncfilters|asyncsupport).py' \
+		lib
+
+	# Fix absolute paths e.g. in shebang to correct destination.
+	find ./bin -type f -exec sed -i "s|$srcdir/build|$_prefix|g" {} \;
+}
+
+package() {
+	mkdir -p "$pkgdir"/$_prefix
+
+	cd "$pkgdir"
+
+	cp -ar "$srcdir"/build/bin "$srcdir"/build/lib ./$_prefix/
+	cp -r "$builddir"/res ./$_prefix/share
+
+	install -m755 -D "$srcdir"/synapse usr/bin/synapse
+	ln -s $_prefix/bin/hash_password usr/bin/synapse-hash_password
+	ln -s $_prefix/bin/register_new_matrix_user usr/bin/register_new_matrix_user
+
+	install -m755 -D "$srcdir"/$pkgname.initd etc/init.d/synapse
+
+	install -m 750 -o synapse -g synapse -d \
+		etc/synapse \
+		var/log/synapse \
+		var/lib/synapse \
+		var/lib/synapse/media_store \
+		var/lib/synapse/uploads
+}
+
+sha512sums="ea07d8e65669425c87fdcad3e8c91c981961317f57127b44548e73cf35c08623caa72c2c8528ddd0c4daed10d09271d6d3359b614ee522f4d9088b2860023a34  synapse-0.28.1.tar.gz
+01f5674a3bacc74b371ad70e0e49c3f9bc5c0223f41f1a6fa32934bdc2f4dbd56233f1eb25ffcbec5ce23f230a186d2b2fd99b0559db4b76643d1c5d9a1a11b8  optional-requirements.patch
+87ad4d11804305c7eb7e339d0cabd4bc6056cd037980ee2431951578209aac4aa1b241bd5108dd298eb951c2547dc4f2848bf8517b78b3150d02a921e4f258e2  remove-webclient.patch
+b2f8d336711253f72327c9a6dc0f66cf0474d1acaac114986579ccd6d6cb229bb520ad5f754a60a25483c2773d5bf9243ccc1e91935155c401c6df8a44366d36  fhs-paths.patch
+7a0e8e2d5252f43d9058fe24f925a53c4f1f658814e7dcf5126664c2b9ef7303c05a7b5f5df831020d207aed2601ba396a6948751ce04b067c9d26b839a529dc  default-config.patch
+aab9584d3b9134a2fb2c189812acb71bce567f809f322c73fb966eaaa5cb6987945d5fba2394ae56c3f27beac79a7a6c65af6eae8eff10d87ab807847c6dbc4c  constraints.txt
+0b192136c369b0ea7cd9f24d5161b4fd76254b1f22ef481b22affa8a68356ddc121c447a5b7fa9743c897a6f5f0cde731aaded8a312a0a9456bdb04aea7f974b  synapse
+ee317115e82f7ea1904bdd20edfb3a551273b00e1f83db783ea94c245a2f00f64f5dabf03f3ac0ae0016d091407724a0efe39acfdce9f62bc31f407b6079fd72  matrix-synapse.initd"

@@ -1,0 +1,134 @@
+From: Oleg Girko <ol@infoserver.lv>
+Date: Wed, 25 Nov 2015 01:32:19 +0000
+Subject: [PATCH] Use proper paths for uploads, database, pid and log files.
+
+Patch-Source: https://obs.infoserver.lv/package/show/matrix-synapse/matrix-synapse
+
+diff --git a/synapse/config/_base.py b/synapse/config/_base.py
+index fa105bce7..61b9db54e 100644
+--- a/synapse/config/_base.py
++++ b/synapse/config/_base.py
+@@ -81,6 +81,27 @@ class Config(object):
+     def abspath(file_path):
+         return os.path.abspath(file_path) if file_path else file_path
+ 
++    @staticmethod
++    def runpath(file_path):
++        if file_path:
++            return os.path.join("/run", file_path)
++        else:
++            return file_path
++
++    @staticmethod
++    def varpath(file_path):
++        if file_path:
++            return os.path.join("/var/lib/synapse", file_path)
++        else:
++            return file_path
++
++    @staticmethod
++    def logpath(file_path):
++        if file_path:
++            return os.path.join("/var/log/synapse", file_path)
++        else:
++            return file_path
++
+     @classmethod
+     def path_exists(cls, file_path):
+         """Check if a file exists
+diff --git a/synapse/config/database.py b/synapse/config/database.py
+index e915d9d09..811f21f92 100644
+--- a/synapse/config/database.py
++++ b/synapse/config/database.py
+@@ -46,7 +46,7 @@ class DatabaseConfig(Config):
+         self.set_databasepath(config.get("database_path"))
+ 
+     def default_config(self, **kwargs):
+-        database_path = self.abspath("homeserver.db")
++        database_path = self.varpath("homeserver.db")
+         return """\
+         # Database configuration
+         database:
+@@ -66,7 +66,7 @@ class DatabaseConfig(Config):
+ 
+     def set_databasepath(self, database_path):
+         if database_path != ":memory:":
+-            database_path = self.abspath(database_path)
++            database_path = self.varpath(database_path)
+         if self.database_config.get("name", None) == "sqlite3":
+             if database_path is not None:
+                 self.database_config["args"]["database"] = database_path
+diff --git a/synapse/config/logger.py b/synapse/config/logger.py
+index 3f70039ac..707fd03c2 100644
+--- a/synapse/config/logger.py
++++ b/synapse/config/logger.py
+@@ -71,7 +71,7 @@ class LoggingConfig(Config):
+         self.verbosity = config.get("verbose", 0)
+         self.no_redirect_stdio = config.get("no_redirect_stdio", False)
+         self.log_config = self.abspath(config.get("log_config"))
+-        self.log_file = self.abspath(config.get("log_file"))
++        self.log_file = self.logpath(config.get("log_file"))
+ 
+     def default_config(self, config_dir_path, server_name, **kwargs):
+         log_config = self.abspath(
+@@ -116,7 +116,7 @@ class LoggingConfig(Config):
+     def generate_files(self, config):
+         log_config = config.get("log_config")
+         if log_config and not os.path.exists(log_config):
+-            log_file = self.abspath("homeserver.log")
++            log_file = self.logpath("homeserver.log")
+             with open(log_config, "wb") as log_config_file:
+                 log_config_file.write(
+                     DEFAULT_LOG_CONFIG.substitute(log_file=log_file)
+diff --git a/synapse/config/repository.py b/synapse/config/repository.py
+index 25ea77738..b07985705 100644
+--- a/synapse/config/repository.py
++++ b/synapse/config/repository.py
+@@ -176,8 +176,8 @@ class ContentRepositoryConfig(Config):
+             )
+ 
+     def default_config(self, **kwargs):
+-        media_store = self.default_path("media_store")
+-        uploads_path = self.default_path("uploads")
++        media_store = self.varpath("media_store")
++        uploads_path = self.varpath("uploads")
+         return """
+         # Directory where uploaded images and attachments are stored.
+         media_store_path: "%(media_store)s"
+diff --git a/synapse/config/server.py b/synapse/config/server.py
+index 8f0b6d1f2..6b02bd421 100644
+--- a/synapse/config/server.py
++++ b/synapse/config/server.py
+@@ -21,7 +21,7 @@ class ServerConfig(Config):
+ 
+     def read_config(self, config):
+         self.server_name = config["server_name"]
+-        self.pid_file = self.abspath(config.get("pid_file"))
++        self.pid_file = self.runpath(config.get("pid_file"))
+         self.web_client = config["web_client"]
+         self.web_client_location = config.get("web_client_location", None)
+         self.soft_file_limit = config["soft_file_limit"]
+@@ -159,7 +159,7 @@ class ServerConfig(Config):
+             bind_port = 8448
+             unsecure_port = 8008
+ 
+-        pid_file = self.abspath("homeserver.pid")
++        pid_file = self.runpath("synapse.pid")
+         return """\
+         ## Server ##
+ 
+diff --git a/tests/config/test_generate.py b/tests/config/test_generate.py
+index 879159cce..a3c09cf0a 100644
+--- a/tests/config/test_generate.py
++++ b/tests/config/test_generate.py
+@@ -53,7 +53,7 @@ class ConfigGenerationTestCase(unittest.TestCase):
+ 
+         self.assert_log_filename_is(
+             os.path.join(self.dir, "lemurs.win.log.config"),
+-            os.path.join(os.getcwd(), "homeserver.log"),
++            HomeServerConfig.logpath("homeserver.log"),
+         )
+ 
+     def assert_log_filename_is(self, log_config_file, expected):
+-- 
+2.14.3

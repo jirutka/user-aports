@@ -1,0 +1,14 @@
+--- a/synapse/python_dependencies.py
++++ b/synapse/python_dependencies.py
+@@ -84,8 +84,9 @@
+ def requirements(config=None, include_conditional=False):
+     reqs = REQUIREMENTS.copy()
+     if include_conditional:
+-        for _, req in CONDITIONAL_REQUIREMENTS.items():
+-            reqs.update(req)
++        for name, req in CONDITIONAL_REQUIREMENTS.items():
++            if name in ("preview_url", "email.enable_notifs"):
++                reqs.update(req)
+     return reqs
+ 
+ 

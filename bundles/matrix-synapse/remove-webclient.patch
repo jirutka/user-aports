@@ -1,0 +1,31 @@
+Patch-Source: https://github.com/matrix-org/package-synapse-debian/blob/debian/debian/patches/remove-webclient.patch
+
+--- a/synapse/app/homeserver.py
++++ b/synapse/app/homeserver.py
+@@ -110,7 +110,7 @@
+         for res in listener_config["resources"]:
+             for name in res["names"]:
+                 resources.update(self._configure_named_resource(
+-                    name, res.get("compress", False),
++                    config, name, res.get("compress", False),
+                 ))
+ 
+         additional_resources = listener_config.get("additional_resources", {})
+@@ -155,7 +155,7 @@
+             )
+         logger.info("Synapse now listening on port %d", port)
+ 
+-    def _configure_named_resource(self, name, compress=False):
++    def _configure_named_resource(self, config, name, compress=False):
+         """Build a resource map for a named resource
+ 
+         Args:
+@@ -213,7 +213,7 @@
+                 SERVER_KEY_V2_PREFIX: KeyApiV2Resource(self),
+             })
+ 
+-        if name == "webclient":
++        if name == "webclient" and config.web_client:
+             resources[WEB_CLIENT_PREFIX] = build_resource_for_web_client(self)
+ 
+         if name == "metrics" and self.get_config().enable_metrics:

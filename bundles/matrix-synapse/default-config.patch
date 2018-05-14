@@ -1,0 +1,42 @@
+--- a/synapse/config/database.py
++++ b/synapse/config/database.py
+@@ -51,11 +51,15 @@
+         # Database configuration
+         database:
+           # The database engine name
+-          name: "sqlite3"
++          name: psycopg2
+           # Arguments to pass to the engine
+           args:
+-            # Path to the database
+-            database: "%(database_path)s"
++            user: synapse
++            password: top-secret
++            database: synapse
++            host: localhost
++            cp_min: 2
++            cp_max: 8
+ 
+         # Number of events to cache in memory.
+         event_cache_size: "10K"
+--- a/synapse/config/server.py
++++ b/synapse/config/server.py
+@@ -169,9 +169,6 @@
+         # This is also the last part of your UserID.
+         server_name: "%(server_name)s"
+ 
+-        # When running as a daemon, the file to store the pid in
+-        pid_file: %(pid_file)s
+-
+         # CPU affinity mask. Setting this restricts the CPUs on which the
+         # process will be scheduled. It is represented as a bitmask, with the
+         # lowest order bit corresponding to the first logical CPU and the
+@@ -194,7 +194,7 @@
+         # cpu_affinity: 0xFFFFFFFF
+ 
+         # Whether to serve a web client from the HTTP/HTTPS root resource.
+-        web_client: True
++        web_client: False
+ 
+         # The root directory to server for the above web client.
+         # If left undefined, synapse will serve the matrix-angular-sdk web client.

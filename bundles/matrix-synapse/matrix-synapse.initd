@@ -1,0 +1,18 @@
+#!/sbin/openrc-run
+
+description="Matrix Home Server"
+
+: ${cfgfile:="/etc/synapse/homeserver.yaml"}
+: ${logdir:="/var/log/synapse"}
+: ${command_user:="synapse"}
+
+command="/usr/lib/bundles/matrix-synapse/bin/python2"
+command_args="-B -m synapse.app.homeserver -c $cfgfile"
+command_background="yes"
+
+pidfile="/run/$RC_SVCNAME.pid"
+directory="/var/lib/synapse"
+output_log="$logdir/output.log"
+error_log="$logdir/output.log"
+
+required_files="$cfgfile"
