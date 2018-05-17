@@ -14,5 +14,6 @@ pidfile="/run/$RC_SVCNAME.pid"
 directory="/var/lib/synapse"
 output_log="$logdir/output.log"
 error_log="$logdir/output.log"
+start_stop_daemon_args="--wait 2000"
 
 required_files="$cfgfile"
