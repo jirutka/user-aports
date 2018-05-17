@@ -40,3 +40,20 @@
  
          # The root directory to server for the above web client.
          # If left undefined, synapse will serve the matrix-angular-sdk web client.
+@@ -264,7 +261,6 @@
+                 # List of resources to host on this listener.
+                 names:
+                   - client     # The client-server APIs, both v1 and v2
+-                  - webclient  # The bundled webclient.
+
+                 # Should synapse compress HTTP responses to clients that support it?
+                 # This should be disabled if running synapse behind a load balancer
+@@ -291,7 +287,7 @@
+             x_forwarded: false
+
+             resources:
+-              - names: [client, webclient]
++              - names: [client]
+                 compress: true
+               - names: [federation]
+                 compress: false
