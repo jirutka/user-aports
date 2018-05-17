@@ -6,13 +6,14 @@ cat >&2 <<-EOF
 *
 *     synapse --generate-config \\
 *         --server-name <yourdomain.org> \\
-*         --config-path /etc/synapse/homeserver.yaml
+*         --config-path /etc/synapse/homeserver.yaml \\
+*         --report-stats=yes
 *
 * 2. Create a PostgreSQL database for Synapse:
 *
 *     psql -c "CREATE ROLE synapse PASSWORD 'top-secret' INHERIT LOGIN;"
-*     psql -c "CREATE DATABASE synapse OWNER synapse ENCODING 'UTF-8'
-*              LC_COLLATE='C' LC_CTYPE='C';"
+*     psql -c "CREATE DATABASE synapse OWNER synapse template=template0
+*              ENCODING 'UTF-8' LC_COLLATE='C' LC_CTYPE='C';"
 *
 * 3. Start the synapse service: /etc/init.d/synapse start.
 *
