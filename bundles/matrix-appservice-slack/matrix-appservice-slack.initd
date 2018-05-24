@@ -1,0 +1,35 @@
+#!/sbin/openrc-run
+
+name="matrix-appservice-slack"
+description="Matrix <--> Slack bridge"
+
+: ${matrix_port:=}
+: ${command_user:="nobody"}
+: ${registration_file:="/etc/matrix-appservice/slack/registration.yaml"}
+: ${cfgfile:="/etc/matrix-appservice/slack/config.yaml"}
+: ${logfile:="/var/log/matrix-appservice/slack.log"}
+
+command="/usr/bin/matrix-appservice-slack"
+command_args="
+	--config $cfgfile
+	--file $registration_file
+	--port $matrix_port
+	${command_args:-}"
+command_background=yes
+
+pidfile="/run/$RC_SVCNAME.pid"
+output_log="$logfile"
+error_log="$logfile"
+
+required_files="$cfgfile $registration_file"
+
+depend() {
+	use net synapse
+}
+
+start_pre() {
+	if [ -z "$matrix_port" ]; then
+		eerror "matrix_port must be set!"
+		return 1
+	fi
+}

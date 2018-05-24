@@ -1,0 +1,16 @@
+# Configuration for /etc/init.d/matrix-appservice-slack
+
+# The port to listen for messages from Matrix.
+matrix_port=
+
+# The user to run as.
+#command_user="nobody"
+
+# Path of the main configuration file.
+#cfgfile="/etc/matrix-appservice/slack/config.yaml"
+
+# Path of the registration file.
+#registration_file="/etc/matrix-appservice/slack/registration.yaml"
+
+# Path of the log file.
+#logfile="/var/log/matrix-appservice-slack.log"
