@@ -12,7 +12,7 @@ url="https://github.com/grpc/grpc"
 arch="all"
 license="BSD-3-Clause"
 depends="ca-certificates ruby-google-protobuf"
-makedepends="c-ares-dev libressl-dev ruby ruby-dev zlib-dev"
+makedepends="c-ares-dev libressl-dev ruby ruby-dev ruby-etc zlib-dev"
 source="$_pkgname-$pkgver.tar.gz::https://github.com/grpc/$_pkgname/archive/v$pkgver.tar.gz
 	use-system-provided-deps.patch
 	use-system-certs.patch
@@ -48,7 +48,7 @@ build() {
 }
 
 package() {
-	local gemdir="$pkgdir/$(ruby -rubygems -e 'puts Gem.default_dir')"
+	local gemdir="$pkgdir/$(ruby -e 'puts Gem.default_dir')"
 	cd "$builddir"/dist
 
 	mkdir -p "$gemdir"
@@ -58,7 +58,7 @@ package() {
 	cd "$gemdir"/extensions/*/*/$_pkgname-$pkgver
 	rm gem_make.out mkmf.log || true
 	cd "$gemdir"/gems/$_pkgname-$pkgver
-	rm -r .yardopts Makefile etc/ include/ src/boringssl src/core third_party/ || true
+	rm -r .yardopts Makefile include/ src/boringssl src/core third_party/ || true
 	cd src/ruby
 	rm -r bin ext lib/grpc/grpc_c.so pb/README.md pb/src pb/test spec || true
 }
