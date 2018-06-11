@@ -3,8 +3,8 @@
 _pkgname=tomcat
 _majorver=7
 pkgname=tomcat$_majorver
-pkgver=$_majorver.0.73
-pkgrel=1
+pkgver=$_majorver.0.88
+pkgrel=0
 pkgdesc="Apache Servlet/JSP Engine, RI for Servlet 3.0 and JSP 2.2 API"
 url="https://tomcat.apache.org/"
 arch="noarch"
@@ -39,17 +39,7 @@ package() {
 	install -m 644 -D "$srcdir"/$pkgname.confd "$pkgdir"/etc/conf.d/$pkgname
 }
 
-md5sums="ca9a50ad51d79282f9ca397514c755d7  apache-tomcat-7.0.73.tar.gz
-263badba0ec4c1e82db9f377978ff39a  tomcat7.initd
-40ac6be2220c485f3774e90746423974  tomcat7.confd
-a5d7aaa8dacb38592ee6589b341b103c  logging.properties
-59adc559c920d0f8cec1ff99d75b2229  server.xml"
-sha256sums="0e814d6ad7d5b90e29c79887137420d3bc413540f9faa60d98f11e6c8a8fea85  apache-tomcat-7.0.73.tar.gz
-4ba841567acc370ab5075bb3b5af17d267275dbc1bfa7650c460325f8cacae40  tomcat7.initd
-79af165d91c5a1d78c20e99ce4230a3f24571dd272cb771a2e403f1e7e0bb8ee  tomcat7.confd
-9625c5acd4380b9423045f1810ae5ec12f556c08e198a6eed0319d9206bed081  logging.properties
-56d12f54112a1959b8b80eeda1bcbff8016be004b677553ff97c6c2919fa27e9  server.xml"
-sha512sums="33d849b4f4f4c022d56e17a8c28673563b1ca64024a3082f29afefa65eeead2f3e2d6615035481149ad8c82b14108a835cf2b59da252b4cb0973fdbc4f6e23fe  apache-tomcat-7.0.73.tar.gz
+sha512sums="5adb54155f2da0d59c86af9b6df5cce110e608b7f894cd0398821797cf87502bd2938bc8494e021daf1990b337267c391e90e129c907e9a548d23cb52b2a8451  apache-tomcat-7.0.88.tar.gz
 4a8b42b5befb2265e1805bad2914fd91b876ea08f64c2a67c0ed2b6437beab10ec3e8289e2759caba1f39648d14dc6469a8c7364f955191473f444793eef6b43  tomcat7.initd
 571723626cee62fd8d8dc0281171b7ff96543f4b07512b43c079af0aa63f6c8b1456a9c735e832896cb68f33c466bc994b46bfc498a28ddd4db052609d3df6ba  tomcat7.confd
 f8dc00538018730b61460337390aad36722908d9869881bc40113004148f14460144767d2248c91c7cc3e5f3d24d3ccfedf3772942ef053faee7ff910affe66f  logging.properties
