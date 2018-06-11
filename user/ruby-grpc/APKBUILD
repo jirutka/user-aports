@@ -5,7 +5,7 @@
 # all conventions and best-practices, that's why so much patching...
 pkgname=ruby-grpc
 _pkgname=grpc
-pkgver=1.4.5
+pkgver=1.4.7
 pkgrel=0
 pkgdesc="An RPC library and framework"
 url="https://github.com/grpc/grpc"
@@ -63,7 +63,7 @@ package() {
 	rm -r bin ext lib/grpc/grpc_c.so pb/README.md pb/src pb/test spec || true
 }
 
-sha512sums="d2ed49ae48575ba96f99d55050a377ef2610dffd2ba2ead041c1d4d61b19f7097ff5523a5bad6234377d3ec776eb1a6e436792d90f48298440cf57b0647ceda7  grpc-1.4.5.tar.gz
+sha512sums="ca38709c53e0b14065eb5dc7eae7b1d9d9ad178304365e4f62be8ab16bb53116b171e9b023d81c3e5b9ffe51b5dc80db09601a711581d851c34b8aff89a9795c  grpc-1.4.7.tar.gz
 7bb065c56ab84bb064294b7d5f7fc85f98b139a853d1465a42b553977db41311c506ac21e905a5109eeccea6c283f97c4be40073d1e00ac85b6186a9e2e182b9  use-system-provided-deps.patch
 13c68b45c06b4d27aa4099f6e76bcf09e7a7077bc4a712e4421bca6ead487cdd1b67c281e515460c002cc87134401be3b171cc7a2446e945352a0b45f76f2ff3  use-system-certs.patch
 becc7ee297b98c3ee24c9d0ef506de0d0ba1e30cc73074f114d9b724dedcea1d3617df50936d7b9ae2913403314d2f0816b1b2efd4bc99b22f2d2df82ee291d7  fix-extconf.patch"
