@@ -15,7 +15,7 @@ diff --git a/Gemfile b/Gemfile
 @@ -7,6 +7,9 @@
  gem 'gollum-lib', '~> 4.2', require: false
  gem 'gollum-rugged_adapter', '~> 0.4.4', require: false
- 
+
 +# This Google gem is totally messed, we handle it specially.
 +gem 'grpc', path: 'vendor/grpc', require: false
 +
@@ -29,7 +29,7 @@ diff --git a/Gemfile.lock b/Gemfile.lock
 +PATH
 +  remote: vendor/grpc
 +  specs:
-+    grpc (1.4.5)
++    grpc (1.4.7)
 +      google-protobuf (~> 3.1)
 +
  GEM
@@ -51,5 +51,5 @@ diff --git a/Gemfile.lock b/Gemfile.lock
    gollum-rugged_adapter (~> 0.4.4)
 +  grpc!
    rdoc (~> 4.2)
- 
+
  BUNDLED WITH

@@ -12,7 +12,7 @@ depends="git>=2.8.4 ruby ruby-bigdecimal ruby-bundler ruby-io-console ruby-json"
 makedepends="
 	go>=1.8
 	icu-dev
-	libgit2-dev=~0.26
+	libgit2-dev=~0.27
 	libxml2-dev
 	libxslt-dev
 	ruby-dev
@@ -21,13 +21,14 @@ makedepends="
 	"
 source="$pkgname-$pkgver.tar.gz::https://gitlab.com/gitlab-org/$pkgname/repository/archive.tar.gz?ref=v$pkgver
 	gemfile-use-local-grpc.patch
+	gemfile-rugged-0.27.1.patch
 	config.patch
 	$pkgname.initd"
 builddir="$srcdir/$pkgname-$pkgver"
 options="!check"
 
 prepare() {
-	local sysgemdir=$(ruby$_rubyslot -rubygems -e 'puts Gem.default_dir')
+	local sysgemdir=$(ruby -e 'puts Gem.default_dir')
 
 	# Top-level directory inside the tar archive contains SHA of a commit...
 	mv "$srcdir"/$pkgname-v$pkgver-* "$builddir"
@@ -104,6 +105,7 @@ package() {
 }
 
 sha512sums="45cdc9c5a0c0018e45969f1287b55916eb5f6bada2db4413fc6615b8937b744c01fbdf00c6d49b3c26394a7519518502366260ed9ee65906130ad38f89e19578  gitaly-0.66.0.tar.gz
-e2a5553b0a2b7a66b02971a335c7f1b7ae798702391dbf74e82578dc56107a6b1b4c1ad4eee3a9b769442a73885579077911495301e48b4a083b44d5c96a79ae  gemfile-use-local-grpc.patch
+d7841b0c88e74e16d50a0ef6fc4d9c2ca7f1136c9cb2a2672415723415686a8f88f97253c34c464f65d6c19eadecc917944a74a358390ab5286d5a661e579f3a  gemfile-use-local-grpc.patch
+3ef857bd88ce34fdd137579a68404f9ca2f79e1cb2142afc35549ac825bcb5405d0594b7e7fe036958b60fe1cde031d6e82e59ed21541eb173420239e0c6e36d  gemfile-rugged-0.27.1.patch
 41ff891361a4199a550b22bdffa99d2b8ce395fa0a86461713ea539ea03ad0b6ef701e53ec6788d0999df44912016d13c5d815170d8e0edba279b6ef016b649b  config.patch
 89fc0b1c1fa95071ae5ede0ba73bba99ef3a6cd726d39297c146248a633580d8d04c2ddbff182d33cb7d2b09dfa7fca6fe5167bc8a38e173c0b2505f4467453b  gitaly.initd"
