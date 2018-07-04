@@ -1,0 +1,35 @@
+#!/bin/sh
+# This script is supposed to be executed by cron.
+set -eu
+
+# Option pipefail is not specified by POSIX and not supported e.g. by dash.
+# However, running this script without pipefail would be unsafe.
+if ( set -o pipefail 2>/dev/null ); then
+	set -o pipefail
+else
+	echo 'healthchecks-prune: Your shell does not support option pipefail!' >&2
+	exit 1
+fi
+
+# An awk program to add timestamp prefix to all logged lines.
+AWK_LOG_PREFIX='{ print strftime("%Y-%m-%d %H:%M:%S:"), $0; fflush(); }'
+
+: ${HC_PRUNE_LOGFILE:="/var/log/healthchecks/prune.log"}
+
+
+case "$1" in -h | --help | help)
+	cat >&2 <<-EOF
+		Usage: $0 [options]
+
+		Run Healthchecks' tasks prunepingsslow, prunechecks and prunenotifications
+		and logs into $HC_PRUNE_LOGFILE.
+		Options are passed into healthchecks-manage executed for each task.
+	EOF
+	exit 0
+esac
+
+{
+	/usr/bin/healthchecks-manage prunepingsslow "$@" 2>&1
+	/usr/bin/healthchecks-manage prunechecks "$@" 2>&1
+	/usr/bin/healthchecks-manage prunenotifications "$@" 2>&1
+} | awk "$AWK_LOG_PREFIX" | tee -a "$HC_PRUNE_LOGFILE"

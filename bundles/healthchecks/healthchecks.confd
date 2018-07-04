@@ -1,0 +1,19 @@
+# Configuration file for /etc/init.d/healthchecks
+
+user="healthchecks"
+logfile="/var/log/healthchecks/uwsgi.log"
+
+server_listen="0.0.0.0:8080"
+basedir="/usr/lib/bundles/healthchecks"
+
+uwsgi_opts="
+	--plugins python3,http
+	--enable-threads
+	--virtualenv $basedir
+	--chdir $basedir
+	--module hc.wsgi
+	--http $server_listen
+	--static-map /static=$basedir/static
+	--disable-logging
+	--attach-daemon '$basedir/bin/django-admin sendalerts'
+	"

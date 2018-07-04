@@ -1,0 +1,16 @@
+croniter==0.3.24
+Django==2.0.4
+django-appconf==1.0.2
+django-auth-ldap==1.6.1
+django-compressor==2.1
+psycopg2==2.7.3.2
+pyasn1==0.4.3
+pyasn1-modules==0.2.2
+python-dateutil==2.7.3
+python-ldap==3.1.0
+pytz==2016.7
+raven==6.9.0
+rcssmin==1.0.6
+requests==2.9.1
+rjsmin==1.0.12
+six==1.11.0

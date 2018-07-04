@@ -1,0 +1,13 @@
+#!/bin/sh
+set -eu
+
+export VIRTUAL_ENV='/usr/lib/bundles/healthchecks'
+
+HC_USER="${HC_USER:-healthchecks}"
+COMMAND="$VIRTUAL_ENV/bin/django-admin"
+
+if [ "$(id -un)" != "$HC_USER" ]; then
+	exec su "$HC_USER" -s /bin/sh -c '"$0" "$@"' -- $COMMAND "$@"
+else
+	exec $COMMAND "$@"
+fi

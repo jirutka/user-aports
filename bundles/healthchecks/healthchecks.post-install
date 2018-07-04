@@ -1,0 +1,35 @@
+#!/bin/sh
+set -u
+
+SECRET_KEY='/etc/healthchecks/secret_key'
+
+random_pass() {
+	local length="$1"
+
+	python3 <<-EOF
+		import random, string
+		chars = string.ascii_letters + string.digits
+		print(''.join(random.SystemRandom().choice(chars) for _ in range($length)))
+	EOF
+}
+
+
+if [ ! -f $SECRET_KEY ]; then
+	echo "* Generating random secret_key..." >&2
+
+	random_pass 64 > $SECRET_KEY
+	printf '\n' >> $SECRET_KEY
+
+	chown root:healthchecks $SECRET_KEY
+	chmod 640 $SECRET_KEY
+fi
+
+cat >&2 <<EOF
+*
+* 1. Adjust settings in /etc/healthchecks.
+* 2. Run the following commands:
+*     healthchecks-manage migrate
+*     healthchecks-manage createsuperuser
+* 3. Make sure that cron is enabled!
+*
+EOF

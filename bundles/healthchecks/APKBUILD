@@ -1,0 +1,186 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=healthchecks
+pkgver=1_git20180628
+pkgrel=0
+_gitrev=33d8a1505c4fee179c92ee0b9f34ff7510669f78
+pkgdesc="A Cron Monitoring Tool written in Python & Django"
+url="https://healthchecks.io/"
+arch="all"
+license="BSD-3-Clause"
+depends="$pkgname=$pkgver-r$pkgrel python3"
+makedepends="openldap-dev postgresql-dev python3-dev"
+pkgusers="healthchecks"
+pkggroups="$pkgusers"
+install="$pkgname.pre-install $pkgname.post-install"
+subpackages="$pkgname-assets::noarch $pkgname-openrc"
+# NOTE: The source v1.0.4 is used only to get the original HC logo.
+source="https://github.com/healthchecks/$pkgname/archive/$_gitrev/$pkgname-$_gitrev.tar.gz
+	https://github.com/healthchecks/$pkgname/archive/v1.0.4/$pkgname-v1.0.4.tar.gz
+	use-settings_loader.patch
+	settings.patch
+	settings.py
+	settings_loader.py
+	setup.py
+	constraints.txt
+	healthchecks-manage
+	healthchecks-prune
+	$pkgname.confd
+	$pkgname.daily
+	$pkgname.logrotate
+	"
+builddir="$srcdir/$pkgname-$_gitrev"
+
+_prefix="/usr/lib/bundles/$pkgname"
+
+prepare() {
+	default_prepare
+	cd "$builddir"
+
+	cat > MANIFEST.in <<-EOF
+		include setup.py LICENSE MANIFEST.in README.md
+		recursive-include hc/templates *
+		recursive-include hc/static *
+	EOF
+	cp "$srcdir"/setup.py .
+	cp "$srcdir"/settings_loader.py hc/
+
+	# Replace generic "?" logo with the original Healthchecks logo.
+	cp "$srcdir"/$pkgname-1.0.4/static/img/logo* static/img/
+
+	# Move into the module directory, so setup.py can find them.
+	mv static templates hc/
+}
+
+build() {
+	mkdir -p "$srcdir"/build
+	cd "$srcdir"/build
+
+	# Create a virtualenv.
+	python3 -m venv .
+
+
+	## Install dependencies
+
+	bin/python3 -m pip install \
+		--isolated \
+		--no-binary=all \
+		--disable-pip-version-check \
+		--install-option="--no-compile" \
+		--no-cache-dir \
+		--constraint "$srcdir"/constraints.txt \
+		"$builddir" django-auth-ldap raven
+
+	# Note: This overwrites existing constraints.txt.
+	bin/python3 -m pip freeze --disable-pip-version-check \
+		| sed "/^$pkgname==.*/d" \
+		> "$srcdir"/constraints.txt
+
+	# Remove pip that is not needed in runtime (note: setuptools is needed).
+	bin/python3 -m pip uninstall --disable-pip-version-check -y pip
+
+	# Inject code into django-admin that sets default name of the
+	# settings module.
+	sed -e "3a import os" \
+		-e "3a os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hc.settings_loader')" \
+		-e '3a' \
+		-i bin/django-admin
+
+
+	## Clean-up
+
+	# Remove some useless files.
+	find lib -type d -name tests -exec rm -Rfv '{}' +
+	find lib \( \
+		-name 'test_*.py' -o \
+		-name 'test_*.pyc' -o \
+		-name 'README*' -o \
+		-name 'LICENSE*' \) -delete
+	rm -f bin/activate.* bin/easy_install*
+	rm -Rf include lib64 share
+
+	# Remove non-English locales.
+	find lib/python*/site-packages/django/conf/locale \
+		lib/python*/site-packages/django/contrib/*/locale \
+		-type d ! -name en -mindepth 1 -maxdepth 1 -exec rm -Rf '{}' \;
+
+
+	## Collect static assets
+
+	echo "from hc.settings import *; STATIC_ROOT = '$(pwd)/static'" \
+		> build_settings.py
+	mkdir -p .dummy
+	(
+		set -e
+		export HC_SETTINGS="$(pwd)/build_settings.py"
+		export HC_LOG_DIR="$(pwd)/.dummy"
+
+		msg 'Collecting static assets...'
+		bin/django-admin collectstatic --noinput
+		bin/django-admin compress --force
+	)
+	rm build_settings.py
+
+
+	## Finalize
+
+	# Source static assets are not needed anymore.
+	rm -Rf lib/python*/site-packages/hc/static
+
+	# Fix absolute paths e.g. in shebang to correct destination.
+	find ./bin -type f -exec sed -i "s|$srcdir/build|$_prefix|g" {} \;
+
+	# Regenerate .pyc files with correct paths.
+	bin/python3 -m compileall -f -q -d $_prefix/lib lib
+}
+
+package() {
+	cd "$srcdir"/build
+
+	mkdir -p "$pkgdir"/$_prefix
+	cp -ar bin lib static pyvenv.cfg "$pkgdir"/$_prefix/
+
+	cd "$pkgdir"
+
+	install -m 755 -D "$srcdir"/healthchecks-manage ./usr/bin/healthchecks-manage
+	install -m 755 -D "$srcdir"/healthchecks-prune ./usr/bin/healthchecks-prune
+
+	install -m 640 -o healthchecks -g healthchecks -D \
+		"$srcdir"/settings.py ./etc/$pkgname/settings.py
+
+	install -m 644 -D "$srcdir"/$pkgname.confd ./etc/conf.d/$pkgname
+	install -m 755 -D "$srcdir"/$pkgname.daily ./etc/periodic/daily/$pkgname
+	install -m 644 -D "$srcdir"/$pkgname.logrotate ./etc/logrotate.d/$pkgname
+
+	mkdir -p ./etc/init.d
+	ln -s uwsgi ./etc/init.d/$pkgname
+
+	install -m 755 -o healthchecks -g healthchecks -d ./var/log/$pkgname
+}
+
+assets() {
+	pkgdesc="$pkgdesc (static files)"
+	depends=""
+
+	mkdir -p "$subpkgdir"/$_prefix/static
+	mv "$pkgdir"/$_prefix/static "$subpkgdir"/$_prefix/
+}
+
+openrc() {
+	depends="uwsgi-python3 uwsgi-http"
+	default_openrc
+}
+
+sha512sums="16f2c4d6947562660b14f4d03b798ae5018cd7cea664d5535413fcd6748221ef261c23e4ea742886d3494e93b118af2ec0b5c9e03b7d5525c08ed9af7f65a36a  healthchecks-33d8a1505c4fee179c92ee0b9f34ff7510669f78.tar.gz
+d7a62b559a60f1a264abd937f70f9e57b86cd96ac10ac3cc35b701ec2fc142a217dbdf25aeb4ef27e1a2f4d64c8b55fef7e831617e64c1dec5ccc8048507b712  healthchecks-v1.0.4.tar.gz
+e26221e0c58469a6af002e6ec4156ed57e925d2e160aeddd85f934a9cbdcb4d33466d7be1e908cc1f1ddf9eda6952b5f585fdfcbf792fc2ebf7e2da9c4162440  use-settings_loader.patch
+306b550eaae47e3e5c64aa2906c28969deb6e79b9f0ea980914cca418e2a00b09ee7f83dd0d44aed5f7083325ba665b52e507b36d243395b09402308edeb9981  settings.patch
+9a3dd3b71320b140153e53c11c640e3097a7f51e4953da5737cee2e9e030aa4dacfbc15488c3b8ab48fea9bbddd15ad925f45bbc9f61d8bb9082b2910c07220c  settings.py
+343ddf91baf04ec5b6e7b2cc1a1ad4f239832645b65d4abaf5309cc80da13d886f0c09b42b35a16e5b2fd3f60c9d3ab40dc2e924872cd380d3c2ed555bfb9101  settings_loader.py
+123fead3cd0df44b7578d5f4db23ab093bb22dd85fa289c3a80ed3f259cf1356df2d3c1b7aeef83c5033bcac7381c11c9554206e0fc29e47714cfc05e9da8921  setup.py
+a3a4c0cdff24d0af978e9e88c68d70b5929f24cbc9fbca0259eeb80dc7a113d07cde6edb8caae3ee2e60c526451e9bf17ae9c737ceb954f2913016fb0d91a919  constraints.txt
+e3f37177cceb477438fcaf08ded5c0d3eb023eacb50d72a4013c921c4a7bc077b764f5c20844c34ea292a67efce01c21897b98efec781d8850a418bc6bc3e559  healthchecks-manage
+c0c2e119c8db3b87a2be60aab32e9b9e06188946df00982281f7e46712c474b5f02d8f3e908d7e6f57ee8ab08881e48f7d02446c4f521abcae37e6ba894185e0  healthchecks-prune
+4f97931f4b5bf69c1f36836f7314ac14020696bd6572f50ef099fd6b1dd53b12f413c0af82cec2d599febfbc50a097351e9552ffb940846f38aaae395cc3a408  healthchecks.confd
+6749c4e3fcd5f8eb15ac5fe2fd361b1be0a1fe944bd45c74dafbca4b4ce19488fe71beda433a8993bfac053626ed2bab12d3012d5060bcbeeb08362c5ed214bc  healthchecks.daily
+40cb7339d599618f0dc903d82161d89259b665ac95ddff718fabc51cd2b8f79979196b7024ae452f4c8d3023ac239c31609daecdfdd5e9292bfade0cc724447e  healthchecks.logrotate"

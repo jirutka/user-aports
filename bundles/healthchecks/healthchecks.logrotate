@@ -1,0 +1,6 @@
+/var/log/healthchecks/*.log {
+	compress
+	copytruncate
+	delaycompress
+	missingok
+}

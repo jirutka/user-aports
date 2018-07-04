@@ -1,0 +1,4 @@
+#!/bin/sh
+set -e
+
+/usr/bin/healthchecks-prune --verbosity 2
