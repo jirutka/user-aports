@@ -42,6 +42,8 @@ DEBUG = False
 #         'NAME': 'healthchecks',
 #         'USER': 'healthchecks',
 #         'PASSWORD': 'top-secret',
+#         'HOST': 'localhost',
+#         'PORT': '5432',
 #         'TEST': {'CHARSET': 'UTF8'}
 #     }
 # }
