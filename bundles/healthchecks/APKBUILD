@@ -2,13 +2,13 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=healthchecks
 pkgver=1_git20180628
-pkgrel=1
+pkgrel=2
 _gitrev=33d8a1505c4fee179c92ee0b9f34ff7510669f78
 pkgdesc="A Cron Monitoring Tool written in Python & Django"
 url="https://healthchecks.io/"
 arch="all"
 license="BSD-3-Clause"
-depends="$pkgname=$pkgver-r$pkgrel python3"
+depends="$pkgname-assets=$pkgver-r$pkgrel python3"
 makedepends="openldap-dev postgresql-dev python3-dev"
 pkgusers="healthchecks"
 pkggroups="$pkgusers"
