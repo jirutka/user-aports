@@ -2,8 +2,8 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
-pkgver=10.4.6
-pkgrel=3
+pkgver=10.4.7
+pkgrel=0
 pkgdesc="A version control for your server"
 url="https://gitlab.com/gitlab-org/gitlab-ce"
 arch="all"
@@ -361,7 +361,7 @@ assets() {
 	mv "${pkgdir}$_prefix"/public/assets "$destdir"/public/
 }
 
-sha512sums="2001ec6bf272c36d411908bb43c19e4cf73a12daf546f8d5e1f76309c16ac9168e7953e1ff8d002c36f5249960a66a4fcebefdc47075880dcc11772d9cdef267  gitlab-ce-10.4.6.tar.gz
+sha512sums="0bc13d19a34cc55a03b98ae2fa445c4c0c38725ce9ba75aa5cbec6753f3e258ea02fdc1acd876a511ea03bf9ae2788812dc3f92ee9e25a6c5d32b4bc8cdf6096  gitlab-ce-10.4.7.tar.gz
 4c1865059860b2e0c1d3d1cda47c3eb9d2fa089d203f35daa5928f33064dd74f86cf1999028bd4a8de4151855b15b619161babfe2a438a0938778522a84a0083  katex-0.8.3.tar.gz
 9f48c75fd724e569a92b90a68dce2feb2623d99a43fee9754b6bff87b6075e1a45f1e088cde4ae0252309966a267497797c6f863f3e4e29c785f2b8a3cc85ad6  gitlab.initd
 478759565c27d7e300e69715ed069ca6689fc0f33781a99e4ca9f52a49763e3a46d6a1ca7fa61879b200156543e534f652deec1367c31a52154db6f0f8ecb779  gitlab.mailroom.initd
