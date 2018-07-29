@@ -1,0 +1,6 @@
+/var/log/github-pr-closer.log {
+	compress
+	copytruncate
+	missingok
+	notifempty
+}

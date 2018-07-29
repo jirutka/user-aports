@@ -1,0 +1,40 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=github-pr-closer
+pkgver=0.4.0
+pkgrel=0
+pkgdesc="GitHub webhook handler for closing PRs that have been merged using rebase etc."
+url="https://github.com/jirutka/github-pr-closer"
+arch="noarch"
+license="MIT"
+depends="python3 py3-bottle py3-cachetools py3-funcy py3-pygithub"
+makedepends="python3-dev"
+subpackages="$pkgname-openrc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/jirutka/$pkgname/archive/v$pkgver.tar.gz
+	$pkgname.confd
+	$pkgname.logrotate
+	"
+builddir="$srcdir/$pkgname-$pkgver"
+options="!check"  # no tests provided, shame on me!
+
+package() {
+	cd "$builddir"
+
+	install -D -m 644 app.py "$pkgdir"/usr/share/webapps/$pkgname/app.py
+	install -D -m 644 settings.ini.example "$pkgdir"/etc/$pkgname.ini
+}
+
+openrc() {
+	default_openrc
+	pkgdesc="OpenRC init script that runs $pkgname using Waitress WSGI server"
+	depends="$pkgname=$pkgver-r$pkgrel py-waitress"
+
+	mkdir -p "$subpkgdir"/etc/init.d
+	ln -s waitress "$subpkgdir"/etc/init.d/$pkgname
+	install -D -m 644 "$srcdir"/$pkgname.confd "$subpkgdir"/etc/conf.d/$pkgname
+	install -D -m 644 "$srcdir"/$pkgname.logrotate "$subpkgdir"/etc/logrotate.d/$pkgname
+}
+
+sha512sums="3cfe53fef25e3ddd48b1a4ed28aa1ca2351ba81d935ee7337d402df745988cd98641f2ae18eaeec4261e62cae13ecf248a543a11741b8ff11e0848a2c5711279  github-pr-closer-0.4.0.tar.gz
+1fe1365ee5f2d739bd95031e71418cfd9000ef34b3ccc8d3e035abd7dbb8f94fef35f57b1b825100754ffb4fd1380a268eb2b40fa930e3e1a097b72db41bf6bc  github-pr-closer.confd
+330b055f45227ca4fa87c338e3464c4f87f49b6a1af91e38eb0e3ed424c998ae8dba8f159fbb37834f781f2571421dc917917edc69c35158ed1f24f908a3be8d  github-pr-closer.logrotate"
