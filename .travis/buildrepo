@@ -9,7 +9,7 @@ cd "$CLONE_DIR"
 [ -n "$REMOTE" ] || die '$REMOTE is not set'
 
 REMOTE_DIR='/mnt/remote'
-PACKAGES_DIR="$REMOTE_DIR/packages/$TRAVIS_BRANCH"
+PACKAGES_DIR="$REMOTE_DIR/alpine/$TRAVIS_BRANCH"
 MOUNT_DIR="${ALPINE_ROOT}${REMOTE_DIR}"
 REPOS='backports user bundles'
 
