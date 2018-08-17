@@ -3,7 +3,7 @@
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
 pkgver=10.4.7
-pkgrel=0
+pkgrel=1
 pkgdesc="A version control for your server"
 url="https://gitlab.com/gitlab-org/gitlab-ce"
 arch="all"
@@ -92,6 +92,7 @@ source="$pkgname-$pkgver.tar.gz::https://github.com/gitlabhq/gitlabhq/archive/v$
 	0027-Fix-invalid-argument-for-ionice-command-in-PrepareUn.patch
 	0028-Add-style-for-decimal-nested-numbered-list.patch
 	0029-Hotfix-crash-on-MR-page-with-comments-on-diffs-of-LF.patch
+	0030-Fix-LFS-uploads-not-working-with-git-lfs-2.5.0.patch
 	"
 builddir="$srcdir/gitlabhq-$pkgver"
 
@@ -398,4 +399,5 @@ bdd2c6ccb8a9a4c572795398fb35dd30cfb9a4b614b50d93daf2fcb799b5896ae19b14c8ac7aa3a5
 22d9807665a76248448ae5e86d907ad4fe1fffa590cbf9f06ac391c6281c8f782a736249623ffedfd4dc6e4d87904c12a25c302ac9f42f39d2274e1b0704ab80  0026-Support-PostgreSQL-10.patch
 d5bc766e123b2e449c70690de58da2c3f60720be10673fcec3b87de1de4a49367086636a052a563aa57eb27de2b46fbc4577333141d361af4ba8f9eff74181e2  0027-Fix-invalid-argument-for-ionice-command-in-PrepareUn.patch
 dda9dc4c59594e1d867ed84da857f2d404d15d48660a5841a387c5ab23ad70584e7d984f102b4f451d57bc9335b74165adbbb1bd529b4aea177e2caa8967e15f  0028-Add-style-for-decimal-nested-numbered-list.patch
-8d27f681b39eedaa2a518e20653345380e8caf6702cd0eb4ac5fcd14c74647d1f50653dd2b65c809f8433a2bda7001d211b2735e5dc7f708523c1242302b0c2a  0029-Hotfix-crash-on-MR-page-with-comments-on-diffs-of-LF.patch"
+8d27f681b39eedaa2a518e20653345380e8caf6702cd0eb4ac5fcd14c74647d1f50653dd2b65c809f8433a2bda7001d211b2735e5dc7f708523c1242302b0c2a  0029-Hotfix-crash-on-MR-page-with-comments-on-diffs-of-LF.patch
+90452a30aec6c541024c74342cfb57ae94be95dbf7d54614851f0882ec39428988f7c0b3ee9b6938638bb869f02f97ae56676ae8b5f2bc6b82d2e91f7c0c6479  0030-Fix-LFS-uploads-not-working-with-git-lfs-2.5.0.patch"
