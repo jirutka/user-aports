@@ -1,0 +1,69 @@
+From 348fe9fccaf578be77a52693bf02321c5bda8ea0 Mon Sep 17 00:00:00 2001
+From: Stan Hu <stanhu@gmail.com>
+Date: Tue, 31 Jul 2018 06:13:01 -0700
+Subject: [PATCH] Fix LFS uploads not working with git-lfs 2.5.0
+
+git-lfs 2.5.0 now sets the Content-Type header instead of hard-coding it to
+application/octet-stream: https://github.com/git-lfs/git-lfs/pull/3137
+
+To avoid this issue, we explicitly tell the client to use
+application/octet-stream.
+
+Closes #49752
+
+Upstream-Issue: https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/20923
+---
+ app/controllers/projects/lfs_api_controller.rb | 7 ++++++-
+ spec/requests/lfs_http_spec.rb                 | 4 ++--
+ 2 files changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/app/controllers/projects/lfs_api_controller.rb b/app/controllers/projects/lfs_api_controller.rb
+index 1b0d3aab3fa..840f9398c4e 100644
+--- a/app/controllers/projects/lfs_api_controller.rb
++++ b/app/controllers/projects/lfs_api_controller.rb
+@@ -1,6 +1,8 @@
+ class Projects::LfsApiController < Projects::GitHttpClientController
+   include LfsRequest
+ 
++  LFS_TRANSFER_CONTENT_TYPE = 'application/octet-stream'.freeze
++
+   skip_before_action :lfs_check_access!, only: [:deprecated]
+ 
+   def batch
+@@ -85,7 +87,10 @@ class Projects::LfsApiController < Projects::GitHttpClientController
+       upload: {
+         href: "#{project.http_url_to_repo}/gitlab-lfs/objects/#{object[:oid]}/#{object[:size]}",
+         header: {
+-          Authorization: request.headers['Authorization']
++          Authorization: request.headers['Authorization'],
++          # git-lfs v2.5.0 sets the Content-Type based on the uploaded file. This
++          # ensures that Workhorse can intercept the request.
++          'Content-Type': LFS_TRANSFER_CONTENT_TYPE
+         }.compact
+       }
+     }
+diff --git a/spec/requests/lfs_http_spec.rb b/spec/requests/lfs_http_spec.rb
+index 697b150ab34..8524b7883ee 100644
+--- a/spec/requests/lfs_http_spec.rb
++++ b/spec/requests/lfs_http_spec.rb
+@@ -678,7 +678,7 @@ describe 'Git LFS API and storage' do
+               expect(lfs_object.projects.pluck(:id)).not_to include(project.id)
+               expect(lfs_object.projects.pluck(:id)).to include(other_project.id)
+               expect(json_response['objects'].first['actions']['upload']['href']).to eq("#{project.http_url_to_repo}/gitlab-lfs/objects/#{sample_oid}/#{sample_size}")
+-              expect(json_response['objects'].first['actions']['upload']['header']).to eq('Authorization' => authorization)
++              expect(json_response['objects'].first['actions']['upload']['header']).to eq({ 'Authorization' => authorization, 'Content-Type' => 'application/octet-stream' })
+             end
+           end
+ 
+@@ -733,7 +733,7 @@ describe 'Git LFS API and storage' do
+               expect(json_response['objects'].first['oid']).to eq("91eff75a492a3ed0dfcb544d7f31326bc4014c8551849c192fd1e48d4dd2c897")
+               expect(json_response['objects'].first['size']).to eq(1575078)
+               expect(json_response['objects'].first['actions']['upload']['href']).to eq("#{project.http_url_to_repo}/gitlab-lfs/objects/91eff75a492a3ed0dfcb544d7f31326bc4014c8551849c192fd1e48d4dd2c897/1575078")
+-              expect(json_response['objects'].first['actions']['upload']['header']).to eq("Authorization" => authorization)
++              expect(json_response['objects'].first['actions']['upload']['header']).to eq({ 'Authorization' => authorization, 'Content-Type' => 'application/octet-stream' })
+ 
+               expect(json_response['objects'].last['oid']).to eq(sample_oid)
+               expect(json_response['objects'].last['size']).to eq(sample_size)
+-- 
+2.16.4
+
