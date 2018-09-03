@@ -1,0 +1,20 @@
+#!/sbin/openrc-run
+
+: ${cfgfile:="/etc/fisher/config.toml"}
+: ${logfile:="/var/log/$RC_SVCNAME.log"}
+
+command="/usr/bin/fisher"
+command_args="$cfgfile"
+command_background="yes"
+
+pidfile="/run/$RC_SVCNAME.pid"
+start_stop_daemon_args="
+	--stdout $logfile
+	--stderr $logfile
+	--wait 200"
+
+required_files="$cfgfile"
+
+start_pre() {
+	checkpath -f -m 640 -o "$command_user" "$logfile"
+}
