@@ -12,6 +12,7 @@ makedepends="cargo rust"
 install="$pkgname.pre-install"
 source="https://github.com/pietroalbini/$pkgname/archive/$_gitrev/$pkgname-$_gitrev.tar.gz
 	config.patch
+	gitlab-hook-job.patch
 	$pkgname.initd
 	$pkgname.logrotate
 	"
@@ -43,5 +44,6 @@ package() {
 
 sha512sums="4cd1fcf5bc480e46421698a6f7d687b61b4c616551877d5665fd74d44d85f3bd88fab5816769c074e6713ca921e7d9f39f76bd664ec8ac49238d23ef6e29dcdf  fisher-b55ab559e89b3d8528a2e1d247e9b2bbe38501a1.tar.gz
 3663fef2852bb3d8f706bf1eab881b137b45e2f69eb42657b5d53d1cc6dcab511c8503747c1209b7e4245b249bef0988ee2fc4f8d3f1d49402a8e063f497fd1c  config.patch
-5a6ce31fff7f7e0c422fa177fffa827addc67945003d00ce2debd11c2ff974013487ac79ada6fe4c7454fa87bb1ceadd6d79bd4d49bc71d0fca0b242f16cb367  fisher.initd
+f715819d5efb7388ecd898fea58304d9da50a02b7c3db06e5d9f86410be4377d76e8acb70cbb7bad8ed3e0abd192c920a09bc4b99191c88f1c92e6435d1d42bd  gitlab-hook-job.patch
+6bc4c0db33bbe17dfda9a3d82767ba1f2be27596e96431e0fb148d39714a42869fe8d1875fa89953ee9a4e446fc94c1feee0e5a4e7f10d55734f3edeb5c373c1  fisher.initd
 5e76707439c2e30c96fd7c94017e9e61f8892e988cb6d3776bf858b5f6e5247b87c35964a1af53c041fe18409eb2b939e5103630216a68d94f3fcce982896660  fisher.logrotate"

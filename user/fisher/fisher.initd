@@ -23,7 +23,7 @@ start_pre() {
 }
 
 reload() {
-	ebegin "Reloading $name..."
+	ebegin "Reloading $name"
 	start-stop-daemon --pidfile "$pidfile" --signal USR1
 	eend $?
 }
