@@ -1,5 +1,6 @@
 #!/sbin/openrc-run
 
+: ${command_user:="fisher"}
 : ${cfgfile:="/etc/fisher/config.toml"}
 : ${logfile:="/var/log/$RC_SVCNAME.log"}
 
