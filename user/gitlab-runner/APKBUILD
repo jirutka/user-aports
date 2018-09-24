@@ -18,6 +18,7 @@ source="$pkgname-$pkgver.tar.gz::https://gitlab.com/gitlab-org/$pkgname/reposito
 	$pkgname-$pkgver-prebuilt-x86_64.tar.xz.bin::https://$pkgname-downloads.s3.amazonaws.com/v$pkgver/helper-images/prebuilt-x86_64.tar.xz
 	$pkgname.initd
 	$pkgname.logrotate
+	$pkgname
 	makefile-verbose.patch
 	log-timestamp.patch
 	log-without-colors.patch
@@ -77,6 +78,7 @@ package() {
 	install -m 640 -o $pkgusers -g $pkggroups config.toml.example \
 		"$pkgdir"/etc/$pkgname/config.toml
 
+	install -D -m 755 "$srcdir"/$pkgname "$pkgdir"/usr/sbin/$pkgname
 	install -D -m 755 "$srcdir"/$pkgname.initd "$pkgdir"/etc/init.d/$pkgname
 	install -D -m 644 "$srcdir"/$pkgname.logrotate "$pkgdir"/etc/logrotate.d/$pkgname
 
@@ -101,6 +103,7 @@ sha512sums="af9f983f17c4ac0c3fcbf39376250ba1100e9cdccb2ff1b1a2291fac5fa67e6c218a
 65a1df3013f59504c3a7a5674286027a089904e6c5d7a0afb22948c877190758644697eaade426cf4d0cb51ab8677154a4ac3c9add98994cbe2b3e75b8a27b47  gitlab-runner-11.2.1-prebuilt-x86_64.tar.xz.bin
 4ea48f61a6810ea67827baf7c6ec7a389054cd086f99214f3c1706b74b5ea6c075d9b1f78a407f0b32b8806fbb994a224904e39ae8e75b67d794af056d05711d  gitlab-runner.initd
 27d4d8eb83da3a1c9771fbdbcce177306907e9f772e3ced3f70038e46d2b0b979e00af5e9d49f68cec8253b2348fffcb0bd74767c2e8908e584d341318b90bb7  gitlab-runner.logrotate
+6bfb69fe33db5cedfadcd1eeb9c20de462645d901f44de7a8c81de9e6a38d7e879ae33aa846fddfd4a0ae6ff28fd22fe1714fbc4a5343671198b919c06461e3e  gitlab-runner
 d002cae1c73c725260750d576c4277224d76a78f730557bc232614d7f19de5e038594556963596f59d6e2c8adfeb638cef68ce7cbc27d6e752edffff3e745043  makefile-verbose.patch
 a0c808f39a5dca4fa6885b80ecb10e4a09302330bd4aedb9c799fc8a4888c42e5045961b60659ff98bd4264b9ddc2ad9f242b1175755d4bc3c438c6c19b980ff  log-timestamp.patch
 2dcbcc7d0999ad84eb407c5f74b6dfb60ec91fad1a0feb4e4ee2758e177bd0004d9766ebb8b59b8dbb8413f28f339b7696ebcedbdb17c30ebb2e96fc6d0a71a9  log-without-colors.patch
