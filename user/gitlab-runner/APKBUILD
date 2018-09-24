@@ -2,7 +2,7 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitlab-runner
 pkgver=11.2.1
-pkgrel=0
+pkgrel=1
 pkgdesc="Official GitLab Runner written in Go"
 url="https://gitlab.com/gitlab-org/gitlab-runner"
 arch="x86_64"
@@ -83,6 +83,7 @@ package() {
 	install -D -m 644 "$srcdir"/$pkgname.logrotate "$pkgdir"/etc/logrotate.d/$pkgname
 
 	install -d -m 750 -o $pkgusers -g $pkggroups "$pkgdir"/var/lib/$pkgname
+	ln -s /etc/$pkgname "$pkgdir"/var/lib/$pkgname/.gitlab-runner
 }
 
 helper() {
