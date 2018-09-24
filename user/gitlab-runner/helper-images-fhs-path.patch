@@ -1,0 +1,10 @@
+--- a/executors/docker/executor_docker.go
++++ b/executors/docker/executor_docker.go
+@@ -73,6 +73,7 @@
+ 	}
+ 
+ 	DockerPrebuiltImagesPaths = []string{
++		filepath.Join(runnerFolder, "../lib/gitlab-runner/helper-images"),
+ 		filepath.Join(runnerFolder, "helper-images"),
+ 		filepath.Join(runnerFolder, "out/helper-images"),
+ 	}

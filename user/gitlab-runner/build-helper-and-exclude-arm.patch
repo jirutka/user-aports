@@ -1,0 +1,26 @@
+--- a/Makefile.docker.mk
++++ b/Makefile.docker.mk
+@@ -2,10 +2,11 @@
+ USE_PRECOMPILED_IMAGES ?= 1
+ endif
+ 
+-docker: out/helper-images/prebuilt-x86_64.tar.xz out/helper-images/prebuilt-arm.tar.xz
++HELPER_GO_FILES ?= $(shell find common network vendor -name '*.go')
++
++docker: dockerfiles/build/binaries/gitlab-runner-helper out/helper-images/prebuilt-x86_64.tar.xz
+ 
+ ifeq (, $(USE_PRECOMPILED_IMAGES))
+-HELPER_GO_FILES ?= $(shell find common network vendor -name '*.go')
+ 
+ GO_x86_64_ARCH = amd64
+ GO_arm_ARCH = arm
+@@ -26,6 +27,9 @@
+ 
+ else
+ 
++dockerfiles/build/binaries/gitlab-runner-helper: $(HELPER_GO_FILES) $(GOPATH_SETUP)
++	go build -v -ldflags "$(GO_LDFLAGS)" -o $@ $(PKG)/apps/gitlab-runner-helper
++
+ out/helper-images/prebuilt-%.tar.xz:
+ 	$(warning WARNING: downloading prebuilt docker images that will be loaded by gitlab-runner: $@)
+ 	@mkdir -p $$(dirname $@_)
