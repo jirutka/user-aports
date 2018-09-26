@@ -1,5 +1,0 @@
---- a/lib/gitlab_redis.rb
-+++ b/lib/gitlab_redis.rb
-@@ -1,2 +1 @@
--$:.unshift(File.expand_path(File.join(File.dirname(__FILE__), 'vendor/redis/lib')))
- require 'redis'

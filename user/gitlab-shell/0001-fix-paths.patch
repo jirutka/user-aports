@@ -14,7 +14,7 @@ diff --git a/config.yml.example b/config.yml.example
  
  # See installation.md#using-https for additional HTTPS configuration details.
  http_settings:
-@@ -25,15 +25,15 @@
+@@ -25,19 +25,19 @@
    self_signed_cert: false
  
  # File used as authorized_keys for gitlab user
@@ -30,19 +30,6 @@ diff --git a/config.yml.example b/config.yml.example
  # Default is hooks in the gitlab-shell directory.
 -# custom_hooks_dir: "/home/git/gitlab-shell/hooks"
 +custom_hooks_dir: "/usr/share/gitlab-shell/hooks"
- 
- # Redis settings used for pushing commit notices to gitlab
- redis:
-@@ -42,7 +42,7 @@
-   # port: 6379
-   # pass: redispass # Allows you to specify the password for Redis
-   database: 0
--  socket: /var/run/redis/redis.sock # Comment out this line if you want to use TCP or Sentinel
-+  socket: /run/redis/redis.sock # Comment out this line if you want to use TCP or Sentinel
-   namespace: resque:gitlab
-   # sentinels:
-   #   -
-@@ -55,7 +55,7 @@
  
  # Log file.
  # Default is gitlab-shell.log in the root directory.

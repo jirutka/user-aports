@@ -1,35 +1,29 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitlab-shell
-pkgver=5.11.0
-pkgrel=1
+pkgver=8.3.3
+pkgrel=0
 pkgdesc="GitLab Shell handles git commands for GitLab."
 url="https://github.com/gitlabhq/gitlab-shell"
 arch="all"
 license="MIT"
-depends="git>=2.8.4 openssh redis>=2.8 ruby ruby-json ruby-redis>=3.3.0"
+depends="git>=2.8.4 openssh ruby ruby-json"
 makedepends="go"
 pkgusers="git"
 pkggroups="git"
 install="$pkgname.pre-install $pkgname.post-install"
-source="$pkgname-$pkgver.tar.gz::https://gitlab.com/gitlab-org/$pkgname/repository/archive.tar.gz?ref=v$pkgver
+source="https://gitlab.com/gitlab-org/$pkgname/-/archive/v$pkgver/$pkgname-v$pkgver.tar.gz
 	gitconfig
 	0001-fix-paths.patch
-	gitlab_redis.patch"
-builddir="$srcdir/$pkgname-$pkgver"
+	"
+builddir="$srcdir/$pkgname-v$pkgver"
 _goname="gitlab.com/gitlab-org/gitlab-shell/go"
 
 prepare() {
-	mkdir -p "$builddir"
-	mv "$srcdir"/$pkgname-v$pkgver-*/* "$builddir"/
-
 	default_prepare
 
 	mkdir -p go_build/src/${_goname%/*}
 	cp -lr go go_build/src/$_goname/
-
-	# Remove bundled redis gem.
-	rm -rv lib/vendor
 }
 
 build() {
@@ -70,7 +64,6 @@ package() {
 	ln -s /etc/gitlab/gitlab-shell.yml "$sharedir"/config.yml
 }
 
-sha512sums="fb1ee919d4604093d57e29488fedd5e8658194f58887fd51a1741b0820309e038fe8859be233c2ea2ae0728505a867b736a19b5a5965e0f95e5a55fd8e365198  gitlab-shell-5.11.0.tar.gz
+sha512sums="089f565b85d7cef3ca222fd9d835c604ff59fc63c2d92e0554802d92939a43f1bfea3a68b762397dd032b3c2a24059a5f199502708d26547f13c8b53044b767d  gitlab-shell-v8.3.3.tar.gz
 d2f0740bccc5ff19d36a83c61ebb8e5f110662d3f5ddd3520cd5f59d4c65bbaf3f980512f49a841f153a446a3501f79606a263c892ecf1954fd3549143dcf7f9  gitconfig
-defe783daeac051ad31e81d4b6912bdcf5810deb06b89f771eaf056c3caac005b6f628f4aaac47e1b8ac46bb0e4c1f32346d87d4577c1089bf1334954393cf0f  0001-fix-paths.patch
-b35b517d9bd3c1b36d6011a11f029aa7b21a443da0dd16658016b108a734d7cd5ec9f1376eb289522d262ba55d221811c4f0176c322ed3ecdf9dcfba78aeb03f  gitlab_redis.patch"
+208c2dc3a78bd890ecdce7e40ccb2edf40a481ae314967cb0c7c7e299c8f1324ab363851fe6ea375b9ecfd6bf0fbb4a6ee3e32e30a6f1b82ec32c323b721f47f  0001-fix-paths.patch"
