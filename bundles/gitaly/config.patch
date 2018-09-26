@@ -12,7 +12,7 @@
  
  # # Optional: listen on a TCP socket. This is insecure (no authentication)
  # listen_addr = "localhost:9999"
-@@ -19,7 +19,7 @@
+@@ -22,7 +22,7 @@
  
  [[storage]]
  name = "default"
@@ -21,7 +21,27 @@
  
  # # You can optionally configure more storages for this Gitaly instance to serve up
  #
-@@ -40,7 +40,7 @@
+@@ -31,13 +31,13 @@
+ # path = "/mnt/other_storage/repositories"
+ #
+ 
+-# # You can optionally configure Gitaly to output JSON-formatted log messages to stdout
+-# [logging]
++# You can optionally configure Gitaly to output JSON-formatted log messages to stdout
++[logging]
+ # format = "json"
+-# # Optional: Set log level to only log entries with that severity or above
+-# # One of, in order: debug, info, warn, errror, fatal, panic
+-# # Defaults to "info"
+-# level = "warn"
++# Optional: Set log level to only log entries with that severity or above
++# One of, in order: debug, info, warn, errror, fatal, panic
++# Defaults to "info"
++level = "warn"
+ #
+ # # Additionally exceptions from the Go server can be reported to Sentry
+ # sentry_dsn = "https://<key>:<secret>@sentry.io/<project>"
+@@ -50,7 +50,7 @@
  
  [gitaly-ruby]
  # The directory where gitaly-ruby is installed
@@ -29,8 +49,8 @@
 +dir = "/usr/lib/bundles/gitaly-ruby"
  
  # # Gitaly-ruby resident set size (RSS) that triggers a memory restart (bytes)
- # max_rss = 300000000
-@@ -53,7 +53,7 @@
+ # max_rss = 200000000
+@@ -66,7 +66,7 @@
  
  [gitlab-shell]
  # The directory where gitlab-shell is installed
