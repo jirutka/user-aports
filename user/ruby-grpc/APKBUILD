@@ -5,7 +5,7 @@
 # all conventions and best-practices, that's why so much patching...
 pkgname=ruby-grpc
 _pkgname=grpc
-pkgver=1.4.7
+pkgver=1.11.0
 pkgrel=0
 pkgdesc="An RPC library and framework"
 url="https://github.com/grpc/grpc"
@@ -23,7 +23,7 @@ options="!check"  # XXX: we need ruby-rspec package...
 prepare() {
 	default_prepare
 
-	# Remove bundled dependencies from the gem's files list.
+	# Remove some bundled dependencies from the gem's files list.
 	sed -i -e '/etc\/roots.pem/d' \
 		-e '/third_party\/boringssl\//d' \
 		-e '/third_party\/zlib\//d' \
@@ -31,11 +31,15 @@ prepare() {
 		$_pkgname.gemspec
 
 	# Remove unused dependency from gemspec.
-	sed -i '/add_dependency.*googleauth/d' $_pkgname.gemspec
+	sed -i -e '/add_dependency.*googleauth/d' \
+		-e '/add_dependency.*googleapis-common-protos-types/d' \
+		$_pkgname.gemspec
 }
 
 build() {
 	cd "$builddir"
+
+	export CPPFLAGS="$CPPFLAGS -Wno-error=maybe-uninitialized"
 
 	gem build $_pkgname.gemspec
 	gem install \
@@ -63,7 +67,7 @@ package() {
 	rm -r bin ext lib/grpc/grpc_c.so pb/README.md pb/src pb/test spec || true
 }
 
-sha512sums="ca38709c53e0b14065eb5dc7eae7b1d9d9ad178304365e4f62be8ab16bb53116b171e9b023d81c3e5b9ffe51b5dc80db09601a711581d851c34b8aff89a9795c  grpc-1.4.7.tar.gz
-7bb065c56ab84bb064294b7d5f7fc85f98b139a853d1465a42b553977db41311c506ac21e905a5109eeccea6c283f97c4be40073d1e00ac85b6186a9e2e182b9  use-system-provided-deps.patch
-13c68b45c06b4d27aa4099f6e76bcf09e7a7077bc4a712e4421bca6ead487cdd1b67c281e515460c002cc87134401be3b171cc7a2446e945352a0b45f76f2ff3  use-system-certs.patch
-becc7ee297b98c3ee24c9d0ef506de0d0ba1e30cc73074f114d9b724dedcea1d3617df50936d7b9ae2913403314d2f0816b1b2efd4bc99b22f2d2df82ee291d7  fix-extconf.patch"
+sha512sums="3127cf0e66cd0712d905e6008adf6f80d787ad97eae2fba38fa3f4d343849a3dc3ca8f2ccbc82020e812fdb272e9577584c298a5b623fbdcac40c1efd7877855  grpc-1.11.0.tar.gz
+9b64ae51780595d200f5a2d6239b1cce492d10189af00287d10d3dc2fb409b06ab9181e1ad79cc5d4d59d2bf4c598b1e2c9b4503dbcf53bf45e84fecc31ff885  use-system-provided-deps.patch
+e967b0a1d81fa528b859ada26d1244087dfe53aba2513a576ec38ebc07b8c9b6a261f5ce6197e178cc129212514ee65dd85d7daa1cb1431793e78f0396fc1d9f  use-system-certs.patch
+abc989d77d1e3b34e90c06826f3740cbe5a15194937abee6046dfa46691882d3e2ab3594f9a29d2685e5c862bdcfbb73ccac2855aa2f82c812b1fe885679411b  fix-extconf.patch"

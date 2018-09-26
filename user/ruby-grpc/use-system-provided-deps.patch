@@ -4,7 +4,7 @@ Subject: [PATCH] Use system-provided libraries instead of bundled
 
 --- a/src/ruby/ext/grpc/extconf.rb
 +++ b/src/ruby/ext/grpc/extconf.rb
-@@ -69,9 +69,9 @@
+@@ -56,9 +56,9 @@
  
  ENV['AR'] = 'libtool -o' if RUBY_PLATFORM =~ /darwin/
  
@@ -16,9 +16,9 @@ Subject: [PATCH] Use system-provided libraries instead of bundled
 +ENV['EMBED_CARES'] = 'false'
  ENV['ARCH_FLAGS'] = RbConfig::CONFIG['ARCH_FLAG']
  ENV['ARCH_FLAGS'] = '-arch i386 -arch x86_64' if RUBY_PLATFORM =~ /darwin/
- ENV['CFLAGS'] = '-DGPR_BACKWARDS_COMPATIBILITY_MODE'
-@@ -87,6 +87,12 @@
-   system("make -j#{nproc} -C #{grpc_root} #{grpc_lib_dir}/libgrpc.a CONFIG=#{grpc_config}")
+ ENV['CPPFLAGS'] = '-DGPR_BACKWARDS_COMPATIBILITY_MODE'
+@@ -75,6 +75,12 @@
+   system("#{make} -j#{nproc} -C #{grpc_root} #{grpc_lib_dir}/libgrpc.a CONFIG=#{grpc_config} Q=")
    exit 1 unless $? == 0
  end
 +

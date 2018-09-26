@@ -11,6 +11,15 @@ need it.
 
 --- a/src/ruby/ext/grpc/extconf.rb
 +++ b/src/ruby/ext/grpc/extconf.rb
+@@ -61,7 +61,7 @@
+ ENV['EMBED_CARES'] = 'false'
+ ENV['ARCH_FLAGS'] = RbConfig::CONFIG['ARCH_FLAG']
+ ENV['ARCH_FLAGS'] = '-arch i386 -arch x86_64' if RUBY_PLATFORM =~ /darwin/
+-ENV['CPPFLAGS'] = '-DGPR_BACKWARDS_COMPATIBILITY_MODE'
++ENV['CPPFLAGS'] = "#{ENV['CPPFLAGS']} -DGPR_BACKWARDS_COMPATIBILITY_MODE"
+ 
+ output_dir = File.expand_path(RbConfig::CONFIG['topdir'])
+ grpc_lib_dir = File.join(output_dir, 'libs', grpc_config)
 @@ -114,18 +114,3 @@
  
  strip_tool = RbConfig::CONFIG['STRIP']
