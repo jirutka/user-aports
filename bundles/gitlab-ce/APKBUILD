@@ -130,6 +130,11 @@ build() {
 	sed -i 's/python2 -S/python3/g' \
 		vendor/bundle/ruby/*/gems/gitlab-markup-*/lib/github/markups.rb
 
+	# Remove non-sense require of code for tests from top-level module
+	# (we're gonna delete tests from the package).
+	sed -i '/require .carrierwave/test/matchers./d' \
+		vendor/bundle/ruby/*/gems/carrierwave-*/lib/carrierwave.rb
+
 	msg "Installing npm modules..."
 	yarn install --production --frozen-lockfile
 
@@ -154,6 +159,7 @@ build() {
 		export SECRET_KEY_BASE="top-secret"
 		export SKIP_STORAGE_VALIDATION=true
 		export USE_DB=false
+		export NO_SOURCEMAPS=true
 
 		msg "Compiling assets (this will take few minutes)..."
 		$bundle exec rake gitlab:assets:compile
@@ -233,6 +239,10 @@ package() {
 	rm -R app/assets vendor/assets
 	rm config/initializers/gettext_rails_i18n_patch.rb
 
+	# Remove assets not needed for production.
+	find public/assets -name '*.vue' -delete
+	find public/assets -type d | xargs rmdir --ignore-fail-on-non-empty
+
 	rm -r lib/support db/fixtures/development
 	find lib/tasks -maxdepth 1 -type f ! -name cache.rake ! -name setup.rake -delete
 	find lib/tasks/gitlab \( -name 'generate_docs.*' \
@@ -241,12 +251,18 @@ package() {
 
 	cd "$destdir"/vendor/bundle/ruby/*/
 
-	# Remove documentations and other unused textual files.
-	find gems/ -name 'doc' -type d -exec rm -frv "{}" +
+	# Remove tests, documentations and other useless files.
+	find gems/ \( -name 'doc' \
+	           -o -name 'spec' \
+	           -o -name 'test' \) \
+		-type d -maxdepth 2 -exec rm -fr "{}" +
 	find gems/ \( -name 'README*' \
 	           -o -name 'CHANGELOG*' \
 	           -o -name 'CONTRIBUT*' \
-	           -o -name '*LICENSE*' \) -delete
+	           -o -name '*LICENSE*' \
+	           -o -name 'Rakefile' \
+	           -o -name '.*' \) \
+		-type f -delete
 
 	# Remove bundled libgit2 sources.
 	rm -R gems/rugged-*/vendor/libgit2
