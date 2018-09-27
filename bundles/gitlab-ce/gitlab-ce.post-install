@@ -85,17 +85,15 @@ if [ "${0##*.}" = 'post-upgrade' ]; then
 else
 	cat >&2 <<-EOF
 	*
-	* 1. Configure Redis to listen on /run/redis/redis.sock.
+	* 1. Adjust settings in /etc/gitlab/database.yml and gitlab.yml.
 	*
-	* 2. Adjust settings in /etc/gitlab/database.yml and gitlab.yml.
-	*
-	* 3. Create database for GitLab:
+	* 2. Create database for GitLab:
 	*
 	*     psql -c "CREATE ROLE gitlab PASSWORD 'top-secret' INHERIT LOGIN;"
 	*     psql -c "CREATE DATABASE gitlab OWNER gitlab ENCODING 'UTF-8';"
 	*     psql -d gitlab -c "CREATE EXTENSION pg_trgm;"
 	*
-	* 4. Run "gitlab-rake gitlab:setup", or "gitlab-rake gitlab:db:configure" if
+	* 3. Run "gitlab-rake gitlab:setup", or "gitlab-rake gitlab:db:configure" if
 	*    you are updating existing database.
 	*
 	EOF
