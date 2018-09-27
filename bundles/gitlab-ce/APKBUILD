@@ -2,23 +2,23 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
-pkgver=10.4.7
-pkgrel=1
+pkgver=11.3.0
+_gitrev=f66acfd4555a361771618bfc557dec85a899e456
+pkgrel=0
 pkgdesc="A version control for your server"
 url="https://gitlab.com/gitlab-org/gitlab-ce"
 arch="all"
 license="MIT"
 _rubyslot=""
-_katex_ver=0.8.3
 # ruby-irb is needed only for Rails console (gitlab-rails console)
 depends="$pkgname-assets=$pkgver-r$pkgrel
-	gitaly>=0.66.0
-	gitlab-shell>=5.11.0
-	gitlab-workhorse>=3.3.1
+	gitaly=~0.120.0
+	gitlab-shell=~8.3.3
+	gitlab-workhorse=~6.1.0
 	ca-certificates
-	git>=2.8.3
+	git>=2.9.5
 	http-parser
-	libgit2=~0.26
+	libgit2=~0.27
 	procps
 	py-docutils
 	python3
@@ -30,6 +30,7 @@ depends="$pkgname-assets=$pkgver-r$pkgrel
 	ruby$_rubyslot-json
 	ruby$_rubyslot-rake
 	ruby$_rubyslot-irb
+	ruby$_rubyslot-webrick
 	ruby$_rubyslot-bundler>=1.15.4
 	"
 makedepends="
@@ -37,69 +38,37 @@ makedepends="
 	icu-dev
 	libffi-dev
 	libgcrypt-dev
-	libgit2-dev>=0.25
+	libgit2-dev=~0.27
 	libxml2-dev
 	libxslt-dev
 	linux-headers
 	libressl-dev
 	postgresql-dev
 	protobuf-dev
-	nodejs>=6.0.0
+	nodejs>=8.0.0
 	re2-dev
 	ruby$_rubyslot-dev
 	ruby$_rubyslot-grpc
-	yarn>=0.17.0
+	yarn>=1.2.0
 	"
 pkgusers="git"
 pkggroups="git"
 install="$pkgname.pre-install $pkgname.post-install $pkgname.post-upgrade"
 subpackages="$pkgname-assets::noarch"
-# NOTE: Patches are exported from https://github.com/jirutka/gitlabhq/tree/10-4-stable
-source="$pkgname-$pkgver.tar.gz::https://github.com/gitlabhq/gitlabhq/archive/v$pkgver.tar.gz
-	katex-$_katex_ver.tar.gz::https://github.com/Khan/KaTeX/releases/download/v$_katex_ver/katex.tar.gz
+source="https://github.com/jirutka/gitlabhq/archive/$_gitrev/gitlabhq-$_gitrev.tar.gz
 	$_pkgname.initd
 	$_pkgname.mailroom.initd
 	$_pkgname.sidekiq.initd
 	$_pkgname.confd
 	$_pkgname.logrotate
 	bin-wrapper.in
-	0001-Move-some-unnecessary-gems-to-groups-i.e.-exclude-th.patch
-	0002-Adjust-paths-and-remove-some-boilerplate-from-config.patch
-	0003-Disable-dumping-schema.rb-after-db-migrate.patch
-	0004-Fix-gitlab-setup-task-to-not-drop-create-database.patch
-	0005-Disable-checking-init-script-in-gitlab-check-task.patch
-	0006-Replace-Sys-Filesystem-with-non-FFI-code.patch
-	0007-Don-t-read-GitLab-revision-using-git.patch
-	0008-Don-t-fetch-grpc-gem-from-RubyGems.patch
-	0009-Don-t-load-prometheus-when-not-installed-enabled.patch
-	0010-Fix-help-page.patch
-	0011-Disable-throwOnError-in-KaTeX-to-reveal-user-where-i.patch
-	0012-Update-asciidoctor-to-1.5.6.2.patch
-	0013-Set-Asciidoctor-outfilesuffix-to-default-.adoc.patch
-	0014-Enable-Asciidoctor-s-attribute-sectanchors-by-defaul.patch
-	0015-Significantly-improve-AsciiDoc-rendering.patch
-	0016-Disable-HTML-sanitization-filter-for-AsciiDoc.patch
-	0017-Add-support-for-AsciiDoc-include-directive.patch
-	0018-Change-Asciidoctor-safe-level-to-server.patch
-	0019-Render-index.-like-README.-when-it-s-present-in-a-di.patch
-	0020-Refactor-Gitlab-Asciidoc-prepare-it-for-more-extensi.patch
-	0021-Integrate-Asciidoctor-extension-interdoc-reftext.patch
-	0022-Expose-some-project-metadata-as-AsciiDoc-attributes.patch
-	0023-Make-support-of-ED25519-SSH-host-key-support-optiona.patch
-	0024-Don-t-eager-load-google-apis.patch
-	0025-Disable-Auto-DevOps-banner-completely.patch
-	0026-Support-PostgreSQL-10.patch
-	0027-Fix-invalid-argument-for-ionice-command-in-PrepareUn.patch
-	0028-Add-style-for-decimal-nested-numbered-list.patch
-	0029-Hotfix-crash-on-MR-page-with-comments-on-diffs-of-LF.patch
-	0030-Fix-LFS-uploads-not-working-with-git-lfs-2.5.0.patch
 	"
-builddir="$srcdir/gitlabhq-$pkgver"
+builddir="$srcdir/gitlabhq-$_gitrev"
 
 _prefix="/usr/lib/bundles/$_pkgname"
 
 prepare() {
-	local sysgemdir=$(ruby$_rubyslot -rubygems -e 'puts Gem.default_dir')
+	local sysgemdir=$(ruby$_rubyslot -e 'puts Gem.default_dir')
 
 	default_prepare
 
@@ -120,8 +89,7 @@ prepare() {
 	rm config/initializers/gitlab_shell_secret_token.rb
 
 	# Remove some useless configs.
-	rm config/aws.yml.example \
-		config/database.yml.env \
+	rm config/database.yml.env \
 		config/database.yml.mysql \
 		config/karma.config.js \
 		config/unicorn.rb.example.development \
@@ -139,12 +107,6 @@ prepare() {
 			vendor/gems/grpc/grpc.gemspec
 	cp "$sysgemdir"/extensions/*/*/grpc-*/grpc/grpc_c.so \
 		vendor/gems/grpc/src/ruby/lib/grpc/
-
-	# Update bundled KaTeX
-	sed -e 's|fonts/||' -e 's/url\(([^)]*)\)/url(font-path\1)/g' \
-		"$srcdir"/katex/katex.css > vendor/assets/stylesheets/katex.scss
-	cp "$srcdir"/katex/katex.js vendor/assets/javascripts/
-	cp "$srcdir"/katex/fonts/* vendor/assets/fonts/
 }
 
 build() {
@@ -156,7 +118,9 @@ build() {
 	cd "$builddir"
 
 	msg "Installing Ruby gems..."
-	$bundle config build.nokogiri --use-system-libraries
+	$bundle config build.nokogiri --use-system-libraries \
+		--with-xml2-include=/usr/include/libxml2 \
+		--with-xslt-include=/usr/include/libxslt
 	$bundle config build.rugged --use-system-libraries
 	$bundle config build.gpgme --use-system-libraries
 	$bundle $bundle_opts
@@ -254,8 +218,8 @@ package() {
 	# Install application files.
 	# Note: *VERSION files and doc directory are required (Help in GitLab
 	# menu refers to the doc directory).
-	cp -rl .bundle config.ru Gemfile* Rakefile *VERSION app db doc \
-		fixtures config lib locale public vendor \
+	cp -rl .bundle config.ru Gemfile* INSTALLATION_TYPE Rakefile *VERSION \
+		app db doc fixtures config lib locale public vendor \
 		"$destdir"/
 
 	install -m755 -t "$destdir"/bin \
@@ -267,6 +231,7 @@ package() {
 
 	# Not needed in runtime since we have already compiled all assets.
 	rm -R app/assets vendor/assets
+	rm config/initializers/gettext_rails_i18n_patch.rb
 
 	rm -r lib/support db/fixtures/development
 	find lib/tasks -maxdepth 1 -type f ! -name cache.rake ! -name setup.rake -delete
@@ -363,41 +328,10 @@ assets() {
 	mv "${pkgdir}$_prefix"/public/assets "$destdir"/public/
 }
 
-sha512sums="0bc13d19a34cc55a03b98ae2fa445c4c0c38725ce9ba75aa5cbec6753f3e258ea02fdc1acd876a511ea03bf9ae2788812dc3f92ee9e25a6c5d32b4bc8cdf6096  gitlab-ce-10.4.7.tar.gz
-4c1865059860b2e0c1d3d1cda47c3eb9d2fa089d203f35daa5928f33064dd74f86cf1999028bd4a8de4151855b15b619161babfe2a438a0938778522a84a0083  katex-0.8.3.tar.gz
+sha512sums="eb32a65e1c3209747295e8ed90cefc5a05b67bfd55b7bdfd732d3ed352db26964a38145daf4b47697eba4293522fd957221cae7754b507621bf0add4805599f5  gitlabhq-f66acfd4555a361771618bfc557dec85a899e456.tar.gz
 9f48c75fd724e569a92b90a68dce2feb2623d99a43fee9754b6bff87b6075e1a45f1e088cde4ae0252309966a267497797c6f863f3e4e29c785f2b8a3cc85ad6  gitlab.initd
 478759565c27d7e300e69715ed069ca6689fc0f33781a99e4ca9f52a49763e3a46d6a1ca7fa61879b200156543e534f652deec1367c31a52154db6f0f8ecb779  gitlab.mailroom.initd
 caa4f70a8dea1edba98e376fa71f8d8ebf9cb9bdcfc5d94009d36bc0e7a004b56dbef93d647bbcad6a16c282f99eaf4911c369e270b6b2f9c29a158119b05c85  gitlab.sidekiq.initd
 2b771e23326c5e4f590ea1ba5e12bd44d3d6d6515edf8a79cf2722fb7d3968e60887c4b085a474100ac7562f645bff06b8a085755acd4ce533c5837392e749f2  gitlab.confd
 9eb31f31e13cc8d3fe14732a78cbd87f895ef209fe2275e70873736736fc95e6166b60b2f921a99e2284b495467084e1eeb722cb6df7419c9f6f5575abe19a56  gitlab.logrotate
-a944c3886388ba1574bf8c96b6de4d9f24ef4a83f553c31a224e17a3b01f2a5c65b60c59b7ed7ca4b25670c60ea8dd41b96a8a623d909d2bb09bdf2520ed7f23  bin-wrapper.in
-697679bb16212f5d2f35e4535aed706e5323ad9d63198d27101f5af4c1b4f5d5289b47b2a8c6a300e4b3ae97e849ab3930678ee296358f1504a94f07049b098b  0001-Move-some-unnecessary-gems-to-groups-i.e.-exclude-th.patch
-6d21508e1f2d5511e3f3a52427f6cf767aef2a8ab76449890f94a5738f2e49adb1ecdc078e86ffd9c80c5b5c6eb755544956d4b40318416fdb8cf51f847b4724  0002-Adjust-paths-and-remove-some-boilerplate-from-config.patch
-badd34be16e8d2477e52da70cd8b1bbae890db900fa517cacec13dd6a602664fc47e4c43b915a6745f7a7683d3382fcad45670c550b687db0b07e3cd995f7818  0003-Disable-dumping-schema.rb-after-db-migrate.patch
-3b5c118958abeeedaa92e32bf10664abb0c3a921a93293cc2db7cd72ed4bc00b50b2971544653f0285f97e6ad473f59b37e36882c77c229813cbc22f1d3486f1  0004-Fix-gitlab-setup-task-to-not-drop-create-database.patch
-7b50e495e98dd52b8d41ab7dcb956b6b101a0b47c1f153e8d28113cd8b5e777555711b0d029efb0c44cca16844a457d9e02bce17e2ba2b4db1af834aeb85bc57  0005-Disable-checking-init-script-in-gitlab-check-task.patch
-199ea826fa0fbac9e818c629461020fde7aa297de4f50e4c4c394123d8e5c4106a9e91e354fbaada602b9d4b2dd1886c81d2bc676ea0be36ea66b620c2994e64  0006-Replace-Sys-Filesystem-with-non-FFI-code.patch
-bb780b544624db76ab31481c2ed0655282b444eeeaa4f474481258ed018b1b91dcef5fc99a8bc14e9a4037f3ac6b1651a78cc54b6b09af64aa1852d2765b5c7b  0007-Don-t-read-GitLab-revision-using-git.patch
-42f7807be322cbc2acbf52772849a5c61d72bb112ce038e1710c998d2d5b6387f6995499677648b9d889d99ea6601ef00855fe169614263679e7f81d2c5400e7  0008-Don-t-fetch-grpc-gem-from-RubyGems.patch
-1c0833be92707d2b5fc6726ea87c7bee8bf0b0fe664f8fe88f7fa1b83eebbe8d5da2ccab617ac94c9b0c40cfc180bf76366ec1b9726d53fd23602c79fbb2ca83  0009-Don-t-load-prometheus-when-not-installed-enabled.patch
-81820229887f2dc22a567b6bca26a7203d85edd7c5167fe9fc524555df400b32d60096d2decb8445b7fdef4383f11950942ddb1e1e42ec0f4cfa85719ffa3f4b  0010-Fix-help-page.patch
-8144548311ffc37da758aaec25b898fead7e374ead0ad12532cc7f542a4f2198e119ae75a6e3a6572050afb82ed483e9debf7eff11149b6fe4cf58f19cc37cab  0011-Disable-throwOnError-in-KaTeX-to-reveal-user-where-i.patch
-f805a25abbaef7b76287055c204a37126d8cbabb455a54d9022fbf5f411cc9c72f80fccdfd8ca16fe90d38d8b0a9d48c300fcf5e05b10b08340384cd2c5d7a89  0012-Update-asciidoctor-to-1.5.6.2.patch
-1dfbe87cadeb027f43c784c3f686fded99e072318923b493071da71a8018e8dfcce8ddae6d153a3e80786dc48c57660cf0305174c59b531439e1d798c9d0ebf9  0013-Set-Asciidoctor-outfilesuffix-to-default-.adoc.patch
-4e5491e55105a696c68ac0a816fb983b8d51a241363d9356edad574be46e911fc24b798f0e73c8195e404bafbe317a78819703ae55751e1398cc3826e463c2af  0014-Enable-Asciidoctor-s-attribute-sectanchors-by-defaul.patch
-05be51a1468a4e0a36017846eb8c06167d55f2d374595e1e3d72765388514fe85157eec9156c978a479d1e87f880fd70360aa58d8f1b8506155fcfafbdbc19e0  0015-Significantly-improve-AsciiDoc-rendering.patch
-05b3eb103a5f86500aebf9f3d25fbe4998b69b7668024546d25ed0198c6be6add4dc7a3b66ff533917feab83bf7fffd06ac01d138234ef5503297256650498d2  0016-Disable-HTML-sanitization-filter-for-AsciiDoc.patch
-e0fbbb3980e22b2a0a9b483d3df23f5a8fc2e96dcaaeb258555dbda064d4f503e97fe545d2dcc3be8206464d0fca38d3923c81bb17d1d727ca7d16a47d744e34  0017-Add-support-for-AsciiDoc-include-directive.patch
-adc9db7b0aa07c3bb3743bcfec461e2f446208440a044ae2b8f9a754eedaf1820c2583e483e72fcdaa52f4e61eebc1e4f097bc293e6d79094020dbbebcc573e3  0018-Change-Asciidoctor-safe-level-to-server.patch
-74e5c14051d583db5f64f05ebfbe810658658b4fbf377a1bb27bca3c429586cfb10118a381598f9b21149c5f8d3e72cab47d4f24f736ab39211f8569c4651a50  0019-Render-index.-like-README.-when-it-s-present-in-a-di.patch
-6d3feff95a595df325d3d4ede53e2cbdfad0ec3bd04af0e36ebade5e0705dc4fde8f301a279fd8b968083cd45177e7dc5e13c4073cd1b13375a6a88099961ee8  0020-Refactor-Gitlab-Asciidoc-prepare-it-for-more-extensi.patch
-5aa034dfeb403c84de9dd686c76ad5b970f6c7f7bfa72f6eb5ceebab19b166dcdcd19a68cc2ca4425cd056cea119b87389a500c20d088557ce2b2a1631f6599f  0021-Integrate-Asciidoctor-extension-interdoc-reftext.patch
-bdd2c6ccb8a9a4c572795398fb35dd30cfb9a4b614b50d93daf2fcb799b5896ae19b14c8ac7aa3a550cac34c492514afcb68a9e7317c44e72cb28eca80a3ca0f  0022-Expose-some-project-metadata-as-AsciiDoc-attributes.patch
-8cc8131e9c3b33ee96614e6e710ec08bd8f9d45c767827e2d31cfa3b647306102f955396032cda9c60f073b9542c34e727cab2f1a53d162fd665044c0a5aedf1  0023-Make-support-of-ED25519-SSH-host-key-support-optiona.patch
-9011f9e2cb699d573e83d646c61a8c8cc55771d8b9564fbf3494fdbec0cc3d501f7783d9ea93491ead56abe53bc82f413f39266112f688163d4ccbeec8c9eeb7  0024-Don-t-eager-load-google-apis.patch
-69e511d7b06344f9dbf450dd945c3c64c71c7125e59cff7d091dd663c39048f5acd303ad6db634c3f51f838fdc6aa9ef3826a9e0317527d823b8d9dcfe67dff5  0025-Disable-Auto-DevOps-banner-completely.patch
-22d9807665a76248448ae5e86d907ad4fe1fffa590cbf9f06ac391c6281c8f782a736249623ffedfd4dc6e4d87904c12a25c302ac9f42f39d2274e1b0704ab80  0026-Support-PostgreSQL-10.patch
-d5bc766e123b2e449c70690de58da2c3f60720be10673fcec3b87de1de4a49367086636a052a563aa57eb27de2b46fbc4577333141d361af4ba8f9eff74181e2  0027-Fix-invalid-argument-for-ionice-command-in-PrepareUn.patch
-dda9dc4c59594e1d867ed84da857f2d404d15d48660a5841a387c5ab23ad70584e7d984f102b4f451d57bc9335b74165adbbb1bd529b4aea177e2caa8967e15f  0028-Add-style-for-decimal-nested-numbered-list.patch
-8d27f681b39eedaa2a518e20653345380e8caf6702cd0eb4ac5fcd14c74647d1f50653dd2b65c809f8433a2bda7001d211b2735e5dc7f708523c1242302b0c2a  0029-Hotfix-crash-on-MR-page-with-comments-on-diffs-of-LF.patch
-90452a30aec6c541024c74342cfb57ae94be95dbf7d54614851f0882ec39428988f7c0b3ee9b6938638bb869f02f97ae56676ae8b5f2bc6b82d2e91f7c0c6479  0030-Fix-LFS-uploads-not-working-with-git-lfs-2.5.0.patch"
+a944c3886388ba1574bf8c96b6de4d9f24ef4a83f553c31a224e17a3b01f2a5c65b60c59b7ed7ca4b25670c60ea8dd41b96a8a623d909d2bb09bdf2520ed7f23  bin-wrapper.in"
