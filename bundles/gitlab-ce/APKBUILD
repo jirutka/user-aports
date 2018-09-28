@@ -249,6 +249,15 @@ package() {
 	                      -o -name 'shell.*' \
 	                      -o -name 'test.*' \) -delete
 
+	# Remove docs for features we've disabled and some Google product placement.
+	rm -Rf doc/ci/autodeploy/ \
+		doc/integration/google.md \
+		doc/project_services/kubernetes.md \
+		doc/topics/autodevops/ \
+		doc/user/project/clusters/ \
+		doc/user/project/integrations/kubernetes.md \
+
+
 	cd "$destdir"/vendor/bundle/ruby/*/
 
 	# Remove tests, documentations and other useless files.
