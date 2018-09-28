@@ -9,7 +9,6 @@ pkgdesc="A version control for your server"
 url="https://gitlab.com/gitlab-org/gitlab-ce"
 arch="all"
 license="MIT"
-_rubyslot=""
 # ruby-irb is needed only for Rails console (gitlab-rails console)
 depends="$pkgname-assets=$pkgver-r$pkgrel
 	gitaly=~0.120.0
@@ -24,14 +23,14 @@ depends="$pkgname-assets=$pkgver-r$pkgrel
 	python3
 	redis>=2.8
 	tzdata
-	ruby$_rubyslot
-	ruby$_rubyslot-io-console
-	ruby$_rubyslot-bigdecimal
-	ruby$_rubyslot-json
-	ruby$_rubyslot-rake
-	ruby$_rubyslot-irb
-	ruby$_rubyslot-webrick
-	ruby$_rubyslot-bundler>=1.15.4
+	ruby
+	ruby-io-console
+	ruby-bigdecimal
+	ruby-json
+	ruby-rake
+	ruby-irb
+	ruby-webrick
+	ruby-bundler>=1.15.4
 	"
 makedepends="
 	gpgme-dev
@@ -47,8 +46,8 @@ makedepends="
 	protobuf-dev
 	nodejs>=8.0.0
 	re2-dev
-	ruby$_rubyslot-dev
-	ruby$_rubyslot-grpc
+	ruby-dev
+	ruby-grpc
 	yarn>=1.2.0
 	"
 pkgusers="git"
@@ -68,17 +67,11 @@ builddir="$srcdir/gitlabhq-$_gitrev"
 _prefix="/usr/lib/bundles/$_pkgname"
 
 prepare() {
-	local sysgemdir=$(ruby$_rubyslot -e 'puts Gem.default_dir')
+	local sysgemdir=$(ruby -e 'puts Gem.default_dir')
 
 	default_prepare
 
 	cd "$builddir"
-
-	# Change shebang to run with correct Ruby version.
-	#local file; for file in bin/bundle bin/rails bin/rake; do
-	#	sed -i "s|/usr/bin/env ruby|/usr/bin/env ruby$_rubyslot|" $file
-	#done
-	#sed -i "s|/usr/bin/env rake|/usr/bin/env rake$_rubyslot|" Rakefile
 
 	# The default log level is very chatty.
 	sed -i 's/^\(\s*config.log_level\s*=\).*$/\1 :warn/' \
@@ -110,7 +103,6 @@ prepare() {
 }
 
 build() {
-	local bundle="bundle$_rubyslot"
 	# ed25519 is excluded mainly because it depends on rbnacl that requires ffi.
 	local bundle_opts="--deployment --jobs=${JOBS:-2} --no-cache
 		--without ed25519 exclude development kerberos metrics mysql test"
@@ -118,12 +110,12 @@ build() {
 	cd "$builddir"
 
 	msg "Installing Ruby gems..."
-	$bundle config build.nokogiri --use-system-libraries \
+	bundle config build.nokogiri --use-system-libraries \
 		--with-xml2-include=/usr/include/libxml2 \
 		--with-xslt-include=/usr/include/libxslt
-	$bundle config build.rugged --use-system-libraries
-	$bundle config build.gpgme --use-system-libraries
-	$bundle $bundle_opts
+	bundle config build.rugged --use-system-libraries
+	bundle config build.gpgme --use-system-libraries
+	bundle $bundle_opts
 
 	# Patch installed gem gitlab-markup to use python3.
 	# Option "-S" causes that Python cannot find docutils module.
@@ -162,33 +154,21 @@ build() {
 		export NO_SOURCEMAPS=true
 
 		msg "Compiling assets (this will take few minutes)..."
-		$bundle exec rake gitlab:assets:compile
+		bundle exec rake gitlab:assets:compile
 
 		msg "Compiling GetText PO files..."
-		$bundle exec rake gettext:compile
+		bundle exec rake gettext:compile
 	)
 
 	# Revert changes.
 	mv config/application.rb.bak config/application.rb
 
 	msg "Cleaning assets gems..."
-	$bundle $bundle_opts assets --clean
+	bundle $bundle_opts assets --clean
 
 	# Create executables in bin/*.
 	# See also https://github.com/bundler/bundler/issues/6149.
-	$bundle binstubs --force bundler mail_room sidekiq unicorn
-
-	# When GitLab executes a system command, it leaks some Bundler
-	# env. variables. The problem may occur when it execute a Ruby script
-	# with shebang "/usr/bin/env ruby"; Bundler tries to initialize GitLab
-	# environments, but due to different Ruby versions it doesn't see its
-	# gems. The workaround is to symlink ruby -> ruby2.1 to $_prefix/bin
-	# and add it to the PATH.
-	#local file; for file in bin/*; do
-	#	[ -f $file ] || continue
-	#	# Add text after the first line of the file.
-	#	sed -i "1a ENV['PATH'] = \"#{__dir__}:#{ENV['PATH']}\"" $file
-	#done
+	bundle binstubs --force bundler mail_room sidekiq unicorn
 
 	# Cleanup
 	rm config/database.yml config/gitlab.yml config/secrets.yml
@@ -323,9 +303,6 @@ package() {
 	ln -sf /var/log/gitlab log
 	ln -sf /var/tmp/gitlab tmp
 	ln -sf /var/tmp/gitlab "$datadir"/tmp
-
-	# See the last comment in the build() function.
-	#ln -sf /usr/bin/ruby$_rubyslot bin/ruby
 
 	# Install wrapper scripts to /usr/bin.
 	local name; for name in rake rails; do
