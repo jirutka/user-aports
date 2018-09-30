@@ -3,8 +3,8 @@
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
 pkgver=11.3.0
-_gitrev=9de44f421e2939a066b24e7f6a6c51a1b2e35fcc
-pkgrel=1
+_gitrev=1a28d0f2dba26367432147686b0433bb63f989fc
+pkgrel=2
 pkgdesc="A version control for your server"
 url="https://gitlab.com/gitlab-org/gitlab-ce"
 arch="all"
@@ -331,7 +331,7 @@ assets() {
 	mv "${pkgdir}$_prefix"/public/assets "$destdir"/public/
 }
 
-sha512sums="240e91a7300e67e910be21af2bf62b4c9ad4a4cf315c012817a704ab2cfd4389b0f3333409aff10afe7e6844b46fe5b1d36a8b9e63303546ae854ff58cdab4bd  gitlabhq-9de44f421e2939a066b24e7f6a6c51a1b2e35fcc.tar.gz
+sha512sums="66a3efd35e874b9d929490d26b2534ead4c0e6ff3369a4a0c678fac3050620efdea0e5b967537d094f5392a17affc366e3c00c1e23708e313fce0370c59561fe  gitlabhq-1a28d0f2dba26367432147686b0433bb63f989fc.tar.gz
 55b0667d3969113ffd6860652ee8bdb9a534c25f413f33b2739e922c886988e7cea72c1c00c7eecf29fcff3682b1324156365605ffc6aae45d1e0ccddf96288b  gitlab.initd
 478759565c27d7e300e69715ed069ca6689fc0f33781a99e4ca9f52a49763e3a46d6a1ca7fa61879b200156543e534f652deec1367c31a52154db6f0f8ecb779  gitlab.mailroom.initd
 7ff3ac8ea0b759d313057ef5a792ea29ad2472d2ad9597f54e83702737f25fe4b1e2780760bda04fc19ce8cf8674fb708ba32663a9b31ebba8e22b07a6cd3e4d  gitlab.rails.initd
