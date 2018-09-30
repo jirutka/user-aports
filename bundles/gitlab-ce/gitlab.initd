@@ -63,7 +63,7 @@ depend() {
 start_pre() {
 	checkpath -d -m 755 -o $user "$(dirname "$pidfile")"
 	checkpath -d -m 755 -o $user "$(dirname "$unicorn_listen_unix")"
-	checkpath -d -m 700 -o $user "$(readlink "$gitlab_base"/tmp)"
+	checkpath -d -m 700 -o $user "$(readlink -f "$gitlab_base"/tmp)"
 	checkpath -f -m 644 -o $user "$unicorn_logfile"
 
 	# Ruby requires sticky bit on TMP directory.
