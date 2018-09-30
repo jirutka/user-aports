@@ -57,6 +57,7 @@ subpackages="$pkgname-assets::noarch"
 source="https://github.com/jirutka/gitlabhq/archive/$_gitrev/gitlabhq-$_gitrev.tar.gz
 	$_pkgname.initd
 	$_pkgname.mailroom.initd
+	$_pkgname.rails.initd
 	$_pkgname.sidekiq.initd
 	$_pkgname.confd
 	$_pkgname.logrotate
@@ -311,7 +312,7 @@ package() {
 		install -m755 -D "$builddir"/gitlab-$name "$pkgdir"/usr/bin/gitlab-$name
 	done
 
-	for file in $_pkgname $_pkgname.sidekiq $_pkgname.mailroom; do
+	for file in $_pkgname $_pkgname.rails $_pkgname.sidekiq $_pkgname.mailroom; do
 		install -m755 -D "$srcdir"/$file.initd "$pkgdir"/etc/init.d/$file
 	done
 
@@ -331,8 +332,9 @@ assets() {
 }
 
 sha512sums="240e91a7300e67e910be21af2bf62b4c9ad4a4cf315c012817a704ab2cfd4389b0f3333409aff10afe7e6844b46fe5b1d36a8b9e63303546ae854ff58cdab4bd  gitlabhq-9de44f421e2939a066b24e7f6a6c51a1b2e35fcc.tar.gz
-9fde087baace79489db7605156e70b161ea94c48b163623e7547dd7a5f215f3778eb6b8c5f92688c1bfeddc2b064289bc4535fbc2b8fe80b4139c06d1c57a3dd  gitlab.initd
+55b0667d3969113ffd6860652ee8bdb9a534c25f413f33b2739e922c886988e7cea72c1c00c7eecf29fcff3682b1324156365605ffc6aae45d1e0ccddf96288b  gitlab.initd
 478759565c27d7e300e69715ed069ca6689fc0f33781a99e4ca9f52a49763e3a46d6a1ca7fa61879b200156543e534f652deec1367c31a52154db6f0f8ecb779  gitlab.mailroom.initd
+7ff3ac8ea0b759d313057ef5a792ea29ad2472d2ad9597f54e83702737f25fe4b1e2780760bda04fc19ce8cf8674fb708ba32663a9b31ebba8e22b07a6cd3e4d  gitlab.rails.initd
 caa4f70a8dea1edba98e376fa71f8d8ebf9cb9bdcfc5d94009d36bc0e7a004b56dbef93d647bbcad6a16c282f99eaf4911c369e270b6b2f9c29a158119b05c85  gitlab.sidekiq.initd
 2b771e23326c5e4f590ea1ba5e12bd44d3d6d6515edf8a79cf2722fb7d3968e60887c4b085a474100ac7562f645bff06b8a085755acd4ce533c5837392e749f2  gitlab.confd
 9eb31f31e13cc8d3fe14732a78cbd87f895ef209fe2275e70873736736fc95e6166b60b2f921a99e2284b495467084e1eeb722cb6df7419c9f6f5575abe19a56  gitlab.logrotate

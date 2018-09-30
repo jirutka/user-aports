@@ -1,53 +1,12 @@
 #!/sbin/openrc-run
 
-name="GitLab Rails"
-description="GitLab application"
+name="GitLab"
+description="Meta script for starting/stopping all the GitLab components"
 
-extra_started_commands="reload reopen stop_all"
-description_reload="Reload configuration"
-description_reopen="Reopen log files"
-description_stop_all="Stop all GitLab services"
-
-: ${gitlab_base:="/usr/lib/bundles/gitlab"}
-: ${gitlab_config:="/etc/gitlab/gitlab.yml"}
 : ${mailroom_enabled:="no"}
 : ${pages_enabled:="yes"}
-: ${unicorn_listen_tcp:="127.0.0.1:8181"}
-: ${unicorn_listen_unix:="/run/gitlab/unicorn.sock"}
-: ${unicorn_workers:="2"}
-: ${unicorn_timeout:="60"}
-: ${unicorn_memory_min:="400"}  # default per Omnibus
-: ${unicorn_memory_max:="650"}  # default per Omnibus
-: ${unicorn_logfile:="/var/log/gitlab/unicorn.log"}
-: ${unicorn_config:="$gitlab_base/config/unicorn.rb"}
 
-command="$gitlab_base/bin/unicorn_rails"
-command_args="-c $unicorn_config -E production"
-command_background="yes"
-
-user="git"
-start_stop_daemon_args="
-	--chdir $gitlab_base
-	--user $user
-	--interpreted
-	--stdout $unicorn_logfile
-	--stderr $unicorn_logfile
-	--env RAILS_ENV=production
-	--env NODE_ENV=production
-	--env EXECJS_RUNTIME=Disabled
-	--env GITLAB_BASE=$gitlab_base
-	--env UNICORN_LISTEN_TCP=$unicorn_listen_tcp
-	--env UNICORN_LISTEN_UNIX=$unicorn_listen_unix
-	--env UNICORN_WORKERS=$unicorn_workers
-	--env UNICORN_TIMEOUT=$unicorn_timeout
-	--env GITLAB_UNICORN_MEMORY_MIN=$(( unicorn_memory_min * 1024 * 1024 ))
-	--env GITLAB_UNICORN_MEMORY_MAX=$(( unicorn_memory_max * 1024 * 1024 ))
-	"
-pidfile="/run/gitlab/unicorn.pid"
-
-required_files="$gitlab_config $unicorn_config"
-
-subservices="gitlab.sidekiq gitlab.gitaly gitlab.workhorse"
+subservices="gitlab.rails gitlab.gitaly gitlab.sidekiq gitlab.workhorse"
 if yesno "$mailroom_enabled"; then
 	subservices="$subservices gitlab.mailroom"
 fi
@@ -56,53 +15,35 @@ if yesno "$pages_enabled" && [ -e /etc/init.d/gitlab.pages ]; then
 fi
 
 depend() {
-	need redis $subservices
-	use sshd net postgresql
+	use net
 }
 
-start_pre() {
-	checkpath -d -m 755 -o $user "$(dirname "$pidfile")"
-	checkpath -d -m 755 -o $user "$(dirname "$unicorn_listen_unix")"
-	checkpath -d -m 700 -o $user "$(readlink -f "$gitlab_base"/tmp)"
-	checkpath -f -m 644 -o $user "$unicorn_logfile"
+start() {
+	local ret=0
 
-	# Ruby requires sticky bit on TMP directory.
-	checkpath -d -m 1777 /tmp
-
-	local downloads_path="$(_parse_yaml "$gitlab_config" \
-		production.gitlab.repository_downloads_path)"
-
-	if [ -n "$downloads_path" ]; then
-		checkpath -d -m 700 -o $user "$downloads_path"
-	fi
-}
-
-reload() {
-	ebegin "Reloading $name"
-	kill -USR2 $(head -n1 $pidfile)
-	eend $?
-}
-
-reopen() {
-	ebegin "Telling $name to reopen log files"
-	kill -USR1 $(head -n1 $pidfile)
-	eend $?
-}
-
-stop_all() {
-	local srv; for srv in $subservices; do
-		service $srv stop
+	ebegin "Starting all GitLab components"
+	local svc; for svc in $subservices; do
+		service $svc start || ret=1
 	done
+	eend $ret
 }
 
-_parse_yaml() {
-	local file="$1"
-	local key="$2"
-	local default="${3:-}"
-	local key_path="$(echo "[\"$key\"]" | sed 's/\./"]["/g')"
+stop() {
+	local ret=0
 
-	ruby <<-EOF
-	require "yaml"
-	puts YAML.load_file("$file")$key_path rescue puts "$default"
-	EOF
+	ebegin "Stopping all GitLab components"
+	local svc; for svc in $subservices; do
+		service $svc stop || ret=1
+	done
+	eend $ret
+}
+
+status() {
+	local ret=0
+
+	local svc; for svc in $subservices; do
+		echo "$svc:"
+		service $svc status || ret=1
+	done
+	eend $ret
 }
