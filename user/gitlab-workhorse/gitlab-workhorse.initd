@@ -9,6 +9,7 @@ description_reopen="Reopen log files"
 : ${gitlab_base:="/usr/lib/bundles/gitlab"}
 : ${workhorse_listen:="0.0.0.0:8080"}
 : ${workhorse_logfile:="/var/log/gitlab/workhorse.log"}
+: ${workhorse_access_log:="no"}
 
 command="/usr/bin/gitlab-workhorse"
 # Note: The rest of the options is set in start_pre().
@@ -45,6 +46,7 @@ start_pre() {
 		$(optif -authSocket "$unicorn_listen_unix")
 		$(optif -config "$workhorse_config")
 		$(optif -proxyHeadersTimeout "$workhorse_proxy_header_timeout")"
+	yesno "$workhorse_access_log" || command_args="$command_args -disableAccessLog"
 
 	start_stop_daemon_args="$start_stop_daemon_args
 		$(optif '--env GITLAB_WORKHORSE_SENTRY_DSN' "$workhorse_sentry_dns")"
