@@ -1,0 +1,32 @@
+--- a/logging.go
++++ b/logging.go
+@@ -59,9 +59,11 @@
+ 	case noneLogType:
+ 		accessLogEntry = nil
+ 		logOutputWriter = ioutil.Discard
++		goLog.SetOutput(os.Stderr)
+ 	case jsonLogFormat:
+ 		accessLogEntry = log.WithField("system", "http")
+ 		log.SetFormatter(&log.JSONFormatter{})
++		goLog.SetOutput(os.Stderr)
+ 	case textLogFormat:
+ 		accessLogger := log.New()
+ 		accessLogger.Formatter = helper.NewAccessLogFormatter()
+@@ -70,6 +72,8 @@
+ 		accessLogEntry = accessLogger.WithField("system", "http")
+ 
+ 		log.SetFormatter(&log.TextFormatter{})
++
++		goLog.SetOutput(logOutputWriter)
+ 	default:
+ 		log.WithField("logFormat", config.logFormat).Fatal("Unknown logFormat configured")
+ 	}
+@@ -78,8 +82,4 @@
+ 		helper.SetAccessLoggerEntry(accessLogEntry)
+ 	}
+ 	log.SetOutput(logOutputWriter)
+-
+-	// Golog always goes to stderr
+-	goLog.SetOutput(os.Stderr)
+-
+ }
