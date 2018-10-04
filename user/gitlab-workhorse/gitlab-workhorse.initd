@@ -17,15 +17,14 @@ command_args="
 	-documentRoot=${gitlab_public_dir:="$gitlab_base/public"}
 	-listenAddr=$workhorse_listen
 	-listenUmask=${workhorse_listen_umask:="000"}
+	-logFile=$workhorse_logfile
 	-secretPath=${workhorse_secret_path:="/etc/gitlab/gitlab-workhorse.secret"}"
 command_background="yes"
 
 user="git"
 start_stop_daemon_args="
 	--chdir $gitlab_base
-	--user $user
-	--stdout $workhorse_logfile
-	--stderr $workhorse_logfile"
+	--user $user"
 pidfile="/run/gitlab-workhorse.pid"
 
 
