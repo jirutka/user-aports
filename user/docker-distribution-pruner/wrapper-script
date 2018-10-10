@@ -1,0 +1,17 @@
+#!/bin/ash
+set -eu
+set -o pipefail
+
+# Skip if docker-registry service is not running (it's not needed for
+# docker-distribution-pruner to work, but it would be probably useless
+# to run it when the registry is not used).
+rc-service docker-registry -q status >/dev/null 2>&1 || exit 0
+
+: ${DOCKER_REGISTRY_USER:="docker-registry"}
+: ${DOCKER_REGISTRY_CONFIG:="/etc/docker-registry/config.yml"}
+: ${DOCKER_DIST_PRUNER_LOG:="/var/log/docker-distribution-pruner.log"}
+: ${DOCKER_DIST_PRUNER_OPTS:="-delete-old-tag-versions=true -soft-errors -delete"}
+
+su "$DOCKER_REGISTRY_USER" -s /bin/sh \
+	-c "docker-distribution-pruner -config $DOCKER_REGISTRY_CONFIG $DOCKER_DIST_PRUNER_OPTS" 2>&1 \
+	| tee -a "$DOCKER_DIST_PRUNER_LOG"
