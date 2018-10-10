@@ -2,7 +2,7 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=docker-distribution-pruner
 pkgver=0_git20171114
-pkgrel=0
+pkgrel=1
 _gitrev=5e521b8faf04cad7fd5a88643f4e7b4a2c3e9388
 pkgdesc="Garbage Collector to clean all old revisions from Docker Distribution based registry"
 url="https://gitlab.com/gitlab-org/docker-distribution-pruner"
@@ -11,7 +11,9 @@ license="MIT"
 makedepends="go govendor"
 source="$pkgname-$_gitrev.tar.gz::https://gitlab.com/gitlab-org/$pkgname/repository/$_gitrev/archive.tar.gz
 	vendor.json.patch
-	remove-s3.patch"
+	remove-s3.patch
+	dont-force-colors.patch
+	"
 builddir="$srcdir/src/gitlab.com/gitlab-org/$pkgname"
 # Go doesn't play well with strip tool. http://bit.ly/2jlJsSU
 # There are no tests.
@@ -39,4 +41,5 @@ package() {
 
 sha512sums="20600f3bee1205cf5d5927e9eb7a5f29fb724deaa6cadc6c8fdb72896e7cf48e160940378b9b2616ba8d78cb8b9ae1d0d6bf300dee7ab7d6436a25c43bd11d08  docker-distribution-pruner-5e521b8faf04cad7fd5a88643f4e7b4a2c3e9388.tar.gz
 2d3b7a459722393a2e11a7d005f230b42788dde962e0efea1bae89e251a85f8f7542f2c68ef23f498543486a170191369760dadeb64dc1cecdc44910eba312aa  vendor.json.patch
-067586e9edd4021e1d73f9240d45a4a3d3dbb71c307bc4da6c55f03d91c4b3eb1eb465b709908e9d06ecbf89299dd6bf8caa51a269f361abae90582a1fabd60b  remove-s3.patch"
+067586e9edd4021e1d73f9240d45a4a3d3dbb71c307bc4da6c55f03d91c4b3eb1eb465b709908e9d06ecbf89299dd6bf8caa51a269f361abae90582a1fabd60b  remove-s3.patch
+255ba70cec5a1e1a2b17c20fa1d1546aa4e56ca8ffd03cc48404b2a46043564058c171aab4c0a81f72c6f80dd0e9f8d34872f6ccf9f9f6fd7d60fe2a31dc3762  dont-force-colors.patch"
