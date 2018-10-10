@@ -4,7 +4,7 @@ pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
 pkgver=11.3.0
 _gitrev=1a28d0f2dba26367432147686b0433bb63f989fc
-pkgrel=2
+pkgrel=3
 pkgdesc="A version control for your server"
 url="https://gitlab.com/gitlab-org/gitlab-ce"
 arch="all"
@@ -104,9 +104,8 @@ prepare() {
 }
 
 build() {
-	# ed25519 is excluded mainly because it depends on rbnacl that requires ffi.
 	local bundle_opts="--deployment --jobs=${JOBS:-2} --no-cache
-		--without ed25519 exclude development kerberos metrics mysql test"
+		--without exclude development kerberos metrics mysql test"
 
 	cd "$builddir"
 
