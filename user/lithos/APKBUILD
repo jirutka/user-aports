@@ -2,7 +2,7 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=lithos
 pkgver=0.18.4
-pkgrel=0
+pkgrel=1
 pkgdesc="Process supervisor that supports linux containers"
 url="https://github.com/tailhook/lithos/"
 arch="x86_64"  # limited by rust
@@ -10,6 +10,7 @@ license="MIT"
 makedepends="cargo rust"
 source="https://github.com/tailhook/$pkgname/archive/v$pkgver/$pkgname-$pkgver.tar.gz
 	cargo-use-lto.patch
+	variable-type-string.patch
 	$pkgname.initd
 	"
 builddir="$srcdir/$pkgname-$pkgver"
@@ -43,4 +44,5 @@ package() {
 
 sha512sums="f613168446d1bc5ac29a0bf97bd68c79d314bf729aee78690031ab18d5635656a98be119ae5b8ea78b2690babc7b8b22e11993912d2d93711da756dba73c1d76  lithos-0.18.4.tar.gz
 c7afdb9aac36769bc37a7a374bb3928d5e0399be96f91fad180568e27cd18dbf3ba8a6590e980f493e0665344999295e08e906d0ca52c2ec8ce5f46c28519b9e  cargo-use-lto.patch
+50661365e602e9513e83b9d19c53043d91ab1f675f29c9bd6dc29d3da8bf575d7f4859b09ad890dbe254f98d8fbc55dc9dc08426a3deb988d27019efcc378c94  variable-type-string.patch
 ffeca831809071242f44950a834a59176ae0c43f7a14eefecb9e74d39a18154efc1e151a9b231ec7415d627cb39e771d887fa4a2426a04daf9e2da5cd493f319  lithos.initd"

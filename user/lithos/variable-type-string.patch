@@ -1,0 +1,40 @@
+From a87a409bdf92040e391eef5292c2b545342a99e4 Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Sat, 13 Oct 2018 17:32:54 +0200
+Subject: [PATCH] Add variable type String
+
+---
+ src/container_config.rs | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/container_config.rs b/src/container_config.rs
+index d71d6c4..c366312 100644
+--- a/src/container_config.rs
++++ b/src/container_config.rs
+@@ -106,6 +106,7 @@ pub enum Variable {
+     Name,
+     DottedName,
+     Choice(Vec<String>),
++    String,
+ }
+ 
+ #[derive(Deserialize, Serialize, Clone, PartialEq, Eq, Debug)]
+@@ -227,6 +228,7 @@ impl ContainerConfig {
+                 .option("Name", Nothing)
+                 .option("DottedName", Nothing)
+                 .option("Choice", Sequence::new(Scalar::new()))
++                .option("String", Nothing)
+         ))
+         .member("metadata", Anything)
+         .member("volumes", Mapping::new(
+@@ -503,6 +505,7 @@ impl Variable {
+                         is not one of {:?}", value, choices));
+                 }
+             }
++            Variable::String => {}
+         }
+         Ok(())
+     }
+-- 
+2.16.4
+
