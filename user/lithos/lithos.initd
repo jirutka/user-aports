@@ -1,0 +1,23 @@
+#!/sbin/openrc-run
+
+name="lithos"
+description="Process supervisor that supports linux containers"
+
+extra_started_commands="reload"
+description_reload="Reload configuration"
+
+command="/usr/bin/lithos_tree"
+command_background="yes"
+pidfile="/run/$RC_SVCNAME.pid"
+
+required_files="/etc/lithos/master.yaml"
+
+depend() {
+	need cgroups
+}
+
+reload() {
+	ebegin "Reloading $name"
+	start-stop-daemon --signal QUIT --pidfile "$pidfile"
+	eend $?
+}

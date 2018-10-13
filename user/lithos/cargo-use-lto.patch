@@ -1,0 +1,8 @@
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -46,4 +46,4 @@
+ sha2 = "0.7.0"
+ 
+ [profile.release]
+-debug = true
++lto = true
