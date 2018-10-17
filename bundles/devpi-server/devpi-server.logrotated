@@ -1,0 +1,5 @@
+/var/log/devpi-server.log {
+	compress
+	copytruncate
+	missingok
+}

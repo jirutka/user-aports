@@ -1,0 +1,46 @@
+#!/sbin/openrc-run
+
+extra_commands="setup"
+description_setup="Initialize devpi"
+
+: ${cfgfile:="/etc/devpi/server.yml"}
+: ${logfile:="/var/log/devpi-server.log"}
+: ${command_user:="devpi"}
+
+command="/usr/lib/bundles/devpi-server/bin/devpi-server"
+command_args="-c $cfgfile"
+command_background="yes"
+
+pidfile="/run/$RC_SVCNAME.pid"
+output_log="$logfile"
+error_log="$logfile"
+
+required_files="$cfgfile"
+
+start_pre() {
+	checkpath -f -m 640 -o $command_user "$logfile" || return 1
+
+	local serverdir=$(_serverdir)
+	if [ "$serverdir" ] && [ ! -f "$serverdir"/.nodeinfo ]; then
+		eerror "$serverdir contains no devpi-server data, run: rc-service $RC_SVCNAME setup"
+		return 1
+	fi
+}
+
+setup() {
+	local serverdir=$(_serverdir)
+	[ "$serverdir" ] || {
+		eerror "Could not read serverdir from $cfgfile!"
+		return 1
+	}
+	einfo "Initializing devpi in $serverdir..."
+	DEVPI_USER=${command_user%:*} devpi-server \
+		--init --serverdir "$serverdir" --storage sqlite
+	eend $?
+}
+
+_serverdir() {
+	/usr/lib/bundles/devpi-server/bin/python3 \
+		-c "import yaml; print(yaml.safe_load(open('$cfgfile'))['devpi-server']['serverdir'])" \
+		2>/dev/null
+}

@@ -1,0 +1,7 @@
+devpi-ldap:
+  url: ldap://example.org
+  user_template: uid={username},ou=People,dc=example,dc=org
+  group_search:
+    base: ou=Groups,dc=example,dc=org
+    filter: (&(objectClass=groupOfNames)(member={userdn}))
+    attribute_name: cn

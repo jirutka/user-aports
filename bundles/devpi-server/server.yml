@@ -1,0 +1,7 @@
+devpi-server:
+  serverdir: /var/lib/devpi
+  host: localhost
+  port: 8080
+  threads: 50
+  # Uncomment if you use LDAP.
+  #ldap-config: /etc/devpi/ldap.yml

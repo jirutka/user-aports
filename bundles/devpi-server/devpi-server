@@ -1,0 +1,13 @@
+#!/bin/sh
+set -eu
+
+export VIRTUAL_ENV='/usr/lib/bundles/devpi-server'
+
+DEVPI_USER="${DEVPI_USER:-devpi}"
+COMMAND="$VIRTUAL_ENV/bin/devpi-server"
+
+if [ "$(id -un)" != "$DEVPI_USER" ]; then
+	exec su "$DEVPI_USER" -s /bin/sh -c '"$0" "$@"' -- $COMMAND "$@"
+else
+	exec $COMMAND "$@"
+fi

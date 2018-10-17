@@ -1,0 +1,112 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=devpi-server
+_projname=devpi
+pkgver=4.7.1
+_pkgver_common=3.3.1
+_pkgver_ldap=1.2.2
+_pkgver_web=3.4.1
+pkgrel=0
+pkgdesc="Python PyPi staging server"
+url="https://github.com/devpi/devpi/"
+arch="all"
+license="MIT"
+depends="python3"
+makedepends="python3-dev libffi-dev"
+pkgusers="devpi"
+pkggroups="devpi"
+options="!check"
+install="$pkgname.pre-install"
+source="$pkgname-$pkgver.tar.gz::https://github.com/devpi/$_projname/archive/server-$pkgver.tar.gz
+	$_projname-common-$_pkgver_common.tar.gz::https://github.com/devpi/$_projname/archive/common-$_pkgver_common.tar.gz
+	$_projname-web-$_pkgver_web.tar.gz::https://github.com/devpi/$_projname/archive/web-$_pkgver_web.tar.gz
+	$_projname-ldap-$_pkgver_ldap.tar.gz::https://github.com/devpi/$_projname-ldap/archive/$_pkgver_ldap.tar.gz
+	constraints.txt
+	$pkgname.initd
+	$pkgname.logrotated
+	devpi-server
+	server.yml
+	ldap.yml
+	"
+builddir="$srcdir/build"
+
+_common_dir="$srcdir/$_projname-common-$_pkgver_common/common"
+_ldap_dir="$srcdir/$_projname-ldap-$_pkgver_ldap"
+_server_dir="$srcdir/$pkgname-$pkgver/server"
+_web_dir="$srcdir/$_projname-web-$_pkgver_web/web"
+
+_prefix="/usr/lib/bundles/$pkgname"
+
+prepare() {
+	mkdir "$builddir"
+	default_prepare
+}
+
+build() {
+	cd "$builddir"
+
+	# Create a virtualenv.
+	python3 -m venv .
+
+	bin/python3 -m pip install \
+		--isolated \
+		--no-binary=all \
+		--disable-pip-version-check \
+		--install-option="--no-compile" \
+		--no-cache-dir \
+		--constraint "$srcdir"/constraints.txt \
+		"$_common_dir" "$_server_dir" "$_web_dir" "$_ldap_dir"
+
+	# Note: This overwrites existing constraints.txt.
+	bin/python3 -m pip freeze --disable-pip-version-check \
+		| sed "/^$_projname-.*==.*/d" \
+		> "$srcdir"/constraints.txt
+
+	# Remove pip that is not needed in runtime (note: setuptools is needed).
+	bin/python3 -m pip uninstall --disable-pip-version-check -y pip
+
+	# Remove some useless files.
+	find lib/ -type d -name tests -exec rm -Rfv '{}' +
+	find lib/ \( -name 'test_*.py' \
+	          -o -name 'test_*.pyc' \
+	          -o -name 'README*' \
+	          -o -name 'LICENSE*' \) -delete
+	find bin/ ! \( -name 'activate' \
+	            -o -name 'devpi-*' \
+	            -o -name 'python*' \) -type f -delete
+
+	# Fix absolute paths e.g. in shebang to correct destination.
+	find bin/ -type f -exec sed -i "s|$srcdir/build|$_prefix|g" {} \;
+
+	# Regenerate .pyc files with correct paths.
+	bin/python3 -m compileall -f -q -d $_prefix/lib lib
+}
+
+package() {
+	cd "$builddir"
+
+	mkdir -p "$pkgdir"/$_prefix
+	cp -ar bin lib pyvenv.cfg "$pkgdir"/$_prefix/
+
+	cd "$pkgdir"
+
+	install -m 755 -D "$srcdir"/devpi-server usr/bin/devpi-server
+	install -m 644 -D "$srcdir"/server.yml etc/devpi/server.yml
+	install -m 644 -D "$srcdir"/ldap.yml etc/devpi/ldap.yml
+
+	install -m 755 -D "$srcdir"/$pkgname.initd etc/init.d/$pkgname
+	install -m 644 -D "$srcdir"/$pkgname.logrotated etc/logrotate.d/$pkgname
+
+	install -m 750 -o devpi -g devpi -d var/lib/devpi var/lib/devpi
+}
+
+sha512sums="64b1dc58d4735ed5165e96e15ed821d3c709bf815fea4077719b069d21135d5037b64b6bd257bf83bd0104fa3c28c6e578c27bf7237ccbe10b0da359a64ebd85  devpi-server-4.7.1.tar.gz
+7f1a54c7b47b93055464e6647bb0d5c7b6ba541c671e1e279bc4399cfada31052e6a7df20652cab5a3119e6226cddf8a797babf38ff1479777eb7d07baf3e1af  devpi-common-3.3.1.tar.gz
+70e523baa8d2416f44c31e37af6e4f2cc9d0df65c14fdd20b63142060f66e227b34d572538cf798b4bcb5d5f000113800cf4d9e6d788d5e4700315799af87bae  devpi-web-3.4.1.tar.gz
+6516abc08deb97f3d61e5cc3a3e4e3e358ac7af3517805cc169f77b24aa64449aa8c8a4e6e4a68dfb5198acf63b618a1e0aa385a4f7c9d5e2ac43a18d8e9ebdb  devpi-ldap-1.2.2.tar.gz
+3731c1178ca9954bb8d7576bbd3969c43dc3e79f11b79c9606647a9766fd1c0f874e2e8e6c504ddb3ebf5ab48d88d87c507d08ccea355dae35308c0affbf13e3  constraints.txt
+30ce5ea3a6153e7cf42f039620c8aeab5bff151ab496f30b48d863468bb21cb7a28e7ef823620334eaf82213b31646b4662f062a45eb4b86e7d9365e636efd0c  devpi-server.initd
+a856f77c56e2385688f21dfdbd00904ad7f5625e0553fc11598236c132a44d3ea96be202c4aeba02dbd6219f5ee6a99ea16e98903604a62f4d95d72fa33bfec7  devpi-server.logrotated
+0e6c0350ea0cb32a06ea3671403558e058fb48dd55dcf45b6aa356d64fbbef92811c239f95a2d407e5f29882fc6f373f5bedf4571a4c52ed6514aee16447a466  devpi-server
+aa0494fe0b35b371737a133d44c1baaab6b22dc976c8bc16e355d24ebe5e6b5573d1860955645b8cf5c1231f3952bd487d1fcf2e3d2c94a0a0f7cd860b0505db  server.yml
+dd064ebe7328e5b8768ecc04c999cc477289cf82094b0ba15fd11b1cf2ca542b6421895ee05150377e7eb99e20691395c993769d1c70025d0d85f3c6d6656636  ldap.yml"
