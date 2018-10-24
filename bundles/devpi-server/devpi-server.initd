@@ -8,7 +8,7 @@ description_setup="Initialize devpi"
 : ${command_user:="devpi"}
 
 command="/usr/lib/bundles/devpi-server/bin/devpi-server"
-command_args="-c $cfgfile"
+command_args="-c $cfgfile ${command_args:-}"
 command_background="yes"
 
 pidfile="/run/$RC_SVCNAME.pid"

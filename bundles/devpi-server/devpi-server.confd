@@ -1,0 +1,4 @@
+# Configuration for /etc/init.d/devpi
+
+# Uncomment if you use LDAP.
+#command_args="--ldap-config /etc/devpi/ldap.yml"

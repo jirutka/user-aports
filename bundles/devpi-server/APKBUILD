@@ -6,7 +6,7 @@ pkgver=4.7.1
 _pkgver_common=3.3.1
 _pkgver_ldap=1.2.2
 _pkgver_web=3.4.1
-pkgrel=0
+pkgrel=1
 pkgdesc="Python PyPi staging server"
 url="https://github.com/devpi/devpi/"
 arch="all"
@@ -23,6 +23,7 @@ source="$pkgname-$pkgver.tar.gz::https://github.com/devpi/$_projname/archive/ser
 	$_projname-ldap-$_pkgver_ldap.tar.gz::https://github.com/devpi/$_projname-ldap/archive/$_pkgver_ldap.tar.gz
 	constraints.txt
 	$pkgname.initd
+	$pkgname.confd
 	$pkgname.logrotated
 	devpi-server
 	server.yml
@@ -95,6 +96,7 @@ package() {
 	install -m 644 -D "$srcdir"/ldap.yml etc/devpi/ldap.yml
 
 	install -m 755 -D "$srcdir"/$pkgname.initd etc/init.d/$pkgname
+	install -m 644 -D "$srcdir"/$pkgname.confd etc/conf.d/$pkgname
 	install -m 644 -D "$srcdir"/$pkgname.logrotated etc/logrotate.d/$pkgname
 
 	install -m 750 -o devpi -g devpi -d var/lib/devpi var/lib/devpi
@@ -105,8 +107,9 @@ sha512sums="64b1dc58d4735ed5165e96e15ed821d3c709bf815fea4077719b069d21135d5037b6
 70e523baa8d2416f44c31e37af6e4f2cc9d0df65c14fdd20b63142060f66e227b34d572538cf798b4bcb5d5f000113800cf4d9e6d788d5e4700315799af87bae  devpi-web-3.4.1.tar.gz
 6516abc08deb97f3d61e5cc3a3e4e3e358ac7af3517805cc169f77b24aa64449aa8c8a4e6e4a68dfb5198acf63b618a1e0aa385a4f7c9d5e2ac43a18d8e9ebdb  devpi-ldap-1.2.2.tar.gz
 3731c1178ca9954bb8d7576bbd3969c43dc3e79f11b79c9606647a9766fd1c0f874e2e8e6c504ddb3ebf5ab48d88d87c507d08ccea355dae35308c0affbf13e3  constraints.txt
-30ce5ea3a6153e7cf42f039620c8aeab5bff151ab496f30b48d863468bb21cb7a28e7ef823620334eaf82213b31646b4662f062a45eb4b86e7d9365e636efd0c  devpi-server.initd
+29e3fb3c92525f8278150ca7222518bd8d4bbb9bf6edb9838a45749b57c9d67337f1ed62746788dce34bdbccd69afc5d5ef076bf7c432c5c90aaba7174d696dc  devpi-server.initd
+42a4d8e8bbb3755011121917698cd9386ca78bcba5250cea9ba2025735512ee66b72afce098237b5a11292dc4b8c52553f17b2b1eea53f2311fd61a11584daa9  devpi-server.confd
 a856f77c56e2385688f21dfdbd00904ad7f5625e0553fc11598236c132a44d3ea96be202c4aeba02dbd6219f5ee6a99ea16e98903604a62f4d95d72fa33bfec7  devpi-server.logrotated
 0e6c0350ea0cb32a06ea3671403558e058fb48dd55dcf45b6aa356d64fbbef92811c239f95a2d407e5f29882fc6f373f5bedf4571a4c52ed6514aee16447a466  devpi-server
-aa0494fe0b35b371737a133d44c1baaab6b22dc976c8bc16e355d24ebe5e6b5573d1860955645b8cf5c1231f3952bd487d1fcf2e3d2c94a0a0f7cd860b0505db  server.yml
+c776e75d803e1a743de5c3b7cd45cdddacd25324b8e5fa4baf56d3c6ad5c65d6cbb6cb310e3ca5629cb13b6a886493a7ca72e9a4ebfb60159cb33a62b6d9aa41  server.yml
 dd064ebe7328e5b8768ecc04c999cc477289cf82094b0ba15fd11b1cf2ca542b6421895ee05150377e7eb99e20691395c993769d1c70025d0d85f3c6d6656636  ldap.yml"
