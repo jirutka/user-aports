@@ -1,0 +1,39 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=plantuml-server
+pkgver=1.2018.13
+pkgrel=0
+pkgdesc="PlantUML Online Server"
+url="https://github.com/plantuml/plantuml-server"
+arch="noarch"
+license="GPL-3.0-or-later"
+depends="graphviz jetty-runner openjdk8-jre ttf-dejavu"
+makedepends="maven openjdk8"
+options="!check"
+subpackages="$pkgname-openrc"
+source="https://github.com/plantuml/$pkgname/archive/v$pkgver/$pkgname-$pkgver.tar.gz
+	$pkgname.confd
+	$pkgname.logrotated
+	"
+builddir="$srcdir/$pkgname-$pkgver"
+
+build() {
+	cd "$builddir"
+
+	mvn package --batch-mode
+}
+
+package() {
+	cd "$builddir"
+
+	install -m 644 -D target/plantuml.war "$pkgdir"/usr/share/java/$pkgname.war
+	install -m 644 -D "$srcdir"/$pkgname.confd "$pkgdir"/etc/conf.d/$pkgname
+	install -m 644 -D "$srcdir"/$pkgname.logrotated "$pkgdir"/etc/logrotate.d/$pkgname
+
+	mkdir -p "$pkgdir"/etc/init.d
+	ln -s jetty-runner "$pkgdir"/etc/init.d/$pkgname
+}
+
+sha512sums="cec20c43ae073a9b100fdc300946e49625fabc28daa23134a960bf8447e8f70668ef2dcb32a5e1b58440eb96a113447fee0d19ae152c1a6769a14e78cc716a48  plantuml-server-1.2018.13.tar.gz
+f8e615ed81d1bb7c61a6caeed045f65a595848797ce2a4e3a52c6fe7f049fb1763b43cffa4494b9744853323c92211e7f5bb383b9007de3e155c1df9eae6e81e  plantuml-server.confd
+26c4d829e55ed5e56c2a0a664a02b3ba54939738e4e33912103c26ea8fbb5641540e3b05bb619163589e7184952c8791612e5be6dc0757924eb4ec482e3fabb8  plantuml-server.logrotated"
