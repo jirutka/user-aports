@@ -2,7 +2,7 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitaly
 pkgver=0.120.0
-pkgrel=0
+pkgrel=1
 pkgdesc="A Git RPC service for handling all the git calls made by GitLab"
 url="https://gitlab.com/gitlab-org/gitaly/"
 arch="all"
@@ -22,6 +22,7 @@ makedepends="
 source="https://gitlab.com/gitlab-org/$pkgname/-/archive/v$pkgver/$pkgname-v$pkgver.tar.gz
 	gemfile-use-local-grpc.patch
 	config.patch
+	fix-1013-cookiecutter.patch
 	$pkgname.initd"
 builddir="$srcdir/$pkgname-v$pkgver"
 options="!check"
@@ -108,4 +109,5 @@ package() {
 sha512sums="cd446ebb00577706dbf129f05db6951a3a8564e56beb1bfcfd85702ed254f81c09aecba8f2a1e755838cf882d39538b2b9792df70ffb47e9ba0724abb26a747d  gitaly-v0.120.0.tar.gz
 528ae56f1111bff86d8dd46fc9aabc1e9632c8499a34793f9a4001a98249618bb841632eda56afc7dc9073148348300a91d72c87796a99cfc046d0f9845b344b  gemfile-use-local-grpc.patch
 e8f308a68586f2aed4357826d39415c049c4be9aea0df06e95cf9e91960bbec1ca28df34a2a6aa1052e792fd71c35863e17b28e41849c907ce66ace24b3c7560  config.patch
+11a517d5a4a0e32e24472e19b444cc9010af8de1c3534430c71e84dd14f797625ce546663162527568edc2022ab0266d28154aa0502d82f12e24d3127480bab6  fix-1013-cookiecutter.patch
 7e31fdeaa83e11ae345a53566c45b2baabfc1f87210b45c8423c5e352ed98e2bb6e1d03233fe8359fdeed05c8a0312ea38d8bed105d1becc72d3dd78221b70ca  gitaly.initd"
