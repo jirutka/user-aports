@@ -1,8 +1,8 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitlab-workhorse
-pkgver=6.1.0
-pkgrel=1
+pkgver=6.1.2
+pkgrel=0
 pkgdesc="A reverse proxy for GitLab"
 pkgusers="git"
 url="https://gitlab.com/gitlab-org/gitlab-workhorse/"
@@ -32,7 +32,7 @@ package() {
 	install -m755 -D "$srcdir"/$pkgname.initd "$pkgdir"/etc/init.d/gitlab.workhorse
 }
 
-sha512sums="083b0e8b055695195f4b17c9ed3ed2584b7c11fb18a2d348113d5ae6fd68353c0ecf4a1c2ba1e5b08dcd556eb073cb19cda8dd592d3afeaa0660e36a2e9db52b  gitlab-workhorse-v6.1.0.tar.gz
+sha512sums="148a6bd0f11966b3c2d0a517c6704d48ae9bd77978fe7a57c5f35a1b25b563cd3a91af1a3606dc28887d2428d9d3616b75171baa81b3fab76125d4a177eeb1fb  gitlab-workhorse-v6.1.2.tar.gz
 ecf45670ea534359c2fa80139054dccdac21ff585616639d8415acdd319e1477b55fb47fc1b857a927679639da57e41b70f92f4bb65c324c4aee3167dfffa502  allow-to-disable-access-log.patch
 c301f336d5c12da0d0ff2a9288e36d1cd5ea0b2e24e347104a606fe8cd19b26756f53a7c36b48a8547836e9c93b261ad18b3c0ff47e7e4632df03d07ed73bd6f  log-all-to-file.patch
 303847382fc973c92dd951ee43f7e06ecd3c7c6655752877cd2171e4c267a2dbbeed1faa45814d4bcc2a41a2a9f57d7a62366f0082612d50a5b935d9493ace52  workhorse.toml
