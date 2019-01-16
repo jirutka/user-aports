@@ -1,0 +1,16 @@
+# Configuration file for /etc/init.d/graylog-server
+
+# Location of the configuration file.
+#cfgfile="/etc/graylog/server/server.conf"
+
+# Where to redirect stdout/stderr.
+#logfile="/var/log/graylog/server.log"
+
+# Java min/max heap size in megabytes.
+#java_heap_size="1024"
+
+# Additional options to pass to java.
+#java_opts=""
+
+# Additional options to pass to Graylog.
+#graylog_opts=""

@@ -1,0 +1,75 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+# NOTE: I've tried to build graylog from the source, but building of
+# the web frontend is broken. :(
+pkgname=graylog
+pkgver=2.5.1
+pkgrel=0
+pkgdesc="Free and open source log management"
+url="https://www.graylog.org"
+arch="noarch"
+license="GPL-3.0-or-later"
+depends="openjdk8-jre-base sigar"
+pkgusers="graylog"
+pkggroups="graylog"
+install="$pkgname.pre-install $pkgname.post-install"
+subpackages="$pkgname-openrc"
+source="https://packages.graylog2.org/releases/$pkgname/$pkgname-$pkgver.tgz
+	graylog-conf.patch
+	$pkgname.initd
+	$pkgname.confd
+	$pkgname.logrotated
+	"
+builddir="$srcdir/graylog-$pkgver"
+
+_plugins="
+	aws
+	beats
+	cef
+	collector
+	enterprise-integration
+	map-widget
+	netflow
+	pipeline-processor
+	threatintel
+	"
+for _i in $_plugins; do
+	subpackages="$subpackages $pkgname-plugin-$_i:_plugin:noarch"
+done
+
+package() {
+	local destdir="$pkgdir/usr/share/java/graylog"
+	cd "$builddir"
+
+	install -m 755 -D graylog.jar "$destdir"/graylog-server.jar
+
+	install -m 644 -D data/contentpacks/grok-patterns.json \
+		"$destdir"/data/contentpacks/grok-patterns.json
+
+	install -m 640 -g graylog -D graylog.conf.example \
+		"$pkgdir"/etc/graylog/server/server.conf
+
+	install -m 755 -D "$srcdir"/$pkgname.initd "$pkgdir"/etc/init.d/$pkgname
+	install -m 644 -D "$srcdir"/$pkgname.confd "$pkgdir"/etc/conf.d/$pkgname
+	install -m 644 -D "$srcdir"/$pkgname.logrotated "$pkgdir"/etc/logrotate.d/$pkgname
+
+	install -m 755 -d "$destdir"/plugin
+	install -m 700 -o graylog -g graylog -d "$pkgdir"/var/lib/graylog/journal
+	install -m 750 -o graylog -g graylog -d "$pkgdir"/var/log/graylog
+}
+
+_plugin() {
+	local name="${subpkgname#$pkgname-plugin-}"
+	pkgdesc="$name plugin for Graylog"
+	depends="$pkgname=$pkgver-r$pkgrel"
+
+	cd "$builddir"
+	install -m 644 -D plugin/$subpkgname-$pkgver.jar \
+		"$subpkgdir"/usr/share/java/graylog/plugin/$subpkgname-$pkgver.jar
+}
+
+sha512sums="44e2ca00e47a34708cea94b74fdc0f56f3a381f161d25633bdf7685fbcd989937163508f8b47b0869c7daacec6c8bd2c874f9381e196ffb3194eb6e3f96b3ce9  graylog-2.5.1.tgz
+0408304ff7b48852376b63e8b821e2b0e2d4019f0f6ca60c739aa2eec85128950712501955e9c590c0ccb72da2474a2f8c60d3ab28ed7c0c5a08a6834dd6f97a  graylog-conf.patch
+bed5df5700f50306754641cffd8f2d22df90ed6197227c614dab572f9f25567677fc1568bdea5162a800539dad4a07da1419a5a49e3c14e59c4eab18e5a309e6  graylog.initd
+da8f3d63a5932524e87f8ffd6dc088db4dfd596f1a905a991b4a1fa7da5f6793b5b6cb3201693adec3a36fa8b84862bf98bfd7ab259c9fec798fb8d67bf33e90  graylog.confd
+3c3f6a08cd33b9442d34c6e4c24b175a611958515f471abfd5a4d4617c505a315bb39f2187d18bfb90571348147a4a6d84aa9b6dd604e564a6723ccfe196f1db  graylog.logrotated"

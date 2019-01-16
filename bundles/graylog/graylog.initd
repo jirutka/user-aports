@@ -1,0 +1,44 @@
+#!/sbin/openrc-run
+
+name="Graylog"
+
+: ${command_user:="graylog"}
+: ${cfgfile:="/etc/graylog/server/server.conf"}
+: ${logfile:="/var/log/graylog/server.log"}
+: ${java_heap_size:="1024"}
+
+java_opts="
+	-server
+	-Djava.awt.headless=true
+	-Dfile.encoding=utf-8
+	-XX:NewRatio=1
+	-XX:+ResizeTLAB
+	-XX:+UseConcMarkSweepGC
+	-XX:+CMSConcurrentMTEnabled
+	-XX:+CMSClassUnloadingEnabled
+	-XX:+UseParNewGC
+	-XX:-OmitStackTraceInFastThrow
+	-Xms${java_heap_size}M -Xmx${java_heap_size}M
+	$java_opts"
+
+command="java"
+command_args="
+	$java_opts
+	-jar /usr/share/java/graylog/graylog-server.jar
+	server
+	-f $cfgfile
+	$graylog_opts"
+command_background="yes"
+
+directory="/var/lib/graylog"
+error_log="$logfile"
+output_log="$logfile"
+pidfile="/run/$RC_SVCNAME.pid"
+retry="TERM/20/KILL/5"
+start_stop_daemon_args="--interpreted"
+
+required_files="$cfgfile"
+
+depend() {
+	use net
+}
