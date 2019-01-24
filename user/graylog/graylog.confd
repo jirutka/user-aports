@@ -4,7 +4,7 @@
 #cfgfile="/etc/graylog/server/server.conf"
 
 # Where to redirect stdout/stderr.
-#logfile="/var/log/graylog/server.log"
+#logfile="/var/log/graylog-server/server.log"
 
 # Java min/max heap size in megabytes.
 #java_heap_size="1024"

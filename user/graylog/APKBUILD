@@ -4,7 +4,7 @@
 # the web frontend is broken. :(
 pkgname=graylog
 pkgver=2.5.1
-pkgrel=2
+pkgrel=3
 pkgdesc="Free and open source log management"
 url="https://www.graylog.org"
 arch="noarch"
@@ -39,7 +39,7 @@ for _i in $_plugins; do
 done
 
 package() {
-	local destdir="$pkgdir/usr/share/java/graylog"
+	local destdir="$pkgdir/usr/share/graylog-server"
 	cd "$builddir"
 
 	install -m 755 -D graylog.jar "$destdir"/graylog-server.jar
@@ -56,8 +56,8 @@ package() {
 	install -m 755 -D "$srcdir"/setup-graylog "$pkgdir"/usr/sbin/setup-graylog
 
 	install -m 755 -d "$destdir"/plugin
-	install -m 700 -o graylog -g graylog -d "$pkgdir"/var/lib/graylog/journal
-	install -m 750 -o graylog -g graylog -d "$pkgdir"/var/log/graylog
+	install -m 700 -o graylog -g graylog -d "$pkgdir"/var/lib/graylog-server/journal
+	install -m 750 -o graylog -g graylog -d "$pkgdir"/var/log/graylog-server
 }
 
 _plugin() {
@@ -67,12 +67,12 @@ _plugin() {
 
 	cd "$builddir"
 	install -m 644 -D plugin/$subpkgname-$pkgver.jar \
-		"$subpkgdir"/usr/share/java/graylog/plugin/$subpkgname-$pkgver.jar
+		"$subpkgdir"/usr/share/graylog-server/plugin/$subpkgname-$pkgver.jar
 }
 
 sha512sums="44e2ca00e47a34708cea94b74fdc0f56f3a381f161d25633bdf7685fbcd989937163508f8b47b0869c7daacec6c8bd2c874f9381e196ffb3194eb6e3f96b3ce9  graylog-2.5.1.tgz
-ff4f9bcd209b7a9e4fec570f957fb41068e15a9ab2032d40ed41626d37800234a41b63e1a11375a5ef3fce8d1e360ed435cb56d743ba928cc7b2b21f2569910c  graylog-conf.patch
-ed18ca5c07681f23e3fda2ddb2f6c86e95a6400299833349740e626ca7bd28592ea53c90c8ff9d2318155415485839ee164442264372f04dfb0e1a1e40534e68  graylog.initd
-da8f3d63a5932524e87f8ffd6dc088db4dfd596f1a905a991b4a1fa7da5f6793b5b6cb3201693adec3a36fa8b84862bf98bfd7ab259c9fec798fb8d67bf33e90  graylog.confd
-3c3f6a08cd33b9442d34c6e4c24b175a611958515f471abfd5a4d4617c505a315bb39f2187d18bfb90571348147a4a6d84aa9b6dd604e564a6723ccfe196f1db  graylog.logrotated
+43d592b9c7bac0eb3a48125badee61b7619d4822f686473a608401d685d38856beed725a066a9c94b0e1664a89508a5bdf58123d7352874ff4db538fdbb1082e  graylog-conf.patch
+2aab4fdd2c8a77ae65b3c804e6c9451a047913b7d7014fa8a7b995a15479f1e8383c5734c83b5abfa480113975bf0ccad1cfedc8836d2a35ab7098f6fba9df62  graylog.initd
+a5839ec3f3f595ba324c7fda2b92953438618d0e0162a89f8bc6157de3fe6aa3b3ed5ced18d94ef6c9ac29ea584c4300f87c92cb51bacf8c36e80d07538281b1  graylog.confd
+18cc4282ea50abea72a6238d8984bc5c5ccb410cc1d03383c60d1a9a31c8d56c1baa711f1416b116f92a77733776cf578fc45bd11d6ff3e9d1dd92ba572271da  graylog.logrotated
 2eb389f39dc98916f070ad631abd9bebfbec1f4e4bb07b966c798ab49de812fed10c16410a72ceef7e88ffe6b5ac644fb2826c6a5237e9eba96788e25b2052da  setup-graylog"

@@ -5,7 +5,7 @@ name="Graylog"
 
 : ${command_user:="graylog"}
 : ${cfgfile:="/etc/graylog/server/server.conf"}
-: ${logfile:="/var/log/graylog/server.log"}
+: ${logfile:="/var/log/graylog-server/server.log"}
 : ${java_heap_size:="1024"}
 
 java_opts="
@@ -25,13 +25,13 @@ java_opts="
 command="java"
 command_args="
 	$java_opts
-	-jar /usr/share/java/graylog/graylog-server.jar
+	-jar /usr/share/graylog-server/graylog-server.jar
 	server
 	-f $cfgfile
 	$graylog_opts"
 command_background="yes"
 
-directory="/var/lib/graylog"
+directory="/var/lib/graylog-server"
 error_log="$logfile"
 output_log="$logfile"
 pidfile="/run/$RC_SVCNAME.pid"
