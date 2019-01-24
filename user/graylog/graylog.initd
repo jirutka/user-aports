@@ -1,4 +1,5 @@
 #!/sbin/openrc-run
+supervisor=supervise-daemon
 
 name="Graylog"
 
@@ -35,7 +36,8 @@ error_log="$logfile"
 output_log="$logfile"
 pidfile="/run/$RC_SVCNAME.pid"
 retry="TERM/20/KILL/5"
-start_stop_daemon_args="--interpreted"
+respawn_period=60
+respawn_max=1
 
 required_files="$cfgfile"
 
