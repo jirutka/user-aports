@@ -5,7 +5,7 @@
 pkgname=graylog-server
 _pkgname=graylog
 pkgver=2.5.1
-pkgrel=0
+pkgrel=1
 pkgdesc="Free and open source log management"
 url="https://www.graylog.org"
 arch="noarch"
@@ -57,8 +57,11 @@ package() {
 	install -m 755 -D "$srcdir"/setup-graylog "$pkgdir"/usr/sbin/setup-graylog
 
 	install -m 755 -d "$destdir"/plugin
-	install -m 700 -o graylog -g graylog -d "$pkgdir"/var/lib/graylog-server/journal
-	install -m 750 -o graylog -g graylog -d "$pkgdir"/var/log/graylog-server
+	install -m 700 -o graylog -g graylog -d \
+		"$pkgdir"/var/lib/graylog-server \
+		"$pkgdir"/var/lib/graylog-server/journal
+	install -m 750 -o graylog -g graylog -d \
+		"$pkgdir"/var/log/graylog-server
 }
 
 _plugin() {
