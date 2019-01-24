@@ -43,4 +43,5 @@ required_files="$cfgfile"
 
 depend() {
 	use net
+	after elasticsearch mongodb
 }
