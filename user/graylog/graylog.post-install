@@ -15,3 +15,5 @@ if [ ! -f "$idfile" ]; then
 
 	cat /proc/sys/kernel/random/uuid > "$idfile"
 fi
+
+echo '* Run setup-graylog to set admin password' >&2

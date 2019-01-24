@@ -1,0 +1,24 @@
+#!/bin/sh
+set -e
+
+CFGFILE='/etc/graylog/server/server.conf'
+
+
+printf 'Enter new password for the admin user: '
+read -s pass
+printf '\n'
+[ "$pass" ] || exit 1
+
+hash=$(printf "$pass" | sha256sum | cut -d ' ' -f1)
+sed -i "s|^#*\(root_password_sha2\s*=\).*|\1 $hash|" "$CFGFILE"
+
+
+printf 'Email address of the admin user: '
+read email
+printf '\n'
+
+if [ "$email" ]; then
+	sed -i "s|^#*\(root_email\s*=\).*|\1 $email|" "$CFGFILE"
+else
+	sed -i "s|^#*\(root_email\s*=\).*|#\1|" "$CFGFILE"
+fi
