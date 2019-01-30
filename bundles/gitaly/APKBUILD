@@ -1,8 +1,8 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitaly
-pkgver=0.120.0
-pkgrel=1
+pkgver=0.120.1
+pkgrel=0
 pkgdesc="A Git RPC service for handling all the git calls made by GitLab"
 url="https://gitlab.com/gitlab-org/gitaly/"
 arch="all"
@@ -106,7 +106,7 @@ package() {
 		-o -name mkmf.log -delete
 }
 
-sha512sums="cd446ebb00577706dbf129f05db6951a3a8564e56beb1bfcfd85702ed254f81c09aecba8f2a1e755838cf882d39538b2b9792df70ffb47e9ba0724abb26a747d  gitaly-v0.120.0.tar.gz
+sha512sums="1e734cce50110a1ed998f6df61cc1492cbb961d77adb904feed95b7918d9d7d4d7e1804f675f9ec3c550e9cbf48e57bbb344005584c3c64aff0d5c0e24ba2a62  gitaly-v0.120.1.tar.gz
 528ae56f1111bff86d8dd46fc9aabc1e9632c8499a34793f9a4001a98249618bb841632eda56afc7dc9073148348300a91d72c87796a99cfc046d0f9845b344b  gemfile-use-local-grpc.patch
 e8f308a68586f2aed4357826d39415c049c4be9aea0df06e95cf9e91960bbec1ca28df34a2a6aa1052e792fd71c35863e17b28e41849c907ce66ace24b3c7560  config.patch
 11a517d5a4a0e32e24472e19b444cc9010af8de1c3534430c71e84dd14f797625ce546663162527568edc2022ab0266d28154aa0502d82f12e24d3127480bab6  fix-1013-cookiecutter.patch
