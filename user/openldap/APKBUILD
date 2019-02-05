@@ -18,7 +18,7 @@ license="custom"
 depends=""
 pkgusers="ldap"
 pkggroups="ldap"
-depends_dev="libressl-dev cyrus-sasl-dev util-linux-dev"
+depends_dev="openssl-dev cyrus-sasl-dev util-linux-dev"
 makedepends="$depends_dev db-dev groff unixodbc-dev libtool mosquitto-dev
 	autoconf automake"
 subpackages="$pkgname-dev $pkgname-doc libldap

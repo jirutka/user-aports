@@ -12,7 +12,7 @@ url="https://github.com/grpc/grpc"
 arch="all"
 license="BSD-3-Clause"
 depends="ca-certificates ruby-google-protobuf"
-makedepends="c-ares-dev libressl-dev ruby ruby-dev ruby-etc zlib-dev"
+makedepends="c-ares-dev openssl-dev ruby ruby-dev ruby-etc zlib-dev"
 source="$_pkgname-$pkgver.tar.gz::https://github.com/grpc/$_pkgname/archive/v$pkgver.tar.gz
 	use-system-provided-deps.patch
 	use-system-certs.patch

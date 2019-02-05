@@ -9,7 +9,7 @@ arch="all"
 license="GPL LGPL2+"
 subpackages="$pkgname-dev $pkgname-doc $pkgname-lang $pkgname-libs
 	$pkgname-ppdc $pkgname-ipptool $pkgname-client"
-depends="!cups $pkgname-client=$pkgver-r$pkgrel poppler-utils libressl"
+depends="!cups $pkgname-client=$pkgver-r$pkgrel poppler-utils openssl"
 depends_dev="gnutls-dev zlib-dev"
 makedepends="$depends_dev libpaper-dev libjpeg-turbo-dev openldap-dev
 	linux-headers"
