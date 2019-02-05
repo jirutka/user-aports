@@ -40,7 +40,7 @@ makedepends="
 	libxml2-dev
 	libxslt-dev
 	linux-headers
-	libressl-dev
+	openssl-dev
 	postgresql-dev
 	protobuf-dev
 	nodejs>=8.0.0

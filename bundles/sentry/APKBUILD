@@ -9,7 +9,7 @@ arch=""  # FIXME
 license="BSD"
 depends="libpq libxslt python2 py-setuptools redis uwsgi-python>2.0.0"
 makedepends="ca-certificates libffi-dev libxml2-dev libxslt-dev libzip-dev
-	linux-headers libressl-dev postgresql-dev python2-dev py2-pip"
+	linux-headers openssl-dev postgresql-dev python2-dev py2-pip"
 install="$pkgname.pre-install $pkgname.post-install $pkgname.post-upgrade"
 source="https://github.com/getsentry/sentry/releases/download/$pkgver/$pkgname-$pkgver.tar.gz
 	$pkgname

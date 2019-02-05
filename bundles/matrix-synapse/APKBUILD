@@ -9,7 +9,7 @@ url="https://matrix.org"
 arch=""  # FIXME
 license="Apache-2.0"
 depends="python2"
-makedepends="libffi-dev libjpeg-turbo-dev libressl-dev libsodium-dev
+makedepends="libffi-dev libjpeg-turbo-dev openssl-dev libsodium-dev
 	linux-headers postgresql-dev python2-dev py2-pip py2-virtualenv
 	yaml-dev zlib-dev"
 pkgusers="synapse"
