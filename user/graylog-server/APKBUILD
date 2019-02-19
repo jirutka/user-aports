@@ -4,8 +4,8 @@
 # the web frontend is broken. :(
 pkgname=graylog-server
 _pkgname=graylog
-pkgver=2.5.1
-pkgrel=1
+pkgver=3.0.0
+pkgrel=0
 pkgdesc="Free and open source log management"
 url="https://www.graylog.org"
 arch="noarch"
@@ -14,6 +14,7 @@ depends="openjdk8-jre-base sigar"
 pkgusers="graylog"
 pkggroups="graylog"
 install="$pkgname.pre-install $pkgname.post-install"
+provides=""
 subpackages="$pkgname-openrc"
 source="https://packages.graylog2.org/releases/$_pkgname/$_pkgname-$pkgver.tgz
 	graylog-conf.patch
@@ -24,15 +25,14 @@ source="https://packages.graylog2.org/releases/$_pkgname/$_pkgname-$pkgver.tgz
 	"
 builddir="$srcdir/$_pkgname-$pkgver"
 
+# For backward compatibility with <3.0.0.
+for _i in beats cef enterprise-integration map-widget netflow pipeline-processor; do
+	provides="$provides $pkgname-$_i=$pkgver-r$pkgrel"
+done
+
 _plugins="
 	aws
-	beats
-	cef
 	collector
-	enterprise-integration
-	map-widget
-	netflow
-	pipeline-processor
 	threatintel
 	"
 for _i in $_plugins; do
@@ -44,9 +44,6 @@ package() {
 	cd "$builddir"
 
 	install -m 755 -D graylog.jar "$destdir"/graylog-server.jar
-
-	install -m 644 -D data/contentpacks/grok-patterns.json \
-		"$destdir"/data/contentpacks/grok-patterns.json
 
 	install -m 640 -g graylog -D graylog.conf.example \
 		"$pkgdir"/etc/graylog/server/server.conf
@@ -75,8 +72,8 @@ _plugin() {
 		"$subpkgdir"/usr/share/graylog-server/plugin/$jarname
 }
 
-sha512sums="44e2ca00e47a34708cea94b74fdc0f56f3a381f161d25633bdf7685fbcd989937163508f8b47b0869c7daacec6c8bd2c874f9381e196ffb3194eb6e3f96b3ce9  graylog-2.5.1.tgz
-43d592b9c7bac0eb3a48125badee61b7619d4822f686473a608401d685d38856beed725a066a9c94b0e1664a89508a5bdf58123d7352874ff4db538fdbb1082e  graylog-conf.patch
+sha512sums="8910b5b88b17d24b6e081a5e6c63622cfe47478bb8a179492c7aeb2710fdfef01a3c52dfc17a7a30aa2282dc35fd79357a0d6861273eedd2399208af05bd4ca9  graylog-3.0.0.tgz
+1442754ca8cf64034911142361e17706e55bdd1e37ed03276060bbc798ee0d1d35961c56cdc9a4568fbebde14ad9e61241814699c8e5ea8ad4807ca38cb1401a  graylog-conf.patch
 3d1b485a8450404a4e94e3e00c851cc3b98f408ee6a2edb3bd287b588bc11c6fa4a23b9eebe94777a1034840310fa5b0022815e866b6cd72517d928d9d44a900  graylog-server.initd
 a5839ec3f3f595ba324c7fda2b92953438618d0e0162a89f8bc6157de3fe6aa3b3ed5ced18d94ef6c9ac29ea584c4300f87c92cb51bacf8c36e80d07538281b1  graylog-server.confd
 18cc4282ea50abea72a6238d8984bc5c5ccb410cc1d03383c60d1a9a31c8d56c1baa711f1416b116f92a77733776cf578fc45bd11d6ff3e9d1dd92ba572271da  graylog-server.logrotated
