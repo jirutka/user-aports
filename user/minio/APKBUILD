@@ -2,8 +2,8 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=minio
 _goname=github.com/minio/$pkgname
-pkgver=20180209
-_srcver="${pkgver:0:4}-${pkgver:4:2}-${pkgver:6:2}T22:40:05Z"
+pkgver=20190220
+_srcver="${pkgver:0:4}-${pkgver:4:2}-${pkgver:6:2}T22-44-29Z"
 _srctag="RELEASE.${_srcver//:/-}"
 pkgrel=1
 pkgdesc="An open source object storage server compatible with Amazon S3 APIs"
@@ -62,7 +62,7 @@ package() {
 		"$pkgdir"/var/lib/$pkgname/data
 }
 
-sha512sums="12efe6e43be6db63fa84966310662371c4eb8082be1b146dc554d9858251ae1beadea42513863a0358b96c6e021cab808fb6e6b3b2b721aae137f5d860c55b44  minio-20180209.tar.gz
+sha512sums="c3c57093386e4b70b4890114149932741a8e5c9b6a4ecdf12b101d3b53d3d5601559a41b7d27e61e5aaa16d05497ee086150be98d80616cef98836848a6af33a  minio-20190220.tar.gz
 2eab23752e941f6e90365e9f88a22ec2a6b842bc62019790ada1b034a1caa458f443276ac6b17619242e60cb2b951fbe50c80f13a8519aec4300595f65905397  minio.initd
 bdf16f637f61ab2604a07ef30dfb3f39cb020a6bcdf946c01cfdbbabbc57d4551ec332e578a91ab7bd0da71d9096c83de54af8ffcf898bb7d59151ed5461b63a  minio.confd
 3bca81d1601bd5af20e803ca033a777d83fe62bc90f876b27d1b7e7b98eeb62a0dd52ec2a957f64737edb1c289d73f81824169b054e2c88a52b6e99c3868df1c  minio.logrotate
