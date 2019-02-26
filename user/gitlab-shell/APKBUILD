@@ -1,7 +1,7 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitlab-shell
-pkgver=8.3.3
+pkgver=8.4.4
 pkgrel=0
 pkgdesc="GitLab Shell handles git commands for GitLab."
 url="https://github.com/gitlabhq/gitlab-shell"
@@ -64,6 +64,6 @@ package() {
 	ln -s /etc/gitlab/gitlab-shell.yml "$sharedir"/config.yml
 }
 
-sha512sums="089f565b85d7cef3ca222fd9d835c604ff59fc63c2d92e0554802d92939a43f1bfea3a68b762397dd032b3c2a24059a5f199502708d26547f13c8b53044b767d  gitlab-shell-v8.3.3.tar.gz
+sha512sums="ff8df139700b277d715b0259e53a5937b8ba4017ba7c1c13412b6b2a51794148c5175c4d3fc1d9c10b06fea4fd30386b1b259a3ebd2d87787d7503b3f9783031  gitlab-shell-v8.4.4.tar.gz
 d2f0740bccc5ff19d36a83c61ebb8e5f110662d3f5ddd3520cd5f59d4c65bbaf3f980512f49a841f153a446a3501f79606a263c892ecf1954fd3549143dcf7f9  gitconfig
 208c2dc3a78bd890ecdce7e40ccb2edf40a481ae314967cb0c7c7e299c8f1324ab363851fe6ea375b9ecfd6bf0fbb4a6ee3e32e30a6f1b82ec32c323b721f47f  0001-fix-paths.patch"
