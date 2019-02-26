@@ -5,7 +5,7 @@
 # all conventions and best-practices, that's why so much patching...
 pkgname=ruby-grpc
 _pkgname=grpc
-pkgver=1.11.0
+pkgver=1.15.0
 pkgrel=0
 pkgdesc="An RPC library and framework"
 url="https://github.com/grpc/grpc"
@@ -39,7 +39,10 @@ prepare() {
 build() {
 	cd "$builddir"
 
-	export CPPFLAGS="$CPPFLAGS -Wno-error=maybe-uninitialized"
+	export CPPFLAGS="$CPPFLAGS \
+		-Wno-error=class-memaccess \
+		-Wno-error=ignored-qualifiers \
+		-Wno-error=maybe-uninitialized"
 
 	gem build $_pkgname.gemspec
 	gem install \
@@ -67,7 +70,7 @@ package() {
 	rm -r bin ext lib/grpc/grpc_c.so pb/README.md pb/src pb/test spec || true
 }
 
-sha512sums="3127cf0e66cd0712d905e6008adf6f80d787ad97eae2fba38fa3f4d343849a3dc3ca8f2ccbc82020e812fdb272e9577584c298a5b623fbdcac40c1efd7877855  grpc-1.11.0.tar.gz
+sha512sums="2a958d93bf737e074216b121bc8e65c9c5151e6f8cfd5a3e9f826413d2734fdcdbd5659482c8d0b2a5e9a4ae537f5c1dfb58ee8ecf844ec95fe46659fb937e06  grpc-1.15.0.tar.gz
 9b64ae51780595d200f5a2d6239b1cce492d10189af00287d10d3dc2fb409b06ab9181e1ad79cc5d4d59d2bf4c598b1e2c9b4503dbcf53bf45e84fecc31ff885  use-system-provided-deps.patch
 e967b0a1d81fa528b859ada26d1244087dfe53aba2513a576ec38ebc07b8c9b6a261f5ce6197e178cc129212514ee65dd85d7daa1cb1431793e78f0396fc1d9f  use-system-certs.patch
-abc989d77d1e3b34e90c06826f3740cbe5a15194937abee6046dfa46691882d3e2ab3594f9a29d2685e5c862bdcfbb73ccac2855aa2f82c812b1fe885679411b  fix-extconf.patch"
+fc1c0fc5bbb738d67e5a1730cc8abf21b4319a25f56fec41ba02fcb54d57cecf15f42a747d7079aab92bc7145235adb198e28493ea82bb504931546ff695fd66  fix-extconf.patch"
