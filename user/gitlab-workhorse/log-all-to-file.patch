@@ -1,6 +1,6 @@
 --- a/logging.go
 +++ b/logging.go
-@@ -59,9 +59,11 @@
+@@ -61,9 +61,11 @@
  	case noneLogType:
  		accessLogEntry = nil
  		logOutputWriter = ioutil.Discard
@@ -12,16 +12,20 @@
  	case textLogFormat:
  		accessLogger := log.New()
  		accessLogger.Formatter = helper.NewAccessLogFormatter()
-@@ -70,6 +72,8 @@
+@@ -72,10 +74,12 @@
  		accessLogEntry = accessLogger.WithField("system", "http")
  
  		log.SetFormatter(&log.TextFormatter{})
-+
++		goLog.SetOutput(logOutputWriter)
+ 	case structuredFormat:
+ 		formatter := &log.TextFormatter{ForceColors: true, EnvironmentOverrideColors: true}
+ 		log.SetFormatter(formatter)
+ 		accessLogEntry = log.WithField("system", "http")
 +		goLog.SetOutput(logOutputWriter)
  	default:
  		log.WithField("logFormat", config.logFormat).Fatal("Unknown logFormat configured")
  	}
-@@ -78,8 +82,4 @@
+@@ -84,8 +88,4 @@
  		helper.SetAccessLoggerEntry(accessLogEntry)
  	}
  	log.SetOutput(logOutputWriter)
