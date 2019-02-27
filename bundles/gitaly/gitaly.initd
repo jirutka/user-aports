@@ -28,6 +28,6 @@ start_pre() {
 	local socket_path=$(sed -En "s/^\s*socket_path\s*=\s*[\"']([^\"']+)[\"']/\1/p" "$gitaly_config")
 
 	[ -z "$socket_path" ] \
-		|| checkpath -d -m 750 -o $user "$socket_path"
+		|| checkpath -d -m 750 -o $user "${socket_path%/*}"
 	checkpath -f -m 640 -o $user "$gitaly_logfile"
 }

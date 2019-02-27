@@ -2,7 +2,7 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitaly
 pkgver=1.12.2
-pkgrel=0
+pkgrel=1
 pkgdesc="A Git RPC service for handling all the git calls made by GitLab"
 url="https://gitlab.com/gitlab-org/gitaly/"
 arch="all"
@@ -108,4 +108,4 @@ package() {
 sha512sums="c2bd1b713694380808c3e3b42c7b8ea5e81477a90d022fc68a9b7de0c572bda4a6c72cdcb2e76dfdcb5b0e7cf56e88af6ee8b7784cb17e568d4808238e1e9cd1  gitaly-v1.12.2.tar.gz
 83ebee5145382965ffcf82366db7cd3d0655f42e980e19272629aee52333150c3b0e7938440797a68a47cafb78213d714e60730939d5931bec36abf034ab6b81  gemfile-use-local-grpc.patch
 e8f308a68586f2aed4357826d39415c049c4be9aea0df06e95cf9e91960bbec1ca28df34a2a6aa1052e792fd71c35863e17b28e41849c907ce66ace24b3c7560  config.patch
-7e31fdeaa83e11ae345a53566c45b2baabfc1f87210b45c8423c5e352ed98e2bb6e1d03233fe8359fdeed05c8a0312ea38d8bed105d1becc72d3dd78221b70ca  gitaly.initd"
+cf84f4fb7dccddecb54ab6fef169529e7841815f5ebdb829ff2fe0c6b3d663a8be5a06ab8c3a78bb5536410f96224afd212fa43c6302e891dfcb1c06fd5444c5  gitaly.initd"
