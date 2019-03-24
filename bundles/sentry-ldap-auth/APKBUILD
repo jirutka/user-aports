@@ -10,18 +10,18 @@ arch=""  # FIXME
 license="ASL"
 depends="libldap>=2.4 python sentry>=8"
 makedepends="openldap-dev>=2.4 python2-dev py2-pip"
-source="saveas-https://github.com/Banno/$_pkgname/archive/$pkgver.tar.gz/$pkgname-$pkgver.tar.gz
+source="https://github.com/Banno/$_pkgname/archive/$pkgver/$pkgname-$pkgver.tar.gz
 	constraints.txt"
+builddir="$srcdir/$_pkgname-$pkgver"
 
-_builddir="$srcdir/$_pkgname-$pkgver"
 _prefix="/usr/lib/bundles/sentry"
 
 build() {
-	cd "$_builddir"
+	cd "$builddir"
 
 	PYTHONPATH="$_prefix/lib/python2.7/site-packages" pip install \
-		--root="$_builddir" \
-		--install-option="--root=$_builddir" \
+		--root="$builddir" \
+		--install-option="--root=$builddir" \
 		--install-option="--no-compile" \
 		--isolated \
 		--disable-pip-version-check \
@@ -32,15 +32,11 @@ build() {
 }
 
 package() {
-	cd "$_builddir"
+	cd "$builddir"
 
 	install -m755 -d "${pkgdir}${_prefix}"
 	cp -r usr/* "${pkgdir}${_prefix}"/
 }
 
-md5sums="71392bfa441ccfdd1de5da45135b35d6  sentry-ldap-auth-2.0.tar.gz
-acb6648793f5b0c6ce7d05e896266bb7  constraints.txt"
-sha256sums="2dd09458a7cb404b8274b568c63271f55074934522355af0747abb63319a1507  sentry-ldap-auth-2.0.tar.gz
-ca8abf581135918038631d046dab01aea18996dd2a1572c46ce8b6b833e757a7  constraints.txt"
 sha512sums="b2a930ecfab333354e5b00e2450bd1cf6805f6b3746d777d0d71d9b1c149b3bf7835ce7f4862aca0f1a28cf25397a895ecbe95699caf419c50729eb1868c5780  sentry-ldap-auth-2.0.tar.gz
 86a873e8d69079f1bbecdcc5f26d519190e5e8adf2af8a59f5b074004b836d7557bdc1097a9b8e5ff2ffb13a3374414a7c1edc7a105fb24028aaa87a92370efb  constraints.txt"
