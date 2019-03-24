@@ -2,7 +2,7 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=sentry
 pkgver=8.2.5
-pkgrel=0
+pkgrel=1
 pkgdesc="Sentry provides real-time crash reporting for your web apps, mobile apps, and games."
 url="https://github.com/getsentry/sentry"
 arch="all"
@@ -20,6 +20,7 @@ source="https://github.com/getsentry/sentry/releases/download/$pkgver/$pkgname-$
 	0001-fix-setup.py.patch
 	0002-config-template.patch
 	update-psycopg2.patch
+	fix-redis-version.patch
 	"
 builddir="$srcdir/$pkgname-$pkgver"
 
@@ -72,4 +73,5 @@ e670937322b9bbc816f957e219219c7049fed350065177d4bfd4eb4daf66894182d358322fcef622
 31f0b351e339ec50da06ed311e1646a6290b3e20a76ead8e773cdeb9f42274e65055ffc2426dc89ad5171cb186723b72c709143bd92e081ef622c114226d97a1  sentry.logrotate
 f7ec86d07b8cae2bfcf2c874fddd45de1578e9c0bb1e7e02a029125b2203c172db4cbdffa67a4e667c7ca64abac7632328c3b3014a098d543bd35388af36563c  0001-fix-setup.py.patch
 308c168f10a56f0d11333d371d66ad2bf849e273d3349d3f78e51d70a0e23e4d5e0f49224c6f3b7ffc406bfd28bc7b2770089b7cf16dbddc7b476bd28631d193  0002-config-template.patch
-5dfb89995b7e09a42ae522c83b4bc4e934cb4be87d3f300d865ca07e75a20422495f52d67023c2aa717314562c5dfbcf20700025f4cdcd3eb61f76959083c19f  update-psycopg2.patch"
+5dfb89995b7e09a42ae522c83b4bc4e934cb4be87d3f300d865ca07e75a20422495f52d67023c2aa717314562c5dfbcf20700025f4cdcd3eb61f76959083c19f  update-psycopg2.patch
+a4b0369c2eb4fa61a2d5a6ef92d426781af02e4cd65c45886296a839e0cdba109241d03be6a6096f1290c9d93a321c7bc117b91ce26690d3512f4eb83d7c7933  fix-redis-version.patch"

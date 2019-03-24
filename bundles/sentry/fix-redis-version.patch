@@ -1,0 +1,13 @@
+See https://github.com/getsentry/raven-python/issues/1062
+
+--- a/setup.py
++++ b/setup.py
+@@ -119,7 +119,7 @@
+     'python-memcached>=1.53,<2.0.0',
+     'PyYAML>=3.11,<4.0',
+     'raven>=5.3.0',
+-    'redis>=2.10.3,<2.11.0',
++    'redis==2.10.5',
+     'requests%s>=2.9.1,<2.10.0' % (not IS_LIGHT_BUILD and '[security]' or ''),
+     'simplejson>=3.2.0,<3.9.0',
+     'six>=1.6.0,<2.0.0',
