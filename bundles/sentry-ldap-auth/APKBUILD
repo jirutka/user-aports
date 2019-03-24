@@ -6,7 +6,7 @@ pkgver="2.0"
 pkgrel="0"
 pkgdesc="A Sentry extension to add an LDAP server as an authention source."
 url="https://github.com/Banno/getsentry-ldap-auth"
-arch=""  # FIXME
+arch="all"
 license="ASL"
 depends="libldap>=2.4 python sentry>=8"
 makedepends="openldap-dev>=2.4 python2-dev py2-pip"
