@@ -1,0 +1,5 @@
+production:
+  redis_url: redis://localhost:6379
+  namespace: resque:gitlab
+  queue: email_receiver
+  worker: EmailReceiverWorker

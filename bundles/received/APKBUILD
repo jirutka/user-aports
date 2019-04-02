@@ -1,0 +1,78 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=received
+pkgver=0.5_git20190403
+_gitrev=5da7c2eb70375921496ca412f5b9b47326b156ad
+pkgrel=0
+pkgdesc="LMTP server that delivers mails to Sidekiq/Redis"
+url="https://github.com/jirutka/received"
+arch="all"
+license="MIT"
+depends="ruby ruby-etc ruby-json"
+makedepends="icu-dev ruby-dev zlib-dev"
+subpackages="$pkgname-openrc"
+source="https://github.com/jirutka/$pkgname/archive/$_gitrev.tar.gz
+	$pkgname.initd
+	$pkgname.confd
+	$pkgname.yml
+	remove-mongo.patch
+	"
+builddir="$srcdir/$pkgname-$_gitrev"
+
+_prefix="/usr/lib/bundles/$pkgname"
+
+build() {
+	gem build $pkgname.gemspec
+
+	mkdir build
+	gem install \
+		--no-document \
+		--install-dir="build" \
+		$pkgname-*.gem
+
+	cd build
+
+	# Add text after the first line of the file.
+	sed -i -e "1a ENV['GEM_PATH'] = '$_prefix'" \
+		-e "1a Gem.clear_paths" bin/received
+
+	# Remove tests, documentations and other useless files.
+	find gems/ \( -name 'docs' \
+	           -o -name 'examples' \
+	           -o -name 'tests' \) \
+		-type d -maxdepth 2 -exec rm -fr "{}" +
+	find gems/ \( -name 'README*' \
+	           -o -name 'CHANGELOG*' \
+	           -o -name 'LICENSE*' \
+	           -o -name '.*' \) \
+		-type f -delete
+
+	# Remove sources and binaries of native extensions (they are installed
+	# in extensions directory).
+	find gems/ -type d -name ext -maxdepth 2 -exec rm -frv "{}" +
+	find gems/ -name '*.so' -delete
+
+	# Remove build logs and cache.
+	rm -Rf build_info/ cache/
+	find extensions/ \( -name gem_make.out -o -name mkmf.log \) -delete
+}
+
+package() {
+	cd "$builddir"/build
+
+	mkdir -p "$pkgdir"$_prefix
+	cp -r bin extensions gems specifications "$pkgdir"$_prefix/
+
+	mkdir -p "$pkgdir"/usr/bin
+	ln -sf $_prefix/bin/received "$pkgdir"/usr/bin/received
+
+	install -m 644 -D "$srcdir"/$pkgname.yml "$pkgdir"/etc/$pkgname.yml
+	install -m 755 -D "$srcdir"/$pkgname.initd "$pkgdir"/etc/init.d/$pkgname
+	install -m 644 -D "$srcdir"/$pkgname.confd "$pkgdir"/etc/conf.d/$pkgname
+}
+
+sha512sums="45abccde5c96d1e542d0698cadc6c2a35246ac281eb729f97b21af0a1f0511399c6403008b85e5299ac034ad9db836a808a44524efff71a63b64b396be472d13  5da7c2eb70375921496ca412f5b9b47326b156ad.tar.gz
+538d6a6a632291ada3d0f892c8cc355c0e7820ce57de3776b40750b0b233366f8353231151d96da291592380e02ddf0440a826311c68545b7c47d66c54c434f9  received.initd
+f38f58264bdc9f3a6a814ae8a7d8a1665420884280641e82d6f5187675a7e3e20e5ca2dedafd016fcce7e7b4f42cc9a76d4fac4b111259ea931d28753e40242d  received.confd
+733f134ddaccb11fe395ef36d9214572704a97e8de9178d7f512ad9e7e0ed968729d5a7b01b505b141188cc97a5dd726a5821d50e7a32121f927010539231bc4  received.yml
+f225e852dc2b11b5925dcb12bb284f6bd67113226ae1ae0801df5642380ffafca670c745f7f4daa4b5ee8a513b42f4c6695c1c9f68d1055e07e12772b3871a23  remove-mongo.patch"

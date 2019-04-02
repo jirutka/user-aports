@@ -1,0 +1,35 @@
+#!/sbin/openrc-run
+
+name="ReceiveD"
+
+: ${command_user:="nobody"}
+: ${cfgfile:="/etc/$RC_SVCNAME.yml"}
+: ${logfile:="/var/log/$RC_SVCNAME.log"}
+: ${tcp_host:="127.0.0.1"}
+: ${tcp_port:="1524"}
+
+command="/usr/bin/received"
+command_args="--config $cfgfile"
+command_background="true"
+
+pidfile="/run/$RC_SVCNAME.pid"
+start_stop_daemon_args="--stdout=$logfile --stderr=$logfile"
+
+required_files="$cfgfile"
+
+depend() {
+	need net
+}
+
+start_pre() {
+	checkpath -f -o $command_user -m 644 "$logfile"
+
+	if [ "${socket_path:-}" ]; then
+		if [ -d "${socket_path%/*}" ]; then
+			checkpath -d -o $command_user -m 750 "${socket_path%/*}"
+		fi
+		command_args="$command_args --socket $socket_path"
+	else
+		command_args="$command_args --host $tcp_host --port $tcp_port"
+	fi
+}
