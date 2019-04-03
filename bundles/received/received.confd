@@ -1,0 +1,20 @@
+# Configuration for /etc/init.d/received
+
+# Path of the backend configuration file.
+#cfgfile="/etc/$RC_SVCNAME.yml"
+
+# The TCP port to listen.
+#tcp_port="1524"
+
+# IP address to bind the TCP socket to.
+#tcp_host="127.0.0.1"
+
+# Path of the unix socket to create. If not empty, $tcp_port and $tcp_host
+# are ignored.
+#socket_path=""
+
+# Path to logfile.
+#logfile="/var/log/$RC_SVCNAME.log"
+
+# User to run received.
+#command_user="nobody"
