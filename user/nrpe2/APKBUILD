@@ -2,7 +2,7 @@
 pkgname=nrpe2
 _pkgname=nrpe
 pkgver=2.15
-pkgrel=0
+pkgrel=1
 pkgusers="nagios"
 pkggroups="nagios"
 pkgdesc="NRPE allows you to remotely execute Nagios plugins on other Linux/Unix machines."
@@ -10,7 +10,7 @@ url="http://www.nagios.org/download/addons"
 arch="all"
 license="GPL"
 depends="!nrpe"
-makedepends="openssl-dev perl"
+makedepends="libressl-dev perl"
 install="$pkgname.pre-install"
 subpackages="$pkgname-plugin"
 source="https://downloads.sourceforge.net/nagios/$_pkgname-$pkgver.tar.gz
