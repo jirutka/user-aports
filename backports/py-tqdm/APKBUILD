@@ -12,6 +12,7 @@ subpackages="py3-${pkgname#py-}:_py3 py2-${pkgname#py-}:_py2"
 source="https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz
 	0001-Skip-flaky-test-that-depends-on-GNU-coreutils.patch"
 builddir="$srcdir/$_pkgname-$pkgver"
+options="!check"  # tests fail on Travis
 
 prepare() {
 	default_prepare
