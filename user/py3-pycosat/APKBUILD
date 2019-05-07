@@ -15,12 +15,15 @@ source="https://github.com/ContinuumIO/pycosat/archive/$pkgver/$_pkgname-$pkgver
 builddir="$srcdir/$_pkgname-$pkgver"
 
 build() {
-	cd "$builddir"
 	python3 setup.py build
 }
 
+check() {
+	PYTHONPATH="$(dirname ./build/lib.linux-*-3.*/*.so)" \
+		python3 test_pycosat.py
+}
+
 package() {
-	cd "$builddir"
 	python3 setup.py install --prefix=/usr --root="$pkgdir"
 }
 
