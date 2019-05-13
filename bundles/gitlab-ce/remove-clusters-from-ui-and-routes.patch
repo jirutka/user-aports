@@ -1,17 +1,18 @@
-From 7448b30f9def9a5bfbba9316bf501cceeddb6cc1 Mon Sep 17 00:00:00 2001
+From b7dc3c09cd19daba0a6c3b780922f06191664c89 Mon Sep 17 00:00:00 2001
 From: Jakub Jirutka <jakub@jirutka.cz>
 Date: Fri, 28 Sep 2018 21:22:57 +0200
 Subject: [PATCH] Remove Clusters/Kubernetes from UI and routes
 
 ---
- app/assets/javascripts/monitoring/components/empty_state.vue | 6 ++----
- app/helpers/user_callouts_helper.rb                          | 2 ++
- app/models/service.rb                                        | 1 -
- app/presenters/project_presenter.rb                          | 1 +
- app/views/layouts/nav/sidebar/_project.html.haml             | 4 ++--
- config/routes/google_api.rb                                  | 2 +-
- config/routes/project.rb                                     | 2 --
- 7 files changed, 8 insertions(+), 10 deletions(-)
+ .../monitoring/components/empty_state.vue          |  6 ++----
+ app/helpers/user_callouts_helper.rb                |  2 ++
+ app/models/service.rb                              |  1 -
+ app/presenters/project_presenter.rb                |  1 +
+ app/views/layouts/nav/sidebar/_project.html.haml   |  4 ++--
+ .../projects/runners/_specific_runners.html.haml   | 23 ----------------------
+ config/routes/google_api.rb                        |  2 +-
+ config/routes/project.rb                           |  2 --
+ 8 files changed, 8 insertions(+), 33 deletions(-)
 
 diff --git a/app/assets/javascripts/monitoring/components/empty_state.vue b/app/assets/javascripts/monitoring/components/empty_state.vue
 index 0e141d02ead..cbc54e652ce 100644
@@ -92,6 +93,40 @@ index dd7833647b7..2c48ac1ad84 100644
                - show_cluster_hint = show_gke_cluster_integration_callout?(@project)
                = nav_link(controller: [:clusters, :user, :gcp]) do
                  = link_to project_clusters_path(@project), title: _('Kubernetes'), class: 'shortcuts-kubernetes' do
+diff --git a/app/views/projects/runners/_specific_runners.html.haml b/app/views/projects/runners/_specific_runners.html.haml
+index dc56a515d4c..7abcaec7d7b 100644
+--- a/app/views/projects/runners/_specific_runners.html.haml
++++ b/app/views/projects/runners/_specific_runners.html.haml
+@@ -2,29 +2,6 @@
+   = _('Specific Runners')
+ 
+ .bs-callout.help-callout
+-  .append-bottom-10
+-    %h4= _('Set up a specific Runner automatically')
+-
+-  %p
+-    - link_to_help_page = link_to(_('Learn more about Kubernetes'),
+-                                  help_page_path('user/project/clusters/index'),
+-                                  target: '_blank',
+-                                  rel: 'noopener noreferrer')
+-
+-    = _('You can easily install a Runner on a Kubernetes cluster. %{link_to_help_page}').html_safe % { link_to_help_page: link_to_help_page }
+-
+-  %ol
+-    %li
+-      = _('Click the button below to begin the install process by navigating to the Kubernetes page')
+-    %li
+-      = _('Select an existing Kubernetes cluster or create a new one')
+-    %li
+-      = _('From the Kubernetes cluster details view, install Runner from the applications list')
+-
+-  = link_to _('Install Runner on Kubernetes'),
+-    project_clusters_path(@project),
+-    class: 'btn btn-info'
+-  %hr
+   = render partial: 'ci/runner/how_to_setup_runner',
+            locals: { registration_token: @project.runners_token,
+                      type: 'specific',
 diff --git a/config/routes/google_api.rb b/config/routes/google_api.rb
 index a119b47c176..ba492fc7046 100644
 --- a/config/routes/google_api.rb

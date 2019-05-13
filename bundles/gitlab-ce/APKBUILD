@@ -2,7 +2,7 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
-pkgver=11.8.10_p1
+pkgver=11.8.10_p2
 pkgrel=0
 pkgdesc="A version control for your server"
 url="https://gitlab.com/gitlab-org/gitlab-ce"
@@ -327,8 +327,8 @@ assets() {
 	mv "${pkgdir}$_prefix"/public/assets "$destdir"/public/
 }
 
-sha512sums="abd5ac9d35b977dfd3fc719a78c06ded0344a5d8b73872761074ba2296efbb76116753447946b024bddda5a47d2a6d1cc0864734ea7bb46881bc846de87a2951  gitlabhq-v11.8.10_p1.tar.gz
-592f9833b9152db46d774336ec4fa64df7f01ddd7fc37530ae87f38eba039b1610b55a3a8b2814f87831ee2cadb123e9297ca7aac73045fd77403a6d990b6743  remove-clusters-from-ui-and-routes.patch
+sha512sums="c30e0b28493ad2b6b8f2cea2bc7ee26140f470428f7d9149cc606aabc90ee48601116d2e8fb33efa89ec55f81aca5069ca2a4b0c7e366229312ab419dc7c3719  gitlabhq-v11.8.10_p2.tar.gz
+0b69f291d37d152f3e1ed0ef097211e83c59a53fafbedf5fbd1525363019547868c8ca940e9dbc96d840570da35be1f22d12c5bb982808798dce66f0d5269b03  remove-clusters-from-ui-and-routes.patch
 55b0667d3969113ffd6860652ee8bdb9a534c25f413f33b2739e922c886988e7cea72c1c00c7eecf29fcff3682b1324156365605ffc6aae45d1e0ccddf96288b  gitlab.initd
 478759565c27d7e300e69715ed069ca6689fc0f33781a99e4ca9f52a49763e3a46d6a1ca7fa61879b200156543e534f652deec1367c31a52154db6f0f8ecb779  gitlab.mailroom.initd
 7ff3ac8ea0b759d313057ef5a792ea29ad2472d2ad9597f54e83702737f25fe4b1e2780760bda04fc19ce8cf8674fb708ba32663a9b31ebba8e22b07a6cd3e4d  gitlab.rails.initd
