@@ -3,16 +3,16 @@
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
 pkgver=11.8.10_p2
-pkgrel=0
+pkgrel=1
 pkgdesc="A version control for your server"
 url="https://gitlab.com/gitlab-org/gitlab-ce"
 arch="all"
 license="MIT"
 # ruby-irb is needed only for Rails console (gitlab-rails console)
 depends="$pkgname-assets=$pkgver-r$pkgrel
-	gitaly~=1.12
+	gitaly~=1.20
 	gitlab-shell~=8.4
-	gitlab-workhorse~=8.0
+	gitlab-workhorse~=8.3
 	ca-certificates
 	git>=2.18.0
 	http-parser
