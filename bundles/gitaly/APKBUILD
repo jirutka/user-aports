@@ -1,8 +1,8 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitaly
-pkgver=1.12.2
-pkgrel=1
+pkgver=1.20.1
+pkgrel=0
 pkgdesc="A Git RPC service for handling all the git calls made by GitLab"
 url="https://gitlab.com/gitlab-org/gitaly/"
 arch="all"
@@ -22,6 +22,7 @@ makedepends="
 source="https://gitlab.com/gitlab-org/$pkgname/-/archive/v$pkgver/$pkgname-v$pkgver.tar.gz
 	gemfile-use-local-grpc.patch
 	config.patch
+	gitlab-shell-fix-paths.patch
 	$pkgname.initd"
 builddir="$srcdir/$pkgname-v$pkgver"
 options="!check"
@@ -105,7 +106,8 @@ package() {
 		-o -name mkmf.log -delete
 }
 
-sha512sums="c2bd1b713694380808c3e3b42c7b8ea5e81477a90d022fc68a9b7de0c572bda4a6c72cdcb2e76dfdcb5b0e7cf56e88af6ee8b7784cb17e568d4808238e1e9cd1  gitaly-v1.12.2.tar.gz
-83ebee5145382965ffcf82366db7cd3d0655f42e980e19272629aee52333150c3b0e7938440797a68a47cafb78213d714e60730939d5931bec36abf034ab6b81  gemfile-use-local-grpc.patch
+sha512sums="b8c7a86802eaf76ceb5041ed3644c095e908846f3f92d2959a09293539d2c171eefa4a7a5cdd81cd8661a56e69de2b743c66f424378cd562b92f71ef6b4de3b3  gitaly-v1.20.1.tar.gz
+cf63339bacc65cf2f242f8eea1d156b90d82a64ccb6b6335e19e316fc81ba9619c583615a7a954e080401882faef506e0caec37587b5be3abb94609f2cf1775d  gemfile-use-local-grpc.patch
 e8f308a68586f2aed4357826d39415c049c4be9aea0df06e95cf9e91960bbec1ca28df34a2a6aa1052e792fd71c35863e17b28e41849c907ce66ace24b3c7560  config.patch
+0fe11b0f74fa64ab1660be42aa035a3c9b33e1530e41c6d48d9aa2987ee6449eeac165422eb2d16ebe9cfd866561636e04839b14a8a744d454ab519780bd3c12  gitlab-shell-fix-paths.patch
 cf84f4fb7dccddecb54ab6fef169529e7841815f5ebdb829ff2fe0c6b3d663a8be5a06ab8c3a78bb5536410f96224afd212fa43c6302e891dfcb1c06fd5444c5  gitaly.initd"
