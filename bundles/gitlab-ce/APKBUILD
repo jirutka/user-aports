@@ -3,7 +3,7 @@
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
 pkgver=11.8.10_p2
-pkgrel=1
+pkgrel=2
 pkgdesc="A version control for your server"
 url="https://gitlab.com/gitlab-org/gitlab-ce"
 arch="all"
@@ -54,7 +54,6 @@ pkggroups="git"
 install="$pkgname.pre-install $pkgname.post-install $pkgname.post-upgrade"
 subpackages="$pkgname-assets::noarch"
 source="https://github.com/jirutka/gitlabhq/archive/v$pkgver/gitlabhq-v$pkgver.tar.gz
-	remove-clusters-from-ui-and-routes.patch
 	$_pkgname.initd
 	$_pkgname.mailroom.initd
 	$_pkgname.rails.initd
@@ -328,7 +327,6 @@ assets() {
 }
 
 sha512sums="c30e0b28493ad2b6b8f2cea2bc7ee26140f470428f7d9149cc606aabc90ee48601116d2e8fb33efa89ec55f81aca5069ca2a4b0c7e366229312ab419dc7c3719  gitlabhq-v11.8.10_p2.tar.gz
-0b69f291d37d152f3e1ed0ef097211e83c59a53fafbedf5fbd1525363019547868c8ca940e9dbc96d840570da35be1f22d12c5bb982808798dce66f0d5269b03  remove-clusters-from-ui-and-routes.patch
 55b0667d3969113ffd6860652ee8bdb9a534c25f413f33b2739e922c886988e7cea72c1c00c7eecf29fcff3682b1324156365605ffc6aae45d1e0ccddf96288b  gitlab.initd
 478759565c27d7e300e69715ed069ca6689fc0f33781a99e4ca9f52a49763e3a46d6a1ca7fa61879b200156543e534f652deec1367c31a52154db6f0f8ecb779  gitlab.mailroom.initd
 7ff3ac8ea0b759d313057ef5a792ea29ad2472d2ad9597f54e83702737f25fe4b1e2780760bda04fc19ce8cf8674fb708ba32663a9b31ebba8e22b07a6cd3e4d  gitlab.rails.initd
