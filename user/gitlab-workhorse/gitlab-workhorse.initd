@@ -51,6 +51,7 @@ start_pre() {
 	start_stop_daemon_args="$start_stop_daemon_args
 		$(optif '--env GITLAB_WORKHORSE_SENTRY_DSN' "$workhorse_sentry_dns")"
 
+	[ "$listen_net" = "unix" ] && checkpath -m 750 -o $user -d "${workhorse_listen%/*}"
 	checkpath -m 640 -o $user -f "$workhorse_logfile"
 }
 

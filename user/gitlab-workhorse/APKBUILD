@@ -2,7 +2,7 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitlab-workhorse
 pkgver=8.3.3
-pkgrel=0
+pkgrel=1
 pkgdesc="A reverse proxy for GitLab"
 pkgusers="git"
 url="https://gitlab.com/gitlab-org/gitlab-workhorse/"
@@ -36,4 +36,4 @@ sha512sums="1e21e88a48d627db231c6d76400054942a6a547bc53d79d9d9a5e9904c0213fd1876
 3c496d3035413b34e26c472c3ee13f4146e5767f13363d1a55b5d57b5426918f8a412a0ad289afb5857040c8130106c810d1ee7cb8541fa442238c6e7d8d0e2f  allow-to-disable-access-log.patch
 c77589de307e0a442bafb4da5de7763cee43e3046b9544b385faeedc0d65c74be39760dc1587f0a36db2ab488d458bb1cbdcb6cc7cbc1a3c36069701b1162ffd  log-all-to-file.patch
 303847382fc973c92dd951ee43f7e06ecd3c7c6655752877cd2171e4c267a2dbbeed1faa45814d4bcc2a41a2a9f57d7a62366f0082612d50a5b935d9493ace52  workhorse.toml
-4e105a2d28a449644287c6bc14f31d9eb7ce1effe19a35047663af00000c06dcfa04f8ea88ef54cabfd2c08cb7734e71ceb8844e117580db0c5449dae26949eb  gitlab-workhorse.initd"
+a527991bdf04f715c0fb2253a412c3ed5cac63a5f19984e8caae1a0355a466c77228ad115e3b37ddbacfbdaf1f62c6f3ebf7975ff3a8398348ab95d3d077b4a5  gitlab-workhorse.initd"
