@@ -1,19 +1,19 @@
 --- a/hc/settings.py
 +++ b/hc/settings.py
-@@ -11,9 +11,11 @@
+@@ -6,9 +6,11 @@
  """
-
+ 
  import os
 +import sys
  import warnings
-
+ 
 -BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 +HC_SETTINGS = os.environ.get('HC_SETTINGS', '/etc/healthchecks/settings.py')
 +HC_MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
-
- HOST = "localhost"
- SECRET_KEY = "---"
-@@ -61,7 +64,7 @@
+ 
+ 
+ def envbool(s, default):
+@@ -72,7 +74,7 @@
  TEMPLATES = [
      {
          'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -22,18 +22,18 @@
          'APP_DIRS': True,
          'OPTIONS': {
              'context_processors': [
-@@ -84,7 +87,7 @@
+@@ -95,7 +97,7 @@
  DATABASES = {
      'default': {
          'ENGINE': 'django.db.backends.sqlite3',
--        'NAME': '{0}/hc.sqlite'.format(BASE_DIR),
-+        'NAME': '/var/lib/healthchecks/hc.sqlite',
+-        'NAME': os.getenv("DB_NAME", BASE_DIR + "/hc.sqlite"),
++        'NAME': os.getenv("DB_NAME", "/var/lib/healthchecks/hc.sqlite"),
      }
  }
-
-@@ -125,8 +128,8 @@
- PING_ENDPOINT = SITE_ROOT + "/ping/"
- PING_EMAIL_DOMAIN = HOST
+ 
+@@ -146,8 +148,8 @@
+ PING_ENDPOINT = os.getenv("PING_ENDPOINT", SITE_ROOT + "/ping/")
+ PING_EMAIL_DOMAIN = os.getenv("PING_EMAIL_DOMAIN", "localhost")
  STATIC_URL = '/static/'
 -STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 -STATIC_ROOT = os.path.join(BASE_DIR, 'static-collected')
@@ -42,10 +42,10 @@
  STATICFILES_FINDERS = (
      'django.contrib.staticfiles.finders.FileSystemFinder',
      'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-@@ -168,8 +171,3 @@
- # Zendesk
- ZENDESK_CLIENT_ID = None
- ZENDESK_CLIENT_SECRET = None
+@@ -201,8 +203,3 @@
+ MATRIX_HOMESERVER = os.getenv("MATRIX_HOMESERVER")
+ MATRIX_USER_ID = os.getenv("MATRIX_USER_ID")
+ MATRIX_ACCESS_TOKEN = os.getenv("MATRIX_ACCESS_TOKEN")
 -
 -if os.path.exists(os.path.join(BASE_DIR, "hc/local_settings.py")):
 -    from .local_settings import *
