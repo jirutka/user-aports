@@ -1,0 +1,90 @@
+--- a/hc/accounts/views.py
++++ b/hc/accounts/views.py
+@@ -286,12 +286,11 @@
+                 email = form.cleaned_data["email"]
+                 try:
+                     user = User.objects.get(email=email)
++                    project.invite(user)
++                    ctx["team_member_invited"] = email
++                    ctx["team_status"] = "success"
+                 except User.DoesNotExist:
+-                    user = _make_user(email, with_project=False)
+-
+-                project.invite(user)
+-                ctx["team_member_invited"] = email
+-                ctx["team_status"] = "success"
++                    messages.error(request, "User with email %s does not exist" % email)
+ 
+         elif "remove_team_member" in request.POST:
+             if not is_owner:
+--- a/templates/accounts/project.html
++++ b/templates/accounts/project.html
+@@ -114,7 +114,7 @@
+                     </table>
+                 {% else %}
+                     <p>
+-                        <strong>Invite team members to your project.</strong>
++                        <strong>Add team members to your project.</strong>
+                         Share access to your checks and configured integrations
+                         without having to share login details.
+                     </p>
+@@ -128,7 +128,7 @@
+                     href="#"
+                     class="btn btn-primary pull-right"
+                     data-toggle="modal"
+-                    data-target="#invite-team-member-modal">Invite a Team Member</a>
++                    data-target="#invite-team-member-modal">Add a Team Member</a>
+                 {% else %}
+                 <div class="alert alert-info">
+                     <strong>Team size limit reached.</strong>
+@@ -141,7 +141,7 @@
+ 
+            {% if team_member_invited %}
+             <div class="panel-footer">
+-                {{ team_member_invited }} invited to team
++                {{ team_member_invited }} added to team
+             </div>
+             {% endif %}
+ 
+@@ -237,7 +237,7 @@
+             <div class="modal-content">
+                 <div class="modal-header">
+                     <button type="button" class="close" data-dismiss="modal">&times;</button>
+-                    <h4>Invite a Team Member</h4>
++                    <h4>Add a Team Member</h4>
+                 </div>
+                 <div class="modal-body">
+                     <ul>
+@@ -261,7 +261,7 @@
+                     <button
+                         type="submit"
+                         name="invite_team_member"
+-                        class="btn btn-primary">Send Invite</button>
++                        class="btn btn-primary">Add Member</button>
+                 </div>
+             </div>
+         </form>
+--- a/static/css/bootstrap.css
++++ b/static/css/bootstrap.css
+@@ -4103,15 +4103,18 @@
+ .alert-warning .alert-link {
+   color: #66512c;
+ }
+-.alert-danger {
++.alert-danger,
++.alert-error {
+   background-color: #f2dede;
+   border-color: #ebccd1;
+   color: #a94442;
+ }
+-.alert-danger hr {
++.alert-danger hr,
++.alert-error hr {
+   border-top-color: #e4b9c0;
+ }
+-.alert-danger .alert-link {
++.alert-danger .alert-link,
++.alert-error .alert-link {
+   color: #843534;
+ }
+ .list-group {

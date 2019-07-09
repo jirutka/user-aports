@@ -1,9 +1,8 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=healthchecks
-pkgver=1_git20180628
-pkgrel=3
-_gitrev=33d8a1505c4fee179c92ee0b9f34ff7510669f78
+pkgver=1.7.0
+pkgrel=0
 pkgdesc="A Cron Monitoring Tool written in Python & Django"
 url="https://healthchecks.io/"
 arch="all"
@@ -15,13 +14,13 @@ pkggroups="$pkgusers"
 install="$pkgname.pre-install $pkgname.post-install"
 subpackages="$pkgname-assets::noarch $pkgname-openrc"
 # NOTE: The source v1.0.4 is used only to get the original HC logo.
-source="https://github.com/healthchecks/$pkgname/archive/$_gitrev/$pkgname-$_gitrev.tar.gz
+source="https://github.com/healthchecks/$pkgname/archive/v$pkgver/$pkgname-$pkgver.tar.gz
 	https://github.com/healthchecks/$pkgname/archive/v1.0.4/$pkgname-v1.0.4.tar.gz
+	hide-sign-up-when-reg-closed.patch
+	login-with-username.patch
+	allow-add-only-existing-users-as-team-members.patch
 	use-settings_loader.patch
 	settings.patch
-	db-accounts_member-add-unique-constraint.patch
-	dont-hide-password-field-when-registration-closed.patch
-	allow-login-with-username.patch
 	settings.py
 	settings_loader.py
 	setup.py
@@ -32,7 +31,7 @@ source="https://github.com/healthchecks/$pkgname/archive/$_gitrev/$pkgname-$_git
 	$pkgname.daily
 	$pkgname.logrotate
 	"
-builddir="$srcdir/$pkgname-$_gitrev"
+builddir="$srcdir/$pkgname-$pkgver"
 
 _prefix="/usr/lib/bundles/$pkgname"
 
@@ -174,17 +173,17 @@ openrc() {
 	default_openrc
 }
 
-sha512sums="16f2c4d6947562660b14f4d03b798ae5018cd7cea664d5535413fcd6748221ef261c23e4ea742886d3494e93b118af2ec0b5c9e03b7d5525c08ed9af7f65a36a  healthchecks-33d8a1505c4fee179c92ee0b9f34ff7510669f78.tar.gz
+sha512sums="0f25cfe48dbe785cbd9d753ec55a0c14a16bf3595d6351c9d30487557a8101541b52fe989638f6785d77db9ed704104d3b4578714ce69a3a6138fc92422f3420  healthchecks-1.7.0.tar.gz
 d7a62b559a60f1a264abd937f70f9e57b86cd96ac10ac3cc35b701ec2fc142a217dbdf25aeb4ef27e1a2f4d64c8b55fef7e831617e64c1dec5ccc8048507b712  healthchecks-v1.0.4.tar.gz
+29d408355c6ca4bc87ca676c7ee65fec032874c266e817510ffecefc522761571bd9fa04279e1542b4036e77e8ba59e5387eaa6c5370593637801df690130220  hide-sign-up-when-reg-closed.patch
+8282365f797cb136ff17d888bbf54e5abe09a170f5a74b3b8bf366fe1c971747107d9983e9a35cf2b20a8cf066c2b4bc93e8488775b02dd355738bfc909c0665  login-with-username.patch
+b5bc928ee591d2c078b85d3bc32f5338ae4fda041832d4f013adc77f30d85f6f649510b4ab474d68fca645b72e0dea17d1eb21f8329895e8d4f8d711f87f8dd6  allow-add-only-existing-users-as-team-members.patch
 e26221e0c58469a6af002e6ec4156ed57e925d2e160aeddd85f934a9cbdcb4d33466d7be1e908cc1f1ddf9eda6952b5f585fdfcbf792fc2ebf7e2da9c4162440  use-settings_loader.patch
-306b550eaae47e3e5c64aa2906c28969deb6e79b9f0ea980914cca418e2a00b09ee7f83dd0d44aed5f7083325ba665b52e507b36d243395b09402308edeb9981  settings.patch
-2d69f21aa7cf35d13fed491153f16c8bcabec89f9c4820392d363c786cb4bd62326ed4e91bec2cf615910cb158564a08ce00ac8cb301aef229b9919b2a0ca1ad  db-accounts_member-add-unique-constraint.patch
-de67986609d252f17e08881c1693be064e3e50a818b6d1d8af5246ee3c66e0e8f9e78d80f0876c143c0aae6f79b7d2f5dee37ba3a109605aa12bd95f47dae74f  dont-hide-password-field-when-registration-closed.patch
-8cef051c3cc4551fe5e5ad2020a1a8bc87f289cbc393871c22efc7049af44ccc47f41931b604f14aa320063ad36b2b2be7580710f3b0cbefc6915f3c1797f63d  allow-login-with-username.patch
-f23cecf4ab2904343c0f18831133228d35fbadb3a035e37a6d567d053ff7fd9a8cf8bbc6505979345cb01185db801f46a30d96f199e50787d7f0cd41603aacc0  settings.py
+a03f74880b2554fd08b62813616a21aa8666b1ed592a49e7d57f5a3e0ff6313d8fff43c7c2b976e6e619953d2e14b7355ec243e2492548343ae1cdc5b269703f  settings.patch
+8b710edcbf470348bd2a6cf6c541f0a69ce9ec85be336fbb075a4ce887a7e53ffaddc1506033d520c1b9b12c0937f474a8fdf00d8ab01f1dd376d31caa570e47  settings.py
 343ddf91baf04ec5b6e7b2cc1a1ad4f239832645b65d4abaf5309cc80da13d886f0c09b42b35a16e5b2fd3f60c9d3ab40dc2e924872cd380d3c2ed555bfb9101  settings_loader.py
 123fead3cd0df44b7578d5f4db23ab093bb22dd85fa289c3a80ed3f259cf1356df2d3c1b7aeef83c5033bcac7381c11c9554206e0fc29e47714cfc05e9da8921  setup.py
-a3a4c0cdff24d0af978e9e88c68d70b5929f24cbc9fbca0259eeb80dc7a113d07cde6edb8caae3ee2e60c526451e9bf17ae9c737ceb954f2913016fb0d91a919  constraints.txt
+1d864c3f344269f9776243d8c8528a2559d01f587cc3464974198fc41299905a7a592490c76f6904674e678efce08f58c0dca6e1071cf8743fff82d8ee07955b  constraints.txt
 e3f37177cceb477438fcaf08ded5c0d3eb023eacb50d72a4013c921c4a7bc077b764f5c20844c34ea292a67efce01c21897b98efec781d8850a418bc6bc3e559  healthchecks-manage
 c0c2e119c8db3b87a2be60aab32e9b9e06188946df00982281f7e46712c474b5f02d8f3e908d7e6f57ee8ab08881e48f7d02446c4f521abcae37e6ba894185e0  healthchecks-prune
 4f97931f4b5bf69c1f36836f7314ac14020696bd6572f50ef099fd6b1dd53b12f413c0af82cec2d599febfbc50a097351e9552ffb940846f38aaae395cc3a408  healthchecks.confd

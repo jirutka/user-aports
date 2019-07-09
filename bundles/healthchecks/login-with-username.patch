@@ -1,0 +1,106 @@
+--- a/hc/accounts/forms.py
++++ b/hc/accounts/forms.py
+@@ -3,8 +3,19 @@
+ from django.contrib.auth import authenticate
+ from django.contrib.auth.models import User
+ from hc.api.models import TokenBucket
++import unicodedata
+ 
+ 
++class UsernameField(forms.CharField):
++
++    def clean(self, value):
++        value = super(forms.CharField, self).clean(value)
++        return value.lower()
++
++    def to_python(self, value):
++        return unicodedata.normalize('NFKC', super().to_python(value))
++
++
+ class LowercaseEmailField(forms.EmailField):
+ 
+     def clean(self, value):
+@@ -44,11 +55,11 @@
+ 
+ 
+ class PasswordLoginForm(forms.Form):
+-    email = LowercaseEmailField()
++    username = UsernameField(required=True)
+     password = forms.CharField()
+ 
+     def clean(self):
+-        username = self.cleaned_data.get('email')
++        username = self.cleaned_data.get('username')
+         password = self.cleaned_data.get('password')
+ 
+         if username and password:
+@@ -57,7 +68,7 @@
+ 
+             self.user = authenticate(username=username, password=password)
+             if self.user is None or not self.user.is_active:
+-                raise forms.ValidationError("Incorrect email or password.")
++                raise forms.ValidationError("Incorrect username/email or password.")
+ 
+         return self.cleaned_data
+ 
+--- a/templates/accounts/login.html
++++ b/templates/accounts/login.html
+@@ -16,6 +16,7 @@
+         {% endif %}
+ 
+         <div class="row">
++            {% if False %}
+             <div class="col-sm-6">
+                 <form id="magic-link-form" method="post">
+                     {% csrf_token %}
+@@ -50,8 +51,9 @@
+                     <div>or</div>
+                 </div>
+             </div>
++            {% endif %}
+ 
+-            <div class="col-sm-6">
++            <div class="col-sm-6 col-sm-offset-3">
+                 <form id="login-form" method="post">
+                     {% csrf_token %}
+                     <input type="hidden" name="action" value="login" />
+@@ -59,7 +61,7 @@
+                     {% if form.non_field_errors %}
+                         <p class="text-danger">{{ form.non_field_errors|join:"" }}</p>
+                     {% elif form.errors %}
+-                        <p class="text-danger">Incorrect email or password.</p>
++                        <p class="text-danger">Incorrect username or password.</p>
+                     {% else %}
+                     <p>
+                         Enter your <strong>email address</strong> and <strong>password</strong>.
+@@ -67,12 +69,12 @@
+                     {% endif %}
+ 
+                     <input
+-                        type="email"
++                        type="text"
+                         class="form-control input-lg"
+-                        name="email"
+-                        value="{{ form.email.value|default:"" }}"
+-                        placeholder="you@example.org"
+-                        autocomplete="email">
++                        name="username"
++                        value="{{ form.username.value|default:"" }}"
++                        placeholder="username or email"
++                        autocomplete="username">
+ 
+                     <input
+                         type="password"
+--- a/static/css/login.css
++++ b/static/css/login.css
+@@ -20,10 +20,6 @@
+     #magic-link-form {
+         margin-right: 50px;
+     }
+-
+-    #login-form {
+-        margin-left: 50px;
+-    }
+ }
+ 
+ #link-instruction {
