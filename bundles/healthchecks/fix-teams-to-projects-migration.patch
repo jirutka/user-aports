@@ -14,6 +14,15 @@ and remove legacy team users.
          project.api_key = profile.api_key
          project.api_key_readonly = profile.api_key_readonly
          project.save()
+@@ -18,7 +18,7 @@
+         profile.current_project = project
+         profile.save()
+ 
+-        Member.objects.filter(team=profile).update(project=project)
++        Member.objects.filter(team=profile, project_id__isnull=True).update(project=project, team_id=project.owner_id)
+ 
+     for profile in Profile.objects.all():
+         if profile.current_team_id:
 --- a/hc/accounts/migrations/0020_auto_20190112_1950.py
 +++ b/hc/accounts/migrations/0020_auto_20190112_1950.py
 @@ -5,8 +5,12 @@
