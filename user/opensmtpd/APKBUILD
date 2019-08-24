@@ -5,7 +5,7 @@
 pkgname=opensmtpd
 pkgver=6.6.0_pre20190811
 _gitrev=772da22936c8d80f7ad3284ea7e5bdbfdbee2efb
-pkgrel=0
+pkgrel=1
 pkgdesc="Secure, reliable, lean, and easy-to configure SMTP server"
 url="http://www.opensmtpd.org"
 arch="all"
@@ -14,7 +14,7 @@ depends="!postfix ca-certificates"
 makedepends="automake autoconf libtool mdocml db-dev libasr-dev libevent-dev
 	fts-dev zlib-dev openssl-dev bison flex-dev"
 install="$pkgname.pre-install"
-subpackages="$pkgname-doc"
+subpackages="$pkgname-dbg $pkgname-doc"
 source="https://github.com/OpenSMTPD/OpenSMTPD/archive/$_gitrev/$pkgname-$_gitrev.tar.gz
 	smtpd.initd
 	aliases
