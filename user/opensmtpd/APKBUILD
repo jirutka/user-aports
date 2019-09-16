@@ -3,8 +3,8 @@
 # Contributor: Shiz <hi@shiz.me>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=opensmtpd
-pkgver=6.6.0_pre20190829
-_gitrev=72758123b7c2c83efeefb12623bde59fe5b810ac
+pkgver=6.6.0_pre20190916
+_gitrev=2bf52ef9cec7dfebe6880a7d3ea51f7bf8467fed
 pkgrel=0
 pkgdesc="Secure, reliable, lean, and easy-to configure SMTP server"
 url="http://www.opensmtpd.org"
@@ -19,7 +19,6 @@ source="https://github.com/OpenSMTPD/OpenSMTPD/archive/$_gitrev/$pkgname-$_gitre
 	smtpd.initd
 	aliases
 	autoconf-decl-checks.patch
-	musl-compat.patch
 	smtpd.conf.patch
 	"
 options="suid !check"
@@ -63,9 +62,8 @@ package() {
 	rmdir "$pkgdir"/usr/bin
 }
 
-sha512sums="d24b21fe90a1788508e3eb47407b1cd794450a847f9c849b6e476c24996abd933aeefbdc4b52b5c0f031c014a8b135665a7dfac6c0fab9fdf70cc8a5ef267ae1  opensmtpd-72758123b7c2c83efeefb12623bde59fe5b810ac.tar.gz
+sha512sums="8fae6d22966197585bf3ba910e3ec4aca6b60726c748ede1ba9229b279b77ad615d1cd23adfeb1394986df6b5887a12c37c32348a45db61ec797e9619cc9e58a  opensmtpd-2bf52ef9cec7dfebe6880a7d3ea51f7bf8467fed.tar.gz
 a53c9854f71e55011566d3c96ce6321e11d00706c4180eb8ec4358b38c97d63cb7fcf3bb3c0b69365a8568a385bdb3ec1bc700d5f4463f8d6695a3d46b283c1d  smtpd.initd
 51d47b34eb3d728daa45f29d6434cc75db28dfa69b6fb3ecd873121df85b296a2d2c81016d765a07778aa26a496e4b29c09a30b82678cf42596a536734b5deca  aliases
 37104cc605569f142ceffa902f200e8a7e9e1114ebe5394ed1eac0ed6ce25454e1610270921c45246de8396eee04b7c8ab5a112a231036a6ef14e7e229b264e3  autoconf-decl-checks.patch
-5054e4f395b3a84aeac929aaabd8e00a1530f484c68731fa75674019416983417367edbd66af2a33d9826b3460acedae4c66a0677fb06377cacfc6c218c788e9  musl-compat.patch
 14ff3d4f56aee3a31551ea535c4a5bf9b760f0f11bc269225d7b176d5031294716133cbf4555a92e76cc6e33de89454435562672ddaf1ab365e61085eb1e4d53  smtpd.conf.patch"
