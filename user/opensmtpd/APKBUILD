@@ -3,8 +3,8 @@
 # Contributor: Shiz <hi@shiz.me>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=opensmtpd
-pkgver=6.6.0_pre20190916
-_gitrev=2bf52ef9cec7dfebe6880a7d3ea51f7bf8467fed
+pkgver=6.6.0_pre20190929
+_gitrev=cf56f2b96d69bae11feeb5cc982cc2e23c44b549
 pkgrel=0
 pkgdesc="Secure, reliable, lean, and easy-to configure SMTP server"
 url="http://www.opensmtpd.org"
@@ -59,10 +59,9 @@ package() {
 	local binary; for binary in mailq newaliases makemap sendmail; do
 		ln -s /usr/sbin/smtpctl "$pkgdir"/usr/sbin/$binary
 	done
-	rmdir "$pkgdir"/usr/bin
 }
 
-sha512sums="8fae6d22966197585bf3ba910e3ec4aca6b60726c748ede1ba9229b279b77ad615d1cd23adfeb1394986df6b5887a12c37c32348a45db61ec797e9619cc9e58a  opensmtpd-2bf52ef9cec7dfebe6880a7d3ea51f7bf8467fed.tar.gz
+sha512sums="376a15d1392dc1d25b535d591b64207aec57a0db5c77605aa2ec6eb3adb00615195c8e1bd08f1db07c4987c91e5dafc7ec6ba471e776415ade220073386e0b67  opensmtpd-cf56f2b96d69bae11feeb5cc982cc2e23c44b549.tar.gz
 a53c9854f71e55011566d3c96ce6321e11d00706c4180eb8ec4358b38c97d63cb7fcf3bb3c0b69365a8568a385bdb3ec1bc700d5f4463f8d6695a3d46b283c1d  smtpd.initd
 51d47b34eb3d728daa45f29d6434cc75db28dfa69b6fb3ecd873121df85b296a2d2c81016d765a07778aa26a496e4b29c09a30b82678cf42596a536734b5deca  aliases
 37104cc605569f142ceffa902f200e8a7e9e1114ebe5394ed1eac0ed6ce25454e1610270921c45246de8396eee04b7c8ab5a112a231036a6ef14e7e229b264e3  autoconf-decl-checks.patch
