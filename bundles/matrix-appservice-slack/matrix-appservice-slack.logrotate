@@ -1,4 +1,0 @@
-/var/log/matrix-appservice-slack.log {
-	missingok
-	copytruncate
-}
