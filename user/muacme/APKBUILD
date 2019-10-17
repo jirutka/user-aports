@@ -1,0 +1,25 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname="muacme"
+pkgver="0.1.0"
+pkgrel=0
+pkgdesc="A convenient wrapper for the ACMEv2 client uacme"
+url="https://github.com/jirutka/muacme"
+arch="noarch"
+license="MIT"
+depends="uacme cmd:openssl"
+options="!check"  # no tests provided
+source="https://github.com/jirutka/muacme/archive/v$pkgver/$pkgname-$pkgver.tar.gz
+	muacme-renew-all.crond
+	"
+builddir="$srcdir/$pkgname-$pkgver"
+
+package() {
+	make install DESTDIR="$pkgdir" prefix=/usr
+
+	install -m 755 -D "$srcdir"/muacme-renew-all.crond \
+		"$pkgdir"/etc/periodic/weekly/muacme-renew-all
+}
+
+sha512sums="9fb1beb193579c2fa9777019a752986e8f94a7337298681edbe033165ce515656fd6ff3a7f8232f73e6ee7476915c8259974ff9a5575b8d640793d7e617f8f81  muacme-0.1.0.tar.gz
+37082df7ebd8b6ef3f683509b6d3852c6f56bb6903a90bb12b7fa116003e539617e2863abb600ad3484bcc8f2bc537e9d1a172573e6cf73e87983050b5d623bc  muacme-renew-all.crond"
