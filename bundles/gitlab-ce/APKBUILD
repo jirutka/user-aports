@@ -3,13 +3,15 @@
 pkgname=gitlab-ce
 _pkgname=${pkgname%-ce}
 pkgver=11.8.10_p2
-pkgrel=2
+pkgrel=3
 pkgdesc="A version control for your server"
 url="https://gitlab.com/gitlab-org/gitlab-ce"
 arch="all"
 license="MIT"
 # ruby-irb is needed only for Rails console (gitlab-rails console)
+# exiftool is used for cleaning EXIF data from images uploaded to issues
 depends="$pkgname-assets=$pkgver-r$pkgrel
+	exiftool
 	gitaly~=1.20
 	gitlab-shell~=8.4
 	gitlab-workhorse~=8.3
