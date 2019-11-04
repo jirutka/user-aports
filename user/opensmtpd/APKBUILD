@@ -3,8 +3,8 @@
 # Contributor: Shiz <hi@shiz.me>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=opensmtpd
-pkgver=6.6.0_pre20190929
-_gitrev=cf56f2b96d69bae11feeb5cc982cc2e23c44b549
+pkgver=6.6.0p1_git20191104
+_gitrev=49f6c50d466a3493415839e87c27127061e7fad2
 pkgrel=0
 pkgdesc="Secure, reliable, lean, and easy-to configure SMTP server"
 url="http://www.opensmtpd.org"
@@ -61,7 +61,7 @@ package() {
 	done
 }
 
-sha512sums="376a15d1392dc1d25b535d591b64207aec57a0db5c77605aa2ec6eb3adb00615195c8e1bd08f1db07c4987c91e5dafc7ec6ba471e776415ade220073386e0b67  opensmtpd-cf56f2b96d69bae11feeb5cc982cc2e23c44b549.tar.gz
+sha512sums="ddf760551db846690d813e80030b2d1d9aaee7569d31dee20b4f1ece31d6ab351ea5d82bda95028d02aae4d3a62ec4fcd0c72f471fc69c4678659871695131f6  opensmtpd-49f6c50d466a3493415839e87c27127061e7fad2.tar.gz
 a53c9854f71e55011566d3c96ce6321e11d00706c4180eb8ec4358b38c97d63cb7fcf3bb3c0b69365a8568a385bdb3ec1bc700d5f4463f8d6695a3d46b283c1d  smtpd.initd
 51d47b34eb3d728daa45f29d6434cc75db28dfa69b6fb3ecd873121df85b296a2d2c81016d765a07778aa26a496e4b29c09a30b82678cf42596a536734b5deca  aliases
 37104cc605569f142ceffa902f200e8a7e9e1114ebe5394ed1eac0ed6ce25454e1610270921c45246de8396eee04b7c8ab5a112a231036a6ef14e7e229b264e3  autoconf-decl-checks.patch
