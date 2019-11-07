@@ -3,7 +3,7 @@
 extra_commands="setup"
 description_setup="Initialize devpi"
 
-: ${cfgfile:="/etc/devpi/server.yml"}
+: ${cfgfile:="/etc/devpi-server/devpi-server.yml"}
 : ${logfile:="/var/log/devpi-server.log"}
 : ${command_user:="devpi"}
 
@@ -34,8 +34,7 @@ setup() {
 		return 1
 	}
 	einfo "Initializing devpi in $serverdir..."
-	DEVPI_USER=${command_user%:*} devpi-server \
-		--init --serverdir "$serverdir" --storage sqlite
+	DEVPI_USER=${command_user%:*} devpi-init --serverdir "$serverdir" --storage sqlite
 	eend $?
 }
 

@@ -1,5 +1,6 @@
 devpi-server:
   serverdir: /var/lib/devpi
+  secretfile: /etc/devpi-server/secret
   host: localhost
   port: 8080
   threads: 50

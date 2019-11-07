@@ -1,0 +1,9 @@
+#!/bin/sh
+
+if ! [ -e /etc/devpi-server/secret ]; then
+	echo '* Writing random secret to /etc/devpi-server/secret' >&2
+	python3 > /etc/devpi-server/secret <<-EOF
+		import base64, os
+		print(str(base64.b64encode(os.urandom(32)), 'utf8'))
+	EOF
+fi

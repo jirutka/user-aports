@@ -1,0 +1,11 @@
+#!/bin/sh
+
+ver_new="$1"
+ver_old="$2"
+
+if [ "$(apk version -t "$ver_old" '5.2.0-r0')" = '<' ] && [ -d /etc/devpi ] && [ ! -d /etc/devpi-server ]; then
+	echo '* Renaming /etc/devpi to /etc/devpi-server' >&2
+	mv /etc/devpi /etc/devpi-server
+fi
+
+return 0
