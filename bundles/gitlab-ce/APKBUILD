@@ -6,7 +6,7 @@ pkgver=11.8.10_p2
 pkgrel=2
 pkgdesc="A version control for your server"
 url="https://gitlab.com/gitlab-org/gitlab-ce"
-arch="all"
+arch=""  # FIXME
 license="MIT"
 # ruby-irb is needed only for Rails console (gitlab-rails console)
 depends="$pkgname-assets=$pkgver-r$pkgrel
