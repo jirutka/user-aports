@@ -1,7 +1,7 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=apk-deploy
-pkgver=0.1.0
+pkgver=0.1.1
 pkgrel=0
 pkgdesc="Script for deploying applications in APK packages via SSH"
 url="https://github.com/jirutka/user-aports"
@@ -33,5 +33,5 @@ package() {
 }
 
 sha512sums="82a0e38f396d37fa2222fcfc96fcac7eb3489efcb0a7b1cef44a364de578d21864ff8ceeaf98dd9d7f9e00ed027982bbb862790211acd641c6937abb3ff1a954  apk-deploy-addkey
-f6f9c2c2067bbcd7b40c8f1885b28761ae2f40a5dac5aae915f3301c0fd88df5e538e650ed3fcaa5d8dc15d4ebcba6d75de49a2d4d131225ac49d62f260b6a2a  apk-deploy-pkg
+2c2087fa5406fe4adebacf869b4b6d0195c34e48308e2f23c861f39cfd0d7bc49cd77a3afd81bc04d970f643ca935e813cb7f54e1caa493941af156d9ee9cd42  apk-deploy-pkg
 a945ba0d23efcfe04f997b8a98d837f626f8b0ebdedb3ebb9f8cbfd4408fb9e848c8648e3db7cb30215b43ec8a516049de162ee717eaf09ada14979bfc2e1856  apk-deploy.sudoersd"
