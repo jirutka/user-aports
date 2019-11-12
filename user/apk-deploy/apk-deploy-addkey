@@ -61,8 +61,8 @@ authorized_key_line() {
 	printf 'no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty %s %s\n' "$pubkey" "$name"
 }
 
-ssh_pubkey_to_pem() {
-	printf '%s\n' "$1" | ssh-keygen -e -m pem -f /dev/stdin
+ssh_pubkey_to_pkcs8() {
+	printf '%s\n' "$1" | ssh-keygen -e -m PKCS8 -f /dev/stdin
 }
 
 
@@ -90,7 +90,7 @@ read apk_pubkey
 if [ -z "$apk_pubkey" ]; then
 	[ "${ssh_pubkey#ssh-rsa }" != "$ssh_pubkey" ] \
 		|| die 4 'apk supports only RSA keys!'
-	apk_pubkey=$(ssh_pubkey_to_pem "$ssh_pubkey")
+	apk_pubkey=$(ssh_pubkey_to_pkcs8 "$ssh_pubkey")
 fi
 
 authorized_key_line "$name" "$ssh_pubkey" >> "$AUTHORIZED_KEYS"
