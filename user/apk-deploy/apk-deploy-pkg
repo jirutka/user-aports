@@ -1,0 +1,79 @@
+#!/bin/ash
+#---help---
+# Usage: apk-deploy-pkg [-h]
+#
+# Read APK package from STDIN, install it and restart its service, if any.
+#
+# Homepage: <https://github.com/jirutka/user-aports>
+#---help---
+set -eu -o pipefail
+
+if [ $(id -u) -ne 0 ]; then
+	exec sudo -u root DEPLOY_HOME="$HOME" "$0"
+fi
+
+PKGS_DIR="$DEPLOY_HOME/packages"
+PROGNAME='apk-deploy-pkg'
+
+log() {
+	local level=$1
+	local msg=$2
+	local prefix=''
+
+	case "$level" in
+		error) echo "ERROR: $msg" >&2;;
+		*) printf '%s\n' "$msg";;
+	esac
+	logger -t "$PROGNAME" -p "local0.$level" "$msg"
+}
+
+die() {
+	log error "$2"
+	exit "$1"
+}
+
+help() {
+	sed -n '/^#---help---/,/^#---help---/p' "$0" | sed 's/^# \?//; 1d;$d;'
+}
+
+pkginfo_get() {
+	local field=$1 apkfile=$2
+	tar -Oxzf "$apkfile" .PKGINFO | sed -En "s/^$field = (.*)/\1/p"
+}
+
+pkg_svcname() {
+	local pkgname=$1
+	apk info -Lq "$pkgname" | grep -m 1 '^etc/init\.d/' | grep -o '[^/]\+$'
+}
+
+
+case "${1:-}" in
+	-h | --help) help; exit 0;;
+esac
+
+tmpdir=$(mktemp -d)
+pkgfile="$tmpdir/pkg.apk"
+trap "rm -Rf '$tmpdir'" EXIT HUP INT TERM
+
+echo 'Reading apk package from stdin...'
+cat > "$tmpdir"/pkg.apk
+
+pkgname=$(pkginfo_get pkgname "$pkgfile")
+pkgver=$(pkginfo_get pkgver "$pkgfile")
+
+log info "Installing $pkgname-$pkgver..."
+apk add --no-progress "$tmpdir"/pkg.apk
+
+if svcname=$(pkg_svcname "$pkgname"); then
+	if ! rc-service $svcname restart; then
+		log error "Service $svcname failed, rolling back to the previous version..."
+
+		apk add --no-progress "$PKGS_DIR"/$pkgname.apk || die 3 'Rollback failed'
+		rc-service $svcname restart || die 3 'Rollback failed'
+
+		exit 4
+	fi
+fi
+
+mkdir -p "$PKGS_DIR"
+mv "$tmpdir"/pkg.apk "$PKGS_DIR"/$pkgname.apk

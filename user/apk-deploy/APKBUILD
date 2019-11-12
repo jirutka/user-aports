@@ -1,0 +1,37 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=apk-deploy
+pkgver=0.1.0
+pkgrel=0
+pkgdesc="Script for deploying applications in APK packages via SSH"
+url="https://github.com/jirutka/user-aports"
+arch="noarch"
+license="MIT"
+depends="apk-tools openssh-keygen sudo"
+pkgusers="deploy"
+pkggroups="$pkgusers"
+install="$pkgname.pre-install"
+source="apk-deploy-addkey
+	apk-deploy-pkg
+	apk-deploy.sudoersd
+	"
+options="!check"
+
+package() {
+	mkdir -p "$pkgdir"
+	cd "$pkgdir"
+
+	install -D -m 755 "$srcdir"/apk-deploy-pkg ./usr/bin/apk-deploy-pkg
+	install -D -m 755 "$srcdir"/apk-deploy-addkey ./usr/sbin/apk-deploy-addkey
+	install -D -m 640 "$srcdir"/apk-deploy.sudoersd ./etc/sudoers.d/$pkgname
+
+	install -d -m 755 -o $pkgusers -g "$pkggroups" \
+		./home/deploy \
+		./home/deploy/packages
+	install -d -m 700 -o $pkgusers -g "$pkggroups" \
+		./home/deploy/.ssh
+}
+
+sha512sums="82a0e38f396d37fa2222fcfc96fcac7eb3489efcb0a7b1cef44a364de578d21864ff8ceeaf98dd9d7f9e00ed027982bbb862790211acd641c6937abb3ff1a954  apk-deploy-addkey
+f6f9c2c2067bbcd7b40c8f1885b28761ae2f40a5dac5aae915f3301c0fd88df5e538e650ed3fcaa5d8dc15d4ebcba6d75de49a2d4d131225ac49d62f260b6a2a  apk-deploy-pkg
+a945ba0d23efcfe04f997b8a98d837f626f8b0ebdedb3ebb9f8cbfd4408fb9e848c8648e3db7cb30215b43ec8a516049de162ee717eaf09ada14979bfc2e1856  apk-deploy.sudoersd"

@@ -1,0 +1,99 @@
+#!/bin/ash
+# vim: set ts=4:
+#---help---
+# Usage: apk-deploy-addkey [-h] <name>
+#
+# Authorize new SSH key to connect and install APK packages.
+#
+# Arguments:
+#   <name>    Name to identify the key.
+#
+# Homepage: <https://github.com/jirutka/user-aports>
+#---help---
+set -eu
+
+APK_KEYS_DIR='/etc/apk/keys'
+DEPLOY_USER='deploy'
+DEPLOY_GROUP=$(id -gn "$DEPLOY_USER")
+DEPLOY_HOME=$(getent passwd "$DEPLOY_USER" | cut -d: -f6)
+AUTHORIZED_KEYS="$DEPLOY_HOME/.ssh/authorized_keys"
+
+
+die() {
+	printf 'ERROR: %s\n' "$2" >&2
+	exit "$1"
+}
+
+help() {
+	sed -n '/^#---help---/,/^#---help---/p' "$0" | sed 's/^# \?//; 1d;$d;'
+}
+
+check_name() {
+	local name="$1"
+
+	printf '%s\n' "$name" | grep -q '^[A-Za-z0-9@_.-]\+$' \
+		|| die 2 'invalid name!'
+
+	cut -d' ' -f3 "$AUTHORIZED_KEYS" | grep -qFx "$name" \
+		&& die 3 'key with the given name already exists;' || true
+
+	test -f "$APK_KEYS_DIR/$name.rsa.pub" \
+		&& die 3 "file $APK_KEYS_DIR/$name.rsa.pub already exists!" || true
+}
+
+check_ssh_pubkey() {
+	local pubkey="$1"
+
+	test -n "$pubkey" \
+		|| die 2 'no key provided!'
+
+	printf '%s\n' "$pubkey" | ssh-keygen -lf /dev/stdin >/dev/null 2>&1 \
+		|| die 4 'not a valid SSH public key!'
+
+	cut -d' ' -f1-2 "$AUTHORIZED_KEYS" | grep -qFx "$pubkey" \
+		&& die 3 'SSH key already exists!' || true
+}
+
+authorized_key_line() {
+	local name=$1
+	local pubkey=$(echo "$2" | cut -d' ' -f1-2)
+
+	printf 'no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty %s %s\n' "$pubkey" "$name"
+}
+
+ssh_pubkey_to_pem() {
+	printf '%s\n' "$1" | ssh-keygen -e -m pem -f /dev/stdin
+}
+
+
+case "${1:-}" in
+	-h | --help) help; exit 0;;
+	'') help; exit 1;;
+esac
+[ $# -eq 1 ] || die 2 'invalid number of arguments!'
+
+if ! [ -f "$AUTHORIZED_KEYS" ]; then
+	install -d -m 700 -o "$DEPLOY_USER" -g "$DEPLOY_GROUP" "${AUTHORIZED_KEYS%/*}"
+	install -m 600 -o "$DEPLOY_USER" -g "$DEPLOY_GROUP" /dev/null "$AUTHORIZED_KEYS"
+fi
+
+name="$1"
+check_name "$name"
+
+printf 'SSH public key: '
+read ssh_pubkey
+ssh_pubkey=$(printf '%s\n' "$ssh_pubkey" | cut -d' ' -f1-2)
+check_ssh_pubkey "$ssh_pubkey"
+
+printf 'APK public RSA key (leave empty if same as SSH key): '
+read apk_pubkey
+if [ -z "$apk_pubkey" ]; then
+	[ "${ssh_pubkey#ssh-rsa }" != "$ssh_pubkey" ] \
+		|| die 4 'apk supports only RSA keys!'
+	apk_pubkey=$(ssh_pubkey_to_pem "$ssh_pubkey")
+fi
+
+authorized_key_line "$name" "$ssh_pubkey" >> "$AUTHORIZED_KEYS"
+printf '%s\n' "$apk_pubkey" > "$APK_KEYS_DIR/$name.rsa.pub"
+
+echo 'Done'
