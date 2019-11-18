@@ -1,4 +1,5 @@
 #!/bin/ash
+# vim: set ts=4 ft=sh:
 #---help---
 # Usage: apk-deploy-pkg [-h]
 #
@@ -63,17 +64,21 @@ pkgname=$(pkginfo_get pkgname "$pkgfile")
 pkgver=$(pkginfo_get pkgver "$pkgfile")
 
 log info "Installing $pkgname-$pkgver..."
-apk add --no-progress "$tmpdir"/pkg.apk
+apk add --no-progress "$tmpdir"/pkg.apk || {
+	log error 'Installation failed, rolling back to the previous version...'
+	apk add --no-progress "$PKGS_DIR"/$pkgname.apk || die 3 'Rollback failed'
+	exit 4
+}
 
 if svcname=$(pkg_svcname "$pkgname"); then
-	if ! rc-service $svcname restart; then
+	rc-service $svcname restart || {
 		log error "Service $svcname failed, rolling back to the previous version..."
 
 		apk add --no-progress "$PKGS_DIR"/$pkgname.apk || die 3 'Rollback failed'
 		rc-service $svcname restart || die 3 'Rollback failed'
 
 		exit 4
-	fi
+	}
 fi
 
 mkdir -p "$PKGS_DIR"

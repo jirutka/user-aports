@@ -1,5 +1,5 @@
 #!/bin/ash
-# vim: set ts=4:
+# vim: set ts=4 ft=sh:
 #---help---
 # Usage: apk-deploy-addkey [-h] <name>
 #
@@ -10,7 +10,7 @@
 #
 # Homepage: <https://github.com/jirutka/user-aports>
 #---help---
-set -eu
+set -eu -o pipefail
 
 APK_KEYS_DIR='/etc/apk/keys'
 DEPLOY_USER='deploy'
@@ -93,7 +93,11 @@ if [ -z "$apk_pubkey" ]; then
 	apk_pubkey=$(ssh_pubkey_to_pkcs8 "$ssh_pubkey")
 fi
 
+printf "Name of the RSA key file ($name.rsa.pub): "
+read apk_pubkey_name
+: ${apk_pubkey_name:="$name.rsa.pub"}
+
 authorized_key_line "$name" "$ssh_pubkey" >> "$AUTHORIZED_KEYS"
-printf '%s\n' "$apk_pubkey" > "$APK_KEYS_DIR/$name.rsa.pub"
+printf '%s\n' "$apk_pubkey" > "$APK_KEYS_DIR/$apk_pubkey_name"
 
 echo 'Done'
