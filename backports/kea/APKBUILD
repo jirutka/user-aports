@@ -3,7 +3,7 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=kea
 pkgver=1.7.2
-pkgrel=4
+pkgrel=6
 pkgdesc="DHCPv4 and DHCPv6 server from ISC"
 url="http://kea.isc.org"
 # armhf, armv7: limited by log4cplus
@@ -35,11 +35,14 @@ subpackages="
 	$pkgname-dhcp-ddns:dhcpddns
 	$pkgname-dhcp4
 	$pkgname-dhcp6
-	$pkgname-hooks
 	$pkgname-http
-	$pkgname-keactrl::noarch
 	$pkgname-shell::noarch
 	$pkgname-utils
+	$pkgname-hook-mysql-cb:hook_mysql_cb
+	$pkgname-hook-ha:hook_ha
+	$pkgname-hook-stat-cmds:hook_stat_cmds
+	$pkgname-hook-lease-cmds:hook_lease_cmds
+	$pkgname-hook-flex-option:hook_flex_option
 	$pkgname-common
 	"
 source="https://ftp.isc.org/isc/$pkgname/$pkgver/$pkgname-$pkgver.tar.gz
@@ -51,6 +54,12 @@ source="https://ftp.isc.org/isc/$pkgname/$pkgver/$pkgname-$pkgver.tar.gz
 	kea.initd.in
 	"
 validpgpkeys="BE0E9748B718253A28BB89FFF1B11BF05CF02E57" # Internet Systems Consortium, Inc. (Signing key, 2017-2018) <codesign@isc.org>
+
+# secfixes:
+#   1.7.2-r0:
+#     - CVE-2019-6472
+#     - CVE-2019-6473
+#     - CVE-2019-6474
 
 prepare() {
 	default_prepare
@@ -98,9 +107,10 @@ package() {
 	done
 	setcap 'cap_net_raw=+ep' ./usr/sbin/kea-dhcp6
 
-	install -d -m 0750 -o kea -g kea \
-		"$pkgdir"/var/log/kea \
-		"$pkgdir"/var/lib/kea
+	install -d -m 0750 -o kea -g kea ./var/log/kea ./var/lib/kea
+
+	# keactrl is unnecessary since we provide OpenRC init scripts.
+	rm ./usr/sbin/keactrl ./etc/kea/keactrl.conf
 
 	rm -Rf ./run
 }
@@ -174,14 +184,6 @@ http() {
 	amove ./usr/lib/libkea-http.so*
 }
 
-keactrl() {
-	pkgdesc="Kea DHCP Process Manager"
-	depends=""
-
-	amove ./usr/sbin/keactrl
-	amove ./etc/kea/keactrl.conf
-}
-
 shell() {
 	pkgdesc="Text client for Kea DHCP Control Agent"
 	depends="python3"
@@ -195,6 +197,41 @@ utils() {
 	depends=""
 
 	amove ./usr/sbin/kea-lfc
+}
+
+hook_mysql_cb() {
+	pkgdesc="Kea MySQL Configuration Backend hooks library"
+	depends=""
+
+	amove ./usr/lib/kea/hooks/libdhcp_mysql_cb.so
+}
+
+hook_ha() {
+	pkgdesc="Kea High Availability hooks library"
+	depends="$pkgname-hook-lease-cmds"
+
+	amove ./usr/lib/kea/hooks/libdhcp_ha.so
+}
+
+hook_stat_cmds() {
+	pkgdesc="Kea Statistics Commands hooks library"
+	depends=""
+
+	amove ./usr/lib/kea/hooks/libdhcp_stat_cmds.so
+}
+
+hook_lease_cmds() {
+	pkgdesc="Kea Lease Commands hooks library"
+	depends=""
+
+	amove ./usr/lib/kea/hooks/libdhcp_lease_cmds.so
+}
+
+hook_flex_option() {
+	pkgdesc="Kea Flexible Option hooks library"
+	depends=""
+
+	amove ./usr/lib/kea/hooks/libdhcp_flex_option.so
 }
 
 common() {
