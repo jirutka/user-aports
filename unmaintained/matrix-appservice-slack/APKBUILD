@@ -1,0 +1,103 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=matrix-appservice-slack
+pkgver=0_git20180503
+_gitrev=55aa5719f1c22d27737871e1b7e7785cfa812d69
+pkgrel=0
+pkgdesc="A Matrix <--> Slack bridge"
+url="https://github.com/matrix-org/matrix-appservice-slack"
+arch="noarch"
+license="Apache-2.0"
+depends="nodejs"
+makedepends="yarn"
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/matrix-org/$pkgname/archive/$_gitrev.tar.gz
+	yarn.lock
+	add-support-for-slack-events-api.patch
+	app-default-registration-path.patch
+	$pkgname.initd
+	$pkgname.confd
+	$pkgname.logrotate
+	"
+builddir="$srcdir/$pkgname-$_gitrev"
+
+_prefix="/usr/lib/bundles/$pkgname"
+
+prepare() {
+	default_prepare
+	cd "$builddir"
+
+	ln -s ../yarn.lock .
+
+	cat > $pkgname <<-EOF
+		#!/bin/sh
+		cd $_prefix
+		exec node app.js "\$@"
+	EOF
+}
+
+build() {
+	cd "$builddir"
+
+	yarn install \
+		--production \
+		--frozen-lockfile \
+		--non-interactive \
+		--cache-folder=../.yarn
+}
+
+package() {
+	cd "$builddir"
+
+	mkdir -p "$pkgdir"/$_prefix
+	cp -r config external lib node_modules app.js package.json \
+		"$pkgdir"/$_prefix/
+
+	install -m 755 -D $pkgname "$pkgdir"/usr/bin/$pkgname
+	install -m 644 -D README.md "$pkgdir"/usr/share/doc/$pkgname/README.md
+
+	install -m 644 -D config/config.sample.yaml \
+		"$pkgdir"/etc/matrix-appservice/slack/config.yaml
+
+	install -m 755 -D "$srcdir"/$pkgname.initd \
+		"$pkgdir"/etc/init.d/$pkgname
+
+	install -m 644 -D "$srcdir"/$pkgname.logrotate \
+		"$pkgdir"/etc/logrotate.d/$pkgname
+
+	install -d -m 755 "$pkgdir"/var/log/matrix-appservice
+
+	## Clean-up
+
+	cd "$pkgdir"/$_prefix
+
+	rm config/config.sample.yaml
+
+	find . -type d -name node_modules | while read path; do
+		rm -rfv "$path"/*/dist
+		rm -rfv "$path"/*/test
+		rm -rfv "$path"/*/spec
+	done
+
+	find node_modules \( \
+		-name 'AUTHORS*' -o \
+		-name 'CHANGELOG*' -o \
+		-name 'CHANGES*' -o \
+		-name 'CONTRIBUT*' -o \
+		-name 'HISTORY*' -o \
+		-name '*LICENSE*' -o \
+		-name 'Makefile' -o \
+		-name 'README*' -o \
+		-name 'TODO*' -o \
+		-iname 'Changelog.md' -o \
+		-iname 'History.md' -o \
+		-iname 'Readme.md' \) -delete
+}
+
+sha512sums="1762f430c3083ece2776c891c1fd72c038e46bb5d26da9613274a1abdc401588bda5b4d9aaf95087542983598bb28cce5d52f76380d7b700b3747b7273e3ca25  matrix-appservice-slack-0_git20180503.tar.gz
+e26375b7bedc547623ddd05f76993298b6220a671ccd3848e53a4851b519bc06306e5751eb72849e94ade22de23809533bb6eca82284bf0781e1e6d05da6ea9e  yarn.lock
+2eff1c4455ae37a5f08851ffbb31c6f65a6338ef1292330231a32f2e1e5aae380b1c0368fdf52fa94032f2d5aef49b6c8b1085a0aeb998f6569c69b1276bd921  add-support-for-slack-events-api.patch
+45fa3c8c3b33f5c925c2e6af64470ea6e95e4436087e226aa06ee8d9ee3a5e80253072221462d32f62ee85d8da0bdba09e8b7240a6940a5ec597c8948ceb1b70  app-default-registration-path.patch
+c824e8475aab06da61c6306ce1620cceefca4f99b5c3a58354363f4d364e73d6f4c6a4de1d73ffc61bde4f97fa0f822d0b8c6241ae9c047d589ba77e18ed7871  matrix-appservice-slack.initd
+3fc0329671c59d37a5f00319c6fffd19b999b88034fe32a11da76b16af7a7e8e5c8acbc74170e512b922e883e7f753bc639fbb37d18d3f1874b78d73409276a3  matrix-appservice-slack.confd
+3191ef2d4c6d64e1a91fc00ffe38fe69490fb74ef25b26bc6b64c638b166c4b6a90e226ecc4f8ebcbc768106714ba0dfec4cdd1008be3416374c7f9117acc5a7  matrix-appservice-slack.logrotate"
