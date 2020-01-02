@@ -15,6 +15,9 @@ Packages are automatically build on Travis CI for x86_64 architecture and synchr
 
 == Repositories
 
+All the repositories are also available over link:rsync://repo.jirutka.cz/alpine/[] and on mirror https://mirror.fit.cvut.cz/alpine-jirutka/.
+
+
 === Backports
 
 * {repos-uri}/{gh-branch}/backports
