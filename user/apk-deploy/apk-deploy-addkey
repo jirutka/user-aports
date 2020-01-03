@@ -61,12 +61,10 @@ authorized_key_line() {
 	printf 'no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty %s %s\n' "$pubkey" "$name"
 }
 
-read_rsa_pubkey() {
+read_multiline() {
 	local line; while read line; do
 		printf '%s\n' "$line"
-		if [ -z "$line" ] || [ "$line" = '-----END PUBLIC KEY-----' ]; then
-			break
-		fi
+		test -n "$line" || break
 	done
 }
 
@@ -95,7 +93,7 @@ ssh_pubkey=$(printf '%s\n' "$ssh_pubkey" | cut -d' ' -f1-2)
 check_ssh_pubkey "$ssh_pubkey"
 
 printf 'APK public RSA key (leave empty if same as SSH key): '
-apk_pubkey=$(read_rsa_pubkey)
+apk_pubkey=$(read_multiline)
 if [ -z "$apk_pubkey" ]; then
 	[ "${ssh_pubkey#ssh-rsa }" != "$ssh_pubkey" ] \
 		|| die 4 'apk supports only RSA keys!'
