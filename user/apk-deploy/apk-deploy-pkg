@@ -58,6 +58,7 @@ check_configs() {
 	local overwrite="$2"
 
 	apk info -Lq "$pkgname" | grep '^etc/' | while read path; do
+		path="/$path"
 		[ -f "$path.apk-new" ] || continue
 
 		diff -u "$path" "$path.apk-new" || true
