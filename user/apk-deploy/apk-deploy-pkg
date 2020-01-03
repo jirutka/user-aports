@@ -58,28 +58,35 @@ pkgfile="$tmpdir/pkg.apk"
 trap "rm -Rf '$tmpdir'" EXIT HUP INT TERM
 
 echo 'Reading apk package from stdin...'
-cat > "$tmpdir"/pkg.apk
+cat > "$pkgfile"
+mkdir -p "$PKGS_DIR"
 
 pkgname=$(pkginfo_get pkgname "$pkgfile")
 pkgver=$(pkginfo_get pkgver "$pkgfile")
+pkgfile_old=$(find "$PKGS_DIR" -name "$pkgname~*.apk" | sort | tail -n 1)
+pkgfile="$PKGS_DIR/$pkgname~$(date +%s).apk"
+
+mv "$tmpdir/pkg.apk" "$pkgfile"
 
 log info "Installing $pkgname-$pkgver..."
-apk add --no-progress "$tmpdir"/pkg.apk || {
+apk add --no-progress "$pkgfile" || {
+	[ "$pkgfile_old" ] || die 3 'Installation failed and no previous version for rollback exists!'
+
 	log error 'Installation failed, rolling back to the previous version...'
-	apk add --no-progress "$PKGS_DIR"/$pkgname.apk || die 3 'Rollback failed'
+	apk add --no-progress "$pkgfile_old" || die 3 'Rollback failed'
 	exit 4
 }
 
 if svcname=$(pkg_svcname "$pkgname"); then
 	rc-service $svcname restart || {
+		[ "$pkgfile_old" ] || die 3 'Installation failed and no previous version for rollback exists!'
+
 		log error "Service $svcname failed, rolling back to the previous version..."
-
-		apk add --no-progress "$PKGS_DIR"/$pkgname.apk || die 3 'Rollback failed'
+		apk add --no-progress "$pkgfile_old" || die 3 'Rollback failed'
 		rc-service $svcname restart || die 3 'Rollback failed'
-
 		exit 4
 	}
 fi
 
-mkdir -p "$PKGS_DIR"
-mv "$tmpdir"/pkg.apk "$PKGS_DIR"/$pkgname.apk
+# Delete old versions of the package.
+find "$PKGS_DIR" -name "$pkgname~*.apk" -a ! -name "${pkgfile##*/}" -delete
