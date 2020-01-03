@@ -1,9 +1,14 @@
 #!/bin/ash
 # vim: set ts=4 ft=sh:
 #---help---
-# Usage: apk-deploy-pkg [-h]
+# Usage: apk-deploy-pkg [options]
 #
 # Read APK package from STDIN, install it and restart its service, if any.
+#
+# Options:
+#   -f --overwrite-configs  Overwrite any local changes in /etc files
+#                           provided by the installed package.
+#   -h --help               Show this message and exit.
 #
 # Homepage: <https://github.com/jirutka/user-aports>
 #---help---
@@ -48,8 +53,21 @@ pkg_svcname() {
 	apk info -Lq "$pkgname" | grep -m 1 '^etc/init\.d/' | grep -o '[^/]\+$'
 }
 
+check_configs() {
+	local pkgname=$1
+	local overwrite="$2"
 
+	apk info -Lq "$pkgname" | grep '^etc/' | while read path; do
+		[ -f "$path.apk-new" ] || continue
+
+		diff -u "$path" "$path.apk-new" || true
+		[ "$overwrite" = no ] || mv "$path.apk-new" "$path"
+	done
+}
+
+overwrite=no
 case "${1:-}" in
+	-f | --overwrite-configs) overwrite=yes;;
 	-h | --help) help; exit 0;;
 esac
 
@@ -76,6 +94,8 @@ apk add --no-progress "$pkgfile" || {
 	apk add --no-progress "$pkgfile_old" || die 3 'Rollback failed'
 	exit 4
 }
+
+check_configs "$pkgname" "$overwrite"
 
 if svcname=$(pkg_svcname "$pkgname"); then
 	rc-service $svcname restart || {
