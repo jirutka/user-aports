@@ -1,17 +1,23 @@
 #!/bin/ash
 # vim: set ts=4 ft=sh:
 #---help---
-# Usage: apk-deploy-addkey [-h] <name>
+# Usage: apk-deploy-addkey [options] <name>
 #
 # Authorize new SSH key to connect and install APK packages.
 #
 # Arguments:
 #   <name>    Name to identify the key.
 #
+# Options:
+#   -n --apk-key-name  Name of the APK key.
+#   -A --no-apk-key    Don't prompt for APK key.
+#   -h --help          Show this message and exit.
+#
 # Homepage: <https://github.com/jirutka/user-aports>
 #---help---
 set -eu -o pipefail
 
+PROGNAME='apk-deploy-addkey'
 APK_KEYS_DIR='/etc/apk/keys'
 DEPLOY_USER='deploy'
 DEPLOY_GROUP=$(id -gn "$DEPLOY_USER")
@@ -34,11 +40,8 @@ check_name() {
 	printf '%s\n' "$name" | grep -q '^[A-Za-z0-9@_.-]\+$' \
 		|| die 2 'invalid name!'
 
-	cut -d' ' -f3 "$AUTHORIZED_KEYS" | grep -qFx "$name" \
-		&& die 3 'key with the given name already exists;' || true
-
-	test -f "$APK_KEYS_DIR/$name.rsa.pub" \
-		&& die 3 "file $APK_KEYS_DIR/$name.rsa.pub already exists!" || true
+	cut -d' ' -f4 "$AUTHORIZED_KEYS" | grep -qFx "$name" \
+		&& die 3 'key with the given name already exists!' || true
 }
 
 check_ssh_pubkey() {
@@ -73,10 +76,22 @@ ssh_pubkey_to_pkcs8() {
 }
 
 
-case "${1:-}" in
-	-h | --help) help; exit 0;;
-	'') help; exit 1;;
-esac
+apk_pubkey_name=''
+apk_pubkey_skip=no
+
+opts=$(getopt -n $PROGNAME -o An:h -l no-apk-key,apk-key-name:,help -- "$@") || exit 1
+eval set -- "$opts"
+
+while [ $# -gt 0 ]; do
+	n=2
+	case "$1" in
+		-n | --apk-key-name) apk_pubkey_name="$2";;
+		-A | --no-apk-key) apk_pubkey_skip=yes; n=1;;
+		-h | --help) help; exit 0;;
+		--) shift; break;;
+	esac
+	shift $n
+done
 [ $# -eq 1 ] || die 2 'invalid number of arguments!'
 
 if ! [ -f "$AUTHORIZED_KEYS" ]; then
@@ -87,24 +102,24 @@ fi
 name="$1"
 check_name "$name"
 
+: ${apk_pubkey_name:="$name"}
+apk_pubkey_file="$APK_KEYS_DIR/${apk_pubkey_name%rsa.pub}.rsa.pub"
+
 printf 'SSH public key: '
 read ssh_pubkey
 ssh_pubkey=$(printf '%s\n' "$ssh_pubkey" | cut -d' ' -f1-2)
 check_ssh_pubkey "$ssh_pubkey"
-
-printf 'APK public RSA key (leave empty if same as SSH key): '
-apk_pubkey=$(read_multiline)
-if [ -z "$apk_pubkey" ]; then
-	[ "${ssh_pubkey#ssh-rsa }" != "$ssh_pubkey" ] \
-		|| die 4 'apk supports only RSA keys!'
-	apk_pubkey=$(ssh_pubkey_to_pkcs8 "$ssh_pubkey")
-fi
-
-printf "Name of the RSA key file ($name.rsa.pub): "
-read apk_pubkey_name
-: ${apk_pubkey_name:="$name.rsa.pub"}
-
 authorized_key_line "$name" "$ssh_pubkey" >> "$AUTHORIZED_KEYS"
-printf '%s\n' "$apk_pubkey" > "$APK_KEYS_DIR/$apk_pubkey_name"
+
+if [ "$apk_pubkey_skip" = no ] && ! [ -f "$apk_pubkey_file" ]; then
+	printf 'APK public RSA key (leave empty if same as SSH key): '
+	apk_pubkey=$(read_multiline)
+	if [ -z "$apk_pubkey" ]; then
+		[ "${ssh_pubkey#ssh-rsa }" != "$ssh_pubkey" ] \
+			|| die 4 'apk supports only RSA keys!'
+		apk_pubkey=$(ssh_pubkey_to_pkcs8 "$ssh_pubkey")
+	fi
+	printf '%s\n' "$apk_pubkey" > "$apk_pubkey_file"
+fi
 
 echo 'Done'
