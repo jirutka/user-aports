@@ -15,7 +15,7 @@
 set -eu -o pipefail
 
 if [ $(id -u) -ne 0 ]; then
-	exec sudo -u root "$0"
+	exec sudo -u root -- "$0" "$@"
 fi
 
 DEPLOY_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
