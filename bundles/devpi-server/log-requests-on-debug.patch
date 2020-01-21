@@ -1,0 +1,11 @@
+--- a/devpi_server/views.py
++++ b/devpi_server/views.py
+@@ -173,7 +173,7 @@
+         log = thread_push_log(tag)
+         try:
+             request.log = log
+-            log.info("%s %s" % (request.method, request.path,))
++            log.debug("%s %s" % (request.method, request.path,))
+             now = time()
+             response = handler(request)
+             duration = time() - now

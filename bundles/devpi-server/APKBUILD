@@ -7,7 +7,7 @@ _pkgver_common=3.4.0
 _pkgver_ldap=1.2.2
 _pkgver_lockdown=1.0.1
 _pkgver_web=4.0.1
-pkgrel=0
+pkgrel=1
 pkgdesc="Python PyPi staging server"
 url="https://github.com/devpi/devpi/"
 arch="all"
@@ -23,6 +23,7 @@ source="$pkgname-$pkgver.tar.gz::https://github.com/devpi/$_projname/archive/ser
 	$_projname-web-$_pkgver_web.tar.gz::https://github.com/devpi/$_projname/archive/web-$_pkgver_web.tar.gz
 	$_projname-ldap-$_pkgver_ldap.tar.gz::https://github.com/devpi/$_projname-ldap/archive/$_pkgver_ldap.tar.gz
 	$_projname-lockdown-$_pkgver_lockdown.tar.gz::https://github.com/devpi/$_projname-lockdown/archive/$_pkgver_lockdown.tar.gz
+	log-requests-on-debug.patch
 	constraints.txt
 	$pkgname.initd
 	$pkgname.confd
@@ -43,7 +44,7 @@ _prefix="/usr/lib/bundles/$pkgname"
 
 prepare() {
 	mkdir "$builddir"
-	default_prepare
+	builddir="$_server_dir" default_prepare
 }
 
 build() {
@@ -115,6 +116,7 @@ sha512sums="acbbaeb3724523e212807d4ba1a9ac27fb5e510219877de3726551b7577d3218c29d
 6cc12de95056c3c5b209c374b803fb4402a175ff4c863fb535ee7fd88955f4a29edb0a6a919912bed14c2c61a1a824b4709531b6ffc52d78cbc486ee33667149  devpi-web-4.0.1.tar.gz
 6516abc08deb97f3d61e5cc3a3e4e3e358ac7af3517805cc169f77b24aa64449aa8c8a4e6e4a68dfb5198acf63b618a1e0aa385a4f7c9d5e2ac43a18d8e9ebdb  devpi-ldap-1.2.2.tar.gz
 138c635d9c57ffc3ca8f1bb7302a06719a84077d4d2e2c488ecea369220ac033cf5aa9a116b6b129e46c0b7268af9785787effbdca1c772f66bad625281943c4  devpi-lockdown-1.0.1.tar.gz
+a3e747ce400567e9e715ac88c1adbf9d13fcb2d53b39e1350e226329baf57e632ceea180f97ed96bb98fd727fd2a44d5311767e961db8aa5f81374c47115c932  log-requests-on-debug.patch
 b2beb410a19678b0b062e6062ac2f09280af956ed9c02905e301bef222a66d025867135a80ca2c44f32397634cdc9526a089749160a96385f0407e5a9c7c513b  constraints.txt
 47c44d219229105cb6883b6b8c8fc119994322b958c59b1bcaa2bd2159f4ab75a279650240625cf9b7d2e74f6d2de1e90c22410027acdb59281ac60b7336a73e  devpi-server.initd
 c0fe26a1e85cb78b5ec93d95c553196b994fd8296037ee44e05f3e11a49c9e532e4336786c01088a8d1033f1d4af7b8b4880e247ed359b3b8c88795c9a7a7dd3  devpi-server.confd
