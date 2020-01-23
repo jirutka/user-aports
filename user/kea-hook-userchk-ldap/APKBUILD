@@ -1,0 +1,40 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=kea-hook-userchk-ldap
+pkgver=0_git20200123
+_gitrev=aa503caf367306171ecbefe98e342fea37f28394
+pkgrel=0
+pkgdesc="Kea DHCP hook for checking user access in LDAP"
+url="https://gitlab.fit.cvut.cz/spaceji3/kea-hook-userchk-ldap"
+arch="all"
+license="MPL-2.0"
+makedepends="autoconf automake kea-dev libtool openldap-dev boost-dev log4cplus-dev"
+source="https://gitlab.fit.cvut.cz/spaceji3/$pkgname/-/archive/$_gitrev/$pkgname-$_gitrev.tar.gz"
+builddir="$srcdir/$pkgname-$_gitrev"
+options="!check"  # no tests provided
+
+prepare() {
+	default_prepare
+
+	libtoolize
+	aclocal
+	autoheader
+	autoconf
+	automake --add-missing
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--enable-generate-messages \
+		--disable-static
+	make
+}
+
+package() {
+	make install DESTDIR="$pkgdir"
+}
+
+sha512sums="d94fba7d039ac3b15c7fd91f786b064c2600b681c5accc81cf35053c8e7dbb4bedfb2afa6c8134318e7fd86e91a56f4fa45ed0d97b7ef99ca2d254ded7aa8ea1  kea-hook-userchk-ldap-aa503caf367306171ecbefe98e342fea37f28394.tar.gz"
