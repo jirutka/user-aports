@@ -1,8 +1,8 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=kea-hook-userchk-ldap
-pkgver=0_git20200123
-_gitrev=aa503caf367306171ecbefe98e342fea37f28394
+pkgver=0_git20200124
+_gitrev=1ee353f01d85d173a26f12dac2d15705c56e84a7
 pkgrel=0
 pkgdesc="Kea DHCP hook for checking user access in LDAP"
 url="https://gitlab.fit.cvut.cz/spaceji3/kea-hook-userchk-ldap"
@@ -37,4 +37,4 @@ package() {
 	make install DESTDIR="$pkgdir"
 }
 
-sha512sums="d94fba7d039ac3b15c7fd91f786b064c2600b681c5accc81cf35053c8e7dbb4bedfb2afa6c8134318e7fd86e91a56f4fa45ed0d97b7ef99ca2d254ded7aa8ea1  kea-hook-userchk-ldap-aa503caf367306171ecbefe98e342fea37f28394.tar.gz"
+sha512sums="d0c92c1642d85a9d11062522fa3f32fa0f124eb95e36eda697076153c7de37047d4d7d8d3bea8574ae441e5d7436a6e75eaa64b5e6d8e1d03985e915e3e4593e  kea-hook-userchk-ldap-1ee353f01d85d173a26f12dac2d15705c56e84a7.tar.gz"
