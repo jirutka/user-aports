@@ -11,25 +11,19 @@ else
 	exit 1
 fi
 
-# An awk program to add timestamp prefix to all logged lines.
-AWK_LOG_PREFIX='{ print strftime("%Y-%m-%d %H:%M:%S:"), $0; fflush(); }'
-
-: ${HC_PRUNE_LOGFILE:="/var/log/healthchecks/prune.log"}
-
-
 case "$1" in -h | --help | help)
 	cat >&2 <<-EOF
 		Usage: $0 [options]
 
 		Run Healthchecks' tasks prunepingsslow, prunechecks and prunenotifications
-		and logs into $HC_PRUNE_LOGFILE.
+		and logs to syslog.
 		Options are passed into healthchecks-manage executed for each task.
 	EOF
 	exit 0
 esac
 
 {
-	/usr/bin/healthchecks-manage prunepingsslow "$@" 2>&1
-	/usr/bin/healthchecks-manage prunechecks "$@" 2>&1
-	/usr/bin/healthchecks-manage prunenotifications "$@" 2>&1
-} | awk "$AWK_LOG_PREFIX" | tee -a "$HC_PRUNE_LOGFILE"
+	/usr/bin/healthchecks-manage prunepingsslow "$@"
+	/usr/bin/healthchecks-manage prunechecks "$@"
+	/usr/bin/healthchecks-manage prunenotifications "$@"
+} 2>&1 | logger -s -t 'healthchecks-prune' -p 'cron.info'
