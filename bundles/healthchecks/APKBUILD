@@ -1,8 +1,8 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=healthchecks
-pkgver=1.7.0
-pkgrel=3
+pkgver=1.11.0
+pkgrel=0
 pkgdesc="A Cron Monitoring Tool written in Python & Django"
 url="https://healthchecks.io/"
 arch="all"
@@ -16,14 +16,12 @@ subpackages="$pkgname-assets::noarch $pkgname-openrc"
 # NOTE: The source v1.0.4 is used only to get the original HC logo.
 source="https://github.com/healthchecks/$pkgname/archive/v$pkgver/$pkgname-$pkgver.tar.gz
 	https://github.com/healthchecks/$pkgname/archive/v1.0.4/$pkgname-v1.0.4.tar.gz
-	hide-sign-up-when-reg-closed.patch
-	login-with-username.patch
-	allow-add-only-existing-users-as-team-members.patch
-	use-settings_loader.patch
-	fix-teams-to-projects-migration.patch
-	settings.patch
+	0001-Allow-to-log-in-using-username.patch
+	0002-Allow-to-add-as-team-members-only-existing-users.patch
+	0003-Use-settings-loader.patch
+	0004-Fix-teams-to-projects-migration.patch
+	0005-Adjust-settings.py.patch
 	settings.py
-	settings_loader.py
 	setup.py
 	constraints.txt
 	healthchecks-manage
@@ -32,6 +30,7 @@ source="https://github.com/healthchecks/$pkgname/archive/v$pkgver/$pkgname-$pkgv
 	$pkgname.daily
 	$pkgname.logrotate
 	"
+	#hide-sign-up-when-reg-closed.patch
 builddir="$srcdir/$pkgname-$pkgver"
 
 _prefix="/usr/lib/bundles/$pkgname"
@@ -46,7 +45,6 @@ prepare() {
 		recursive-include hc/static *
 	EOF
 	cp "$srcdir"/setup.py .
-	cp "$srcdir"/settings_loader.py hc/
 
 	# Replace generic "?" logo with the original Healthchecks logo.
 	cp "$srcdir"/$pkgname-1.0.4/static/img/logo* static/img/
@@ -174,18 +172,16 @@ openrc() {
 	default_openrc
 }
 
-sha512sums="0f25cfe48dbe785cbd9d753ec55a0c14a16bf3595d6351c9d30487557a8101541b52fe989638f6785d77db9ed704104d3b4578714ce69a3a6138fc92422f3420  healthchecks-1.7.0.tar.gz
+sha512sums="ade02114fbcaf03ac6fe68bf88be5b6c306b29bedc954c828e823dd455f3403db802e63f77e6444e8146f003c78cb9b061720605a09564c1b36967594909171b  healthchecks-1.11.0.tar.gz
 d7a62b559a60f1a264abd937f70f9e57b86cd96ac10ac3cc35b701ec2fc142a217dbdf25aeb4ef27e1a2f4d64c8b55fef7e831617e64c1dec5ccc8048507b712  healthchecks-v1.0.4.tar.gz
-29d408355c6ca4bc87ca676c7ee65fec032874c266e817510ffecefc522761571bd9fa04279e1542b4036e77e8ba59e5387eaa6c5370593637801df690130220  hide-sign-up-when-reg-closed.patch
-8282365f797cb136ff17d888bbf54e5abe09a170f5a74b3b8bf366fe1c971747107d9983e9a35cf2b20a8cf066c2b4bc93e8488775b02dd355738bfc909c0665  login-with-username.patch
-b5bc928ee591d2c078b85d3bc32f5338ae4fda041832d4f013adc77f30d85f6f649510b4ab474d68fca645b72e0dea17d1eb21f8329895e8d4f8d711f87f8dd6  allow-add-only-existing-users-as-team-members.patch
-e26221e0c58469a6af002e6ec4156ed57e925d2e160aeddd85f934a9cbdcb4d33466d7be1e908cc1f1ddf9eda6952b5f585fdfcbf792fc2ebf7e2da9c4162440  use-settings_loader.patch
-252b81dd0629fa3b22948726b59e99a087515416759df5026d8d802daca691dc252ccfa170bbfc6d80afb05109b1d9304bbe9d738412f37c1f83514cf1ee9a1b  fix-teams-to-projects-migration.patch
-a03f74880b2554fd08b62813616a21aa8666b1ed592a49e7d57f5a3e0ff6313d8fff43c7c2b976e6e619953d2e14b7355ec243e2492548343ae1cdc5b269703f  settings.patch
-8b710edcbf470348bd2a6cf6c541f0a69ce9ec85be336fbb075a4ce887a7e53ffaddc1506033d520c1b9b12c0937f474a8fdf00d8ab01f1dd376d31caa570e47  settings.py
-343ddf91baf04ec5b6e7b2cc1a1ad4f239832645b65d4abaf5309cc80da13d886f0c09b42b35a16e5b2fd3f60c9d3ab40dc2e924872cd380d3c2ed555bfb9101  settings_loader.py
+48eb96ff84c5354558a14b0815d7b6a2b2d82cc1adf2fd297861b209729b381196bba95669f07f7ed08e43f325814daea8340575c8f52494ba70f08f6267ea72  0001-Allow-to-log-in-using-username.patch
+b6180071dc7d496a32f1426147d7b7702ba2dc0993e0937c6101ff078eac5813e6de731222a953f8d09243c3191648e360ef37bed4c93dc71e1e1660b69ef574  0002-Allow-to-add-as-team-members-only-existing-users.patch
+b8e908a363bd4f4b9a22158fe4355de175ea6dd36596950cd65d4a5023d31a0ecaf5889dd4c960cd2cf6cab7ccd7b9d67eb0fd033b23597c972b865489e3e23b  0003-Use-settings-loader.patch
+b9fd3469dcdd267c28f20e70bbcf102cec36fbf061bd181671524832542077f12a4ec25916cf1b5ff7d3c2193851b3ac9d486e8eebfef9ed3eec350138ecdbff  0004-Fix-teams-to-projects-migration.patch
+a7951d743b60159a2c358d2d8ad7bd85619947b4960f3b2ea19fff3c0d2cfbcce8bf44b39b745ca4603093530794a22d1e9fd9f59ee72eb6c70ca4b17cec7d07  0005-Adjust-settings.py.patch
+b0ee7b4c25c31e8467ca030366488ea23cd0ccf19d62691dfc23523443a315cf0827f1c592fcdf691b95f83092353c5f317ce34175f855c69a14a491009b8f7c  settings.py
 123fead3cd0df44b7578d5f4db23ab093bb22dd85fa289c3a80ed3f259cf1356df2d3c1b7aeef83c5033bcac7381c11c9554206e0fc29e47714cfc05e9da8921  setup.py
-1d864c3f344269f9776243d8c8528a2559d01f587cc3464974198fc41299905a7a592490c76f6904674e678efce08f58c0dca6e1071cf8743fff82d8ee07955b  constraints.txt
+443c9d917c164aa0568f324cea1c27cd8c03277eec7e07192b40c81a0b3ef8f21b662046fa0bdb28e864bf0daecff30e2d233d61c694b31a65b8d0a963e421aa  constraints.txt
 e3f37177cceb477438fcaf08ded5c0d3eb023eacb50d72a4013c921c4a7bc077b764f5c20844c34ea292a67efce01c21897b98efec781d8850a418bc6bc3e559  healthchecks-manage
 3efe69055cc25b211d0a99b0eaf03b4725a810e6bbd69de786fc3c8f0965ff51f658e653f6a0f6988a5de02788c673df59ca6611e8947e19a384ea23d5804750  healthchecks-prune
 4f97931f4b5bf69c1f36836f7314ac14020696bd6572f50ef099fd6b1dd53b12f413c0af82cec2d599febfbc50a097351e9552ffb940846f38aaae395cc3a408  healthchecks.confd

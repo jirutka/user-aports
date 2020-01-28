@@ -170,7 +170,7 @@ if AUTHENTICATION_LDAP:
 #TELEGRAM_BOT_NAME = "ExampleBot"
 #TELEGRAM_TOKEN = None
 
-# SMS (Twilio) integration
+# SMS and WhatsApp (Twilio) integration
 #TWILIO_ACCOUNT = None
 #TWILIO_AUTH = None
 #TWILIO_FROM = None
@@ -186,6 +186,12 @@ if AUTHENTICATION_LDAP:
 #MATRIX_HOMESERVER = None
 #MATRIX_USER_ID = None
 #MATRIX_ACCESS_TOKEN = None
+
+# Apprise
+#APPRISE_ENABLED = False
+
+# Local shell commands
+#SHELL_ENABLED = False
 
 
 #

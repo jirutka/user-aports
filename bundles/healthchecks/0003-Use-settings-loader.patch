@@ -1,0 +1,56 @@
+From 9d96f75ab31a9f7b441d22eb40d1b18dbd27538c Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Tue, 28 Jan 2020 18:32:09 +0100
+Subject: [PATCH 3/5] Use settings loader
+
+---
+ hc/settings_loader.py | 24 ++++++++++++++++++++++++
+ hc/wsgi.py            |  2 +-
+ 2 files changed, 25 insertions(+), 1 deletion(-)
+ create mode 100644 hc/settings_loader.py
+
+diff --git a/hc/settings_loader.py b/hc/settings_loader.py
+new file mode 100644
+index 0000000..88e5c42
+--- /dev/null
++++ b/hc/settings_loader.py
+@@ -0,0 +1,24 @@
++import os
++import sys
++from importlib import util as importutil
++
++HC_SETTINGS = os.environ.get('HC_SETTINGS', '/etc/healthchecks/settings.py')
++
++
++def load_python_source(path, module_name):
++    spec = importutil.spec_from_file_location(module_name, path)
++    mod = importutil.module_from_spec(spec)
++    spec.loader.exec_module(mod)
++    return mod
++
++
++if os.path.exists(HC_SETTINGS):
++    local_settings = load_python_source(HC_SETTINGS, 'local_settings')
++
++    # Emulate "from local_settings import *".
++    globals().update({ k: v
++                       for (k, v) in local_settings.__dict__.items()
++                       if not k.startswith('_') })
++else:
++    warnings.warn("%s not found, using defaults" % HC_SETTINGS)
++    from hc.settings import *
+diff --git a/hc/wsgi.py b/hc/wsgi.py
+index 4a9bf89..e5cab00 100644
+--- a/hc/wsgi.py
++++ b/hc/wsgi.py
+@@ -11,6 +11,6 @@ import os
+ 
+ from django.core.wsgi import get_wsgi_application
+ 
+-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hc.settings")
++os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hc.settings_loader")
+ 
+ application = get_wsgi_application()
+-- 
+2.24.1
+

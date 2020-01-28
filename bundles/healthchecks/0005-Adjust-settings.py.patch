@@ -1,0 +1,68 @@
+From 92dd3772e5fc0fcc5d5d23b63ca831772b5a0b00 Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Tue, 28 Jan 2020 18:36:07 +0100
+Subject: [PATCH 5/5] Adjust settings.py
+
+---
+ hc/settings.py | 18 +++++++-----------
+ 1 file changed, 7 insertions(+), 11 deletions(-)
+
+diff --git a/hc/settings.py b/hc/settings.py
+index b3ea6ad..9490e79 100644
+--- a/hc/settings.py
++++ b/hc/settings.py
+@@ -6,9 +6,11 @@ https://docs.djangoproject.com/en/2.1/ref/settings
+ """
+ 
+ import os
++import sys
+ import warnings
+ 
+-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
++HC_SETTINGS = os.environ.get('HC_SETTINGS', '/etc/healthchecks/settings.py')
++HC_MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
+ 
+ 
+ def envbool(s, default):
+@@ -71,7 +73,7 @@ ROOT_URLCONF = "hc.urls"
+ TEMPLATES = [
+     {
+         "BACKEND": "django.template.backends.django.DjangoTemplates",
+-        "DIRS": [os.path.join(BASE_DIR, "templates")],
++        'DIRS': [os.path.join(HC_MODULE_DIR, "templates")],
+         "APP_DIRS": True,
+         "OPTIONS": {
+             "context_processors": [
+@@ -94,7 +96,7 @@ TEST_RUNNER = "hc.api.tests.CustomRunner"
+ DATABASES = {
+     "default": {
+         "ENGINE": "django.db.backends.sqlite3",
+-        "NAME": os.getenv("DB_NAME", BASE_DIR + "/hc.sqlite"),
++        "NAME": os.getenv("DB_NAME", "/var/lib/healthchecks/hc.sqlite"),
+     }
+ }
+ 
+@@ -147,8 +149,8 @@ MASTER_BADGE_LABEL = os.getenv("MASTER_BADGE_LABEL", SITE_NAME)
+ PING_ENDPOINT = os.getenv("PING_ENDPOINT", SITE_ROOT + "/ping/")
+ PING_EMAIL_DOMAIN = os.getenv("PING_EMAIL_DOMAIN", "localhost")
+ STATIC_URL = "/static/"
+-STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+-STATIC_ROOT = os.path.join(BASE_DIR, "static-collected")
++STATICFILES_DIRS = [os.path.join(HC_MODULE_DIR, "static")]
++STATIC_ROOT = os.path.join(sys.prefix, "static")
+ STATICFILES_FINDERS = (
+     "django.contrib.staticfiles.finders.FileSystemFinder",
+     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
+@@ -209,9 +211,3 @@ APPRISE_ENABLED = envbool("APPRISE_ENABLED", "False")
+ 
+ # Local shell commands
+ SHELL_ENABLED = envbool("SHELL_ENABLED", "False")
+-
+-
+-if os.path.exists(os.path.join(BASE_DIR, "hc/local_settings.py")):
+-    from .local_settings import *
+-else:
+-    warnings.warn("local_settings.py not found, using defaults")
+-- 
+2.24.1
+

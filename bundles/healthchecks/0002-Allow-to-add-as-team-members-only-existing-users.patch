@@ -1,6 +1,19 @@
+From f7beffd4ba3b1b86d908a250d8226d005d82b839 Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Tue, 28 Jan 2020 18:31:42 +0100
+Subject: [PATCH 2/5] Allow to add as team members only existing users
+
+---
+ hc/accounts/views.py            |  9 ++++-----
+ static/css/bootstrap.css        |  9 ++++++---
+ templates/accounts/project.html | 10 +++++-----
+ 3 files changed, 15 insertions(+), 13 deletions(-)
+
+diff --git a/hc/accounts/views.py b/hc/accounts/views.py
+index ebe8dd0..184b918 100644
 --- a/hc/accounts/views.py
 +++ b/hc/accounts/views.py
-@@ -286,12 +286,11 @@
+@@ -303,12 +303,11 @@ def project(request, code):
                  email = form.cleaned_data["email"]
                  try:
                      user = User.objects.get(email=email)
@@ -17,6 +30,34 @@
  
          elif "remove_team_member" in request.POST:
              if not is_owner:
+diff --git a/static/css/bootstrap.css b/static/css/bootstrap.css
+index 174291c..84b293c 100644
+--- a/static/css/bootstrap.css
++++ b/static/css/bootstrap.css
+@@ -4103,15 +4103,18 @@ a.badge:focus {
+ .alert-warning .alert-link {
+   color: #66512c;
+ }
+-.alert-danger {
++.alert-danger,
++.alert-error {
+   background-color: #f2dede;
+   border-color: #ebccd1;
+   color: #a94442;
+ }
+-.alert-danger hr {
++.alert-danger hr,
++.alert-error hr {
+   border-top-color: #e4b9c0;
+ }
+-.alert-danger .alert-link {
++.alert-danger .alert-link,
++.alert-error .alert-link {
+   color: #843534;
+ }
+ .list-group {
+diff --git a/templates/accounts/project.html b/templates/accounts/project.html
+index d379df5..790095b 100644
 --- a/templates/accounts/project.html
 +++ b/templates/accounts/project.html
 @@ -114,7 +114,7 @@
@@ -64,27 +105,6 @@
                  </div>
              </div>
          </form>
---- a/static/css/bootstrap.css
-+++ b/static/css/bootstrap.css
-@@ -4103,15 +4103,18 @@
- .alert-warning .alert-link {
-   color: #66512c;
- }
--.alert-danger {
-+.alert-danger,
-+.alert-error {
-   background-color: #f2dede;
-   border-color: #ebccd1;
-   color: #a94442;
- }
--.alert-danger hr {
-+.alert-danger hr,
-+.alert-error hr {
-   border-top-color: #e4b9c0;
- }
--.alert-danger .alert-link {
-+.alert-danger .alert-link,
-+.alert-error .alert-link {
-   color: #843534;
- }
- .list-group {
+-- 
+2.24.1
+
