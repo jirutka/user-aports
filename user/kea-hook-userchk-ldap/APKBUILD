@@ -3,7 +3,7 @@
 pkgname=kea-hook-userchk-ldap
 pkgver=0_git20200131
 _gitrev=c5ef3ee8b6e915a0466ce9a9f51dbfbaed4898a7
-pkgrel=0
+pkgrel=1
 pkgdesc="Kea DHCP hook for checking user access in LDAP"
 url="https://gitlab.fit.cvut.cz/spaceji3/kea-hook-userchk-ldap"
 arch="all"
