@@ -11,7 +11,7 @@ else
 	exit 1
 fi
 
-case "$1" in -h | --help | help)
+case "${1:-}" in -h | --help | help)
 	cat >&2 <<-EOF
 		Usage: $0 [options]
 
@@ -23,7 +23,8 @@ case "$1" in -h | --help | help)
 esac
 
 {
-	/usr/bin/healthchecks-manage prunepingsslow "$@"
-	/usr/bin/healthchecks-manage prunechecks "$@"
+	/usr/bin/healthchecks-manage prunepings "$@"
 	/usr/bin/healthchecks-manage prunenotifications "$@"
+	/usr/bin/healthchecks-manage prunetokenbucket "$@"
+	/usr/bin/healthchecks-manage pruneflips "$@"
 } 2>&1 | logger -s -t 'healthchecks-prune' -p 'cron.info'
