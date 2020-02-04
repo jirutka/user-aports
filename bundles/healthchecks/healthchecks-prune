@@ -2,12 +2,14 @@
 # This script is supposed to be executed by cron.
 set -eu
 
+PROGNAME='healthchecks-prune'
+
 # Option pipefail is not specified by POSIX and not supported e.g. by dash.
 # However, running this script without pipefail would be unsafe.
 if ( set -o pipefail 2>/dev/null ); then
 	set -o pipefail
 else
-	echo 'healthchecks-prune: Your shell does not support option pipefail!' >&2
+	echo "$PROGNAME: Your shell does not support option pipefail!" >&2
 	exit 1
 fi
 
@@ -23,8 +25,10 @@ case "${1:-}" in -h | --help | help)
 esac
 
 {
-	/usr/bin/healthchecks-manage prunepings "$@"
-	/usr/bin/healthchecks-manage prunenotifications "$@"
-	/usr/bin/healthchecks-manage prunetokenbucket "$@"
-	/usr/bin/healthchecks-manage pruneflips "$@"
-} 2>&1 | logger -s -t 'healthchecks-prune' -p 'cron.info'
+	rc=0
+	/usr/bin/healthchecks-manage prunepings "$@" || rc=2
+	/usr/bin/healthchecks-manage prunenotifications "$@" || rc=2
+	/usr/bin/healthchecks-manage prunetokenbucket "$@" || rc=2
+	/usr/bin/healthchecks-manage pruneflips "$@" || rc=2
+	return $rc
+} 2>&1 | logger -s -t "$PROGNAME" -p 'cron.info'
