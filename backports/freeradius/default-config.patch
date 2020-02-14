@@ -1,0 +1,132 @@
+--- a/raddb/radiusd.conf.in
++++ b/raddb/radiusd.conf.in
+@@ -98,10 +98,9 @@
+ modconfdir = ${confdir}/mods-config
+ certdir = ${confdir}/certs
+ cadir   = ${confdir}/certs
+-run_dir = ${localstatedir}/run/${name}
++run_dir = /run/${name}
+ 
+-# Should likely be ${localstatedir}/lib/radiusd
+-db_dir = ${raddbdir}
++db_dir = ${localstatedir}/lib/radiusd
+ 
+ #
+ # libdir: Where to find the rlm_* modules.
+@@ -137,18 +136,7 @@
+ #
+ libdir = @libdir@
+ 
+-#  pidfile: Where to place the PID of the RADIUS server.
+ #
+-#  The server may be signalled while it's running by using this
+-#  file.
+-#
+-#  This file is written when ONLY running in daemon mode.
+-#
+-#  e.g.:  kill -HUP `cat /var/run/radiusd/radiusd.pid`
+-#
+-pidfile = ${run_dir}/${name}.pid
+-
+-#
+ #  correct_escapes: use correct backslash escaping
+ #
+ #  Prior to version 3.0.5, the handling of backslashes was a little
+@@ -501,8 +500,8 @@
+ 	#  member.  This can allow for some finer-grained access
+ 	#  controls.
+ 	#
+-#	user = radius
+-#	group = radius
++	user = radius
++	group = radius
+ 
+ 	#  Core dumps are a bad thing.  This should only be set to
+ 	#  'yes' if you're debugging a problem with the server.
+--- a/raddb/sites-available/default
++++ b/raddb/sites-available/default
+@@ -379,10 +379,10 @@
+ 	#  uncomment it as well; this will further reduce the number of
+ 	#  LDAP and/or SQL queries for TTLS or PEAP.
+ 	#
+-	eap {
+-		ok = return
++#	eap {
++#		ok = return
+ #		updated = return
+-	}
++#	}
+ 
+ 	#
+ 	#  Pull crypt'd passwords from /etc/passwd or /etc/shadow,
+@@ -529,7 +529,7 @@
+ 
+ 	#
+ 	#  Allow EAP authentication.
+-	eap
++#	eap
+ 
+ 	#
+ 	#  The older configurations sent a number of attributes in
+@@ -846,7 +846,7 @@
+ 		# Insert EAP-Failure message if the request was
+ 		# rejected by policy instead of because of an
+ 		# authentication failure
+-		eap
++#		eap
+ 
+ 		#  Remove reply message if the response contains an EAP-Message
+ 		remove_reply_message_if_eap
+@@ -924,7 +924,7 @@
+ 	#  hidden inside of the EAP packet, and the end server will
+ 	#  reject the EAP request.
+ 	#
+-	eap
++#	eap
+ 
+ 	#
+ 	#  If the server tries to proxy a request and fails, then the
+--- a/raddb/sites-available/inner-tunnel
++++ b/raddb/sites-available/inner-tunnel
+@@ -131,9 +131,9 @@
+ 	#  for the many packets that go back and forth to set up TTLS
+ 	#  or PEAP.  The load on those servers will therefore be reduced.
+ 	#
+-	eap {
+-		ok = return
+-	}
++#	eap {
++#		ok = return
++#	}
+ 
+ 	#
+ 	#  Read the 'users' file
+@@ -247,7 +247,7 @@
+ 
+ 	#
+ 	#  Allow EAP authentication.
+-	eap
++#	eap
+ }
+ 
+ ######################################################################
+@@ -426,7 +426,7 @@
+ 	#  hidden inside of the EAP packet, and the end server will
+ 	#  reject the EAP request.
+ 	#
+-	eap
++#	eap
+ }
+ 
+ } # inner-tunnel server block
+--- a/raddb/mods-available/eap
++++ b/raddb/mods-available/eap
+@@ -586,7 +586,7 @@
+ 			#  deleted by the server when the command
+ 			#  returns.
+ 			#
+-		#	client = "/path/to/openssl verify -CApath ${..ca_path} %{TLS-Client-Cert-Filename}"
++		#	client = "/usr/bin/openssl verify -CApath ${..ca_path} %{TLS-Client-Cert-Filename}"
+ 		}
+ 
+ 		#  OCSP Configuration
