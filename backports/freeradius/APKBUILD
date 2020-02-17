@@ -64,7 +64,7 @@ subpackages="
 	$pkgname-utils
 	"
 provides="freeradius3=$pkgver-r$pkgrel"
-source="ftp://ftp.freeradius.org/pub/freeradius/$pkgname-server-$pkgver.tar.gz
+source="https://github.com/FreeRADIUS/freeradius-server/archive/release_${pkgver//./_}.tar.gz
 	$pkgname.logrotated
 	radiusd.confd
 	radiusd.initd
@@ -79,7 +79,7 @@ source="ftp://ftp.freeradius.org/pub/freeradius/$pkgname-server-$pkgver.tar.gz
 	Fix-permissions-of-certs-in-bootstrap-fallback.patch
 	fix-request_running-segfault.patch
 	"
-builddir="$srcdir/$pkgname-server-$pkgver"
+builddir="$srcdir/$pkgname-server-release_${pkgver//./_}"
 
 # secfixes:
 #   3.0.19-r3:
@@ -390,7 +390,7 @@ _enable_mod() {
 	ln -s ../mods-available/$1 "$subpkgdir"$_radconfdir/mods-enabled/$1
 }
 
-sha512sums="513ed0a5d9e6b9a8d89a9b02c86ff528a9ff14d928f4c1040ca44702465abd711588fe6afa35554cb2c8e8bd7f19dd5be3dbc78445c62c7b00bf5cbc4c621312  freeradius-server-3.0.20.tar.gz
+sha512sums="c4078f0194aa4fac3225139ccfd9fc8bbfe5879add04301ae2019239b555c529a3807718759cfa0845ed625acb8aa5456989c4f3967b6da006c415b6c3e1fc1a  release_3_0_20.tar.gz
 c3ae1ee6bd7743f883310612ba2c20c6ff7f288fedc308735df05b097ecb2f7fa4d1679b844e262757808978c7bb2d7630b99e4b87ce6d6ba7f84013f9c49f1d  freeradius.logrotated
 bb3df1fa2c9ed95514ae090e0f6619c4e3280f424c4351bc79f5254bf1a327fa7d27e5fe3add5ab8d9e5ba3792c9553bd9a0481fe9c5bc34945ce46627ef2638  radiusd.confd
 a66ab5d3f1c86450e9c50aa8be10a40fb4118467670048773ad8c80b5f3fb958dd3addc6ef245289d93ce2b184ce2c9882a8a2585d4a134d55c2326c9559f558  radiusd.initd
