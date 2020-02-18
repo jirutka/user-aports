@@ -5,23 +5,28 @@
 # all conventions and best-practices, that's why so much patching...
 pkgname=ruby-grpc
 _pkgname=grpc
-pkgver=1.15.0
+pkgver=1.24.0
+_upb_gitrev=931bbecbd3230ae7f22efa5d203639facc47f719
 pkgrel=0
 pkgdesc="An RPC library and framework"
 url="https://github.com/grpc/grpc"
 arch="all"
 license="BSD-3-Clause"
-depends="ca-certificates ruby-google-protobuf"
+depends="ca-certificates ruby-google-protobuf>=3.8"
 makedepends="c-ares-dev openssl-dev ruby ruby-dev ruby-etc zlib-dev"
 source="$_pkgname-$pkgver.tar.gz::https://github.com/grpc/$_pkgname/archive/v$pkgver.tar.gz
+	https://github.com/protocolbuffers/upb/archive/$_upb_gitrev/upb-$_upb_gitrev.tar.gz
 	use-system-provided-deps.patch
 	use-system-certs.patch
 	fix-extconf.patch"
 builddir="$srcdir/$_pkgname-$pkgver"
-options="!check"  # XXX: we need ruby-rspec package...
+options="!check"  # XXX: missing some deps
 
 prepare() {
 	default_prepare
+
+	rmdir third_party/upb
+	ln -s ../../upb-$_upb_gitrev third_party/upb
 
 	# Remove some bundled dependencies from the gem's files list.
 	sed -i -e '/etc\/roots.pem/d' \
@@ -29,10 +34,11 @@ prepare() {
 		-e '/third_party\/zlib\//d' \
 		-e '/third_party\/cares\//d' \
 		$_pkgname.gemspec
+	# ...and files (just to be sure).
+	rm -Rf third_party/cares
 
 	# Remove unused dependency from gemspec.
-	sed -i -e '/add_dependency.*googleauth/d' \
-		-e '/add_dependency.*googleapis-common-protos-types/d' \
+	sed -i '/add_dependency.*googleapis-common-protos-types/d' \
 		$_pkgname.gemspec
 }
 
@@ -70,7 +76,8 @@ package() {
 	rm -r bin ext lib/grpc/grpc_c.so pb/README.md pb/src pb/test spec || true
 }
 
-sha512sums="2a958d93bf737e074216b121bc8e65c9c5151e6f8cfd5a3e9f826413d2734fdcdbd5659482c8d0b2a5e9a4ae537f5c1dfb58ee8ecf844ec95fe46659fb937e06  grpc-1.15.0.tar.gz
+sha512sums="95fc04ea4a9b11c075022ea43b6e69eff33636bc6507cbc0265ff23e287ffb750d43988a58d7889613b8fdeda3a9d9624a66094de2b6c5980972512eac3839ab  grpc-1.24.0.tar.gz
+13d633e13b58aca69945a5d62d11574233d51d1628ab070ff0dad052e067ff747e47007daf594d9e009ff630c6d691a943d1e6bab93f5d5c8e31f14c2edc820c  upb-931bbecbd3230ae7f22efa5d203639facc47f719.tar.gz
 9b64ae51780595d200f5a2d6239b1cce492d10189af00287d10d3dc2fb409b06ab9181e1ad79cc5d4d59d2bf4c598b1e2c9b4503dbcf53bf45e84fecc31ff885  use-system-provided-deps.patch
-e967b0a1d81fa528b859ada26d1244087dfe53aba2513a576ec38ebc07b8c9b6a261f5ce6197e178cc129212514ee65dd85d7daa1cb1431793e78f0396fc1d9f  use-system-certs.patch
+631af4b9ac29c1ebabb2c88394ea2993e36cec1beda38195e1587dbd9d3c8c9eef75a17d2326d3cd2e682de551401216075ba08fdc501c098b8092d718ded381  use-system-certs.patch
 fc1c0fc5bbb738d67e5a1730cc8abf21b4319a25f56fec41ba02fcb54d57cecf15f42a747d7079aab92bc7145235adb198e28493ea82bb504931546ff695fd66  fix-extconf.patch"

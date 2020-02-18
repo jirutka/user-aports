@@ -12,4 +12,4 @@ Subject: [PATCH] Use system CA certificates
 +ssl_roots_path = '/etc/ssl/certs/ca-certificates.crt'
  
  require_relative 'grpc/errors'
- require_relative 'grpc/grpc'
+ require_relative 'grpc/structs'
