@@ -1,0 +1,14 @@
+#!/sbin/openrc-run
+
+: ${cfgfile:="/etc/sslh.conf"}
+: ${wait:=50}  # milliseconds
+
+description="Port multiplexer for SSH, HTTPS, OpenVPN etc."
+
+command="/usr/sbin/sslh"
+command_args="-F$cfgfile -f ${command_args:-$DAEMON_OPTS}"
+command_background="yes"
+pidfile="/run/$RC_SVCNAME.pid"
+start_stop_daemon_args="--wait $wait"
+
+required_files="$cfgfile"
