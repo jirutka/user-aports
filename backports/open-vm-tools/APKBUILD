@@ -4,7 +4,7 @@ pkgname=open-vm-tools
 pkgver=11.0.5
 _pkgsubver=${pkgver#*_p}
 _ver=${pkgver/_p/-}
-pkgrel=1
+pkgrel=2
 pkgdesc="The Open Virtual Machine Tools are the open source implementation of VMware Tools."
 url="https://github.com/vmware/open-vm-tools/"
 arch="x86 x86_64"
@@ -37,25 +37,20 @@ makedepends="
 	glib-dev
 	gtk+3.0-dev
 	gtkmm3-dev
-	icu-dev
-	libdnet-dev
 	libice-dev
 	libmspack-dev
-	libnotify-dev
 	libsm-dev
 	libtirpc-dev
 	libtool
-	libxcomposite-dev
 	libxext-dev
 	libxinerama-dev
 	libxrandr-dev
 	libxtst-dev
 	linux-headers
-	m4
 	openssl-dev
 	rpcgen
-	xmlsec-dev
 	"
+pkggroups="vmware"
 source="$pkgname-$pkgver.tar.gz::https://github.com/vmware/open-vm-tools/archive/stable-$_ver.tar.gz
 	0001-lib-misc-Recognize-Alpine-Linux.patch
 	0002-open-vm-tools-Add-disable-werror-configure-option.patch
@@ -75,12 +70,14 @@ source="$pkgname-$pkgver.tar.gz::https://github.com/vmware/open-vm-tools/archive
 	change-default-log-dir.patch
 	change-statechange.subr-location.patch
 	tools.conf.patch
+	use-libtirpc-nokrb.patch
 
 	$pkgname.initd
 	$pkgname.confd
 	$pkgname.logrotate
 	"
 builddir="$srcdir/$pkgname-stable-$_ver"
+options="suid"  # needed for vmware-user-suid-wrapper
 
 _subpackages="$subpackages"  # save for func _all
 _pluginsdir='usr/lib/open-vm-tools/plugins'
@@ -95,7 +92,7 @@ prepare() {
 build() {
 	export CUSTOM_PROCPS_NAME="procps"
 	export CFLAGS="$CFLAGS -Wno-unused-but-set-variable -D_GNU_SOURCE"
-	export CXXFLAGS="$CXXFLAGS -std=gnu++11 -fpermissive"
+	export CXXFLAGS="$CXXFLAGS -std=gnu++11"
 
 	cd open-vm-tools
 
@@ -104,13 +101,12 @@ build() {
 		--host=$CHOST \
 		--prefix=/usr \
 		--sysconfdir=/etc \
+		--with-x \
 		--without-dnet \
 		--without-xerces \
-		--with-icu \
-		--with-x \
+		--without-icu \
 		--without-kernel-modules \
 		--without-pam \
-		--enable-xmlsec1 \
 		--disable-werror \
 		--disable-glibc-check
 	make
@@ -128,14 +124,17 @@ check() {
 package() {
 	local confdir="$pkgdir/etc/vmware-tools"
 	local sharedir="$pkgdir/usr/share/$pkgname"
+	local i
 
 	make -C open-vm-tools install DESTDIR="$pkgdir"
 
 	cd "$pkgdir"
 
-	chmod -x ./etc/vmware-tools/*.conf*
+	chmod -x "$confdir"/*.conf*
 	mv "$confdir"/tools.conf.example "$confdir"/tools.conf
-	mv "$confdir"/vm-support ./usr/bin/vm-support
+
+	mkdir -p ./usr/sbin
+	mv "$confdir"/vm-support ./usr/sbin/vm-support
 
 	# *-vm-default scripts are identical and they are not supposed to be
 	# modified by the user, so move the script to /usr/share and symlink back.
@@ -153,21 +152,24 @@ package() {
 	# TODO: Write network script for Alpine.
 	rm -f "$confdir"/scripts/vmware/network
 
+	# These commands allow to modify some VM's parameters or write to VM's
+	# logs which is typically undesirable to be allowed to any user or
+	# process. Of course, this cannot prevent users from copying and
+	# running their own open-vm-tools binaries, but better than nothing...
+	# See also https://github.com/vmware/open-vm-tools/issues/288.
+	for i in vmtoolsd vmware-namespace-cmd vmware-rpctool \
+		vmware-toolbox-cmd vmware-xferlogs;
+	do
+		chgrp vmware ./usr/bin/$i
+		chmod 750 ./usr/bin/$i
+	done
+
+	chmod 4755 ./usr/bin/vmware-user-suid-wrapper
+
 	install -D -m 755 "$srcdir"/$pkgname.initd ./etc/init.d/$pkgname
 	install -D -m 644 "$srcdir"/$pkgname.confd ./etc/conf.d/$pkgname
 	install -D -m 644 "$srcdir"/$pkgname.logrotate ./etc/logrotate.d/$pkgname
 	install -d -m 750 ./var/log/vmware
-
-	mkdir -p ./lib/modules-load.d/
-	cat > ./lib/modules-load.d/$pkgname.conf <<-EOF
-		vmblock
-		vmci
-		vmhgfs
-		vmsync
-		vmxnet
-		vsock
-		vmw_balloon
-	EOF
 }
 
 lang() {
@@ -274,6 +276,7 @@ dbcec24beafbbe94c8ed12482f9d0c643a6bbec256198cdc898513410271a3e2c0b7e35b0997ee0e
 87057ae614d34af2e5581f31b5e028363f316bce4e255b5199438bade96891e798160424aee5804314280773de98ed514fcac7a790bec1f1ae63f3daa1fbef9c  change-default-log-dir.patch
 6494fe94f332706a130dd12afa18b881f6b6c4e0523570ff866e1678e37af6bd6148c4cf7d957e12f8dc2a51b4f07aa849c4e947911bcbe20d0c81049a2b6974  change-statechange.subr-location.patch
 44d4f149bdb15b364c5a11657514f432dba7d3fd35907cb58b3c47d54165f439d7775db128f8b476e9f7002d9741cb11d4cba83ce8998db003bfad761c4db710  tools.conf.patch
-d4d0c0c3042eef4d241c933de6f7c398a88275744b3576efc2f909acd681752f548e4ae4a17eca7db731ee0b9254b46169a48463d12a72ec6354065d788159f4  open-vm-tools.initd
-820ff0ed2911c63970ee7cfad4cd9ea4a0eeee000de4e87e2d231bf8816a48af3af73ad288cca0adddf9e8fed7f36c72298fe0549fe945aded33fc186a6b31dd  open-vm-tools.confd
+0feef314fc178922f86fdb072fc46ae0932aa59085b8263beecc1ad53c9bec04967b0d7fa62ab1051e65685b03bba80ccb075fe01c0ac67591c81f38131176b2  use-libtirpc-nokrb.patch
+1248234f19a29b28b6a75886b39d1579d0f94d43925db1f709b7a05907582f6650b78d39155e7da335f27b6da00586b9c3dc3ca7e4cab19dba5c84cfefd1e6cb  open-vm-tools.initd
+f996fc598d01ea778797674fca2a9f467d7ce7ced50e4e0343b3d53bea65770df488b1a286e42603d91e05ba85610161eb68e3fbaa5cbf1757a8aec81869a677  open-vm-tools.confd
 4b79d7432f366e5ef202e69bffed5caacab8008f39475d50d54cfa5ac9f521cc0df7122d8e3a95340a4b00cb0b202717293df14f9d411d5edf41dcc7fa4c0550  open-vm-tools.logrotate"
