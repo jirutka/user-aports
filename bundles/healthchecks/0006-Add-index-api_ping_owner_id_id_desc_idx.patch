@@ -1,0 +1,22 @@
+Fix extremely slow query invoked when some check is renamed.
+
+    SELECT "api_ping"."id", "api_ping"."n", "api_ping"."owner_id", "api_ping"."created", "api_ping"."kind", "api_ping"."scheme", "api_ping"."remote_addr", "api_ping"."method", "api_ping"."ua", "api_ping"."body" FROM "api_ping" WHERE "api_ping"."owner_id" = ? ORDER BY "api_ping"."id" DESC LIMIT 20;
+
+--- /dev/null
++++ a/hc/api/migrations/api_ping_owner_id_id_desc_idx.py
+@@ -0,0 +1,15 @@
++from django.db import migrations, models
++
++
++class Migration(migrations.Migration):
++
++    dependencies = [
++        ('api', '0064_auto_20191119_1346'),
++    ]
++
++    operations = [
++        migrations.AddIndex(
++            model_name='ping',
++            index=models.Index(fields=['owner_id', '-id'], name='api_ping_owner_id_id_desc_idx'),
++        ),
++    ]
