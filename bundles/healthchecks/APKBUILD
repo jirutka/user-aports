@@ -2,12 +2,13 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=healthchecks
 pkgver=1.11.0
-pkgrel=1
+pkgrel=2
 pkgdesc="A Cron Monitoring Tool written in Python & Django"
 url="https://healthchecks.io/"
 arch="all"
 license="BSD-3-Clause"
 depends="$pkgname-assets=$pkgver-r$pkgrel python3"
+depends_openrc="uwsgi-python3 uwsgi-http"
 makedepends="openldap-dev postgresql-dev python3-dev"
 pkgusers="healthchecks"
 pkggroups="$pkgusers"
@@ -164,11 +165,6 @@ assets() {
 
 	mkdir -p "$subpkgdir"/$_prefix/static
 	mv "$pkgdir"/$_prefix/static "$subpkgdir"/$_prefix/
-}
-
-openrc() {
-	depends="uwsgi-python3 uwsgi-http"
-	default_openrc
 }
 
 sha512sums="ade02114fbcaf03ac6fe68bf88be5b6c306b29bedc954c828e823dd455f3403db802e63f77e6444e8146f003c78cb9b061720605a09564c1b36967594909171b  healthchecks-1.11.0.tar.gz
