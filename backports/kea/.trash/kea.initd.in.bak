@@ -1,0 +1,64 @@
+#!/sbin/openrc-run
+
+: ${ambient_caps:="+net_bind_service"}
+: ${cfgfile:="/etc/kea/@@NAME@@.conf"}
+: ${command_user:="kea"}
+
+name="@@NAME@@"
+extra_commands="checkconfig"
+description_checkconfig="Checks configuration file for errors"
+
+command="/usr/sbin/@@NAME@@"
+command_args="-c $cfgfile"
+command_background="yes"
+pidfile="/run/$RC_SVCNAME.pid"
+
+if [ "${command_user%:*}" != root ]; then
+	start() { setpriv_start; }
+fi
+
+depend() {
+	need net
+	after firewall
+}
+
+start_pre() {
+	checkconfig
+}
+
+setpriv_start() {
+	local reuid=${command_user%:*}
+	local regid=${command_user#*:}
+	[ "$regid" != "$command_user" ] || regid=$(id -gn "$user")
+
+	local setpriv_args="
+		--ambient-caps=$ambient_caps
+		--inh-caps=-all
+		--reuid=$reuid
+		--regid=$regid
+		--init-groups
+		--reset-env"
+
+	[ -n "$output_logger" ] &&
+		output_logger_arg="--stdout-logger \"$output_logger\""
+	[ -n "$error_logger" ] &&
+		error_logger_arg="--stderr-logger \"$error_logger\""
+
+	start-stop-daemon --start \
+		--exec /usr/bin/setpriv \
+		--pidfile $pidfile \
+		--background \
+		--make-pidfile \
+		${output_log+--stdout} $output_log \
+		${error_log+--stderr} $error_log \
+		${output_logger_arg} \
+		${error_logger_arg} \
+		$start_stop_daemon_args \
+		-- $setpriv_args -- "$command" $command_args
+}
+
+checkconfig() {
+	ebegin "Checking $name configuration"
+	$command -t "$cfgfile" >/dev/null
+	eend $?
+}

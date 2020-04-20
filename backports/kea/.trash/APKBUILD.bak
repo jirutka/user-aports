@@ -1,0 +1,166 @@
+# Maintainer: Steve Holweg <skytep@gmail.com>
+# Contributor: Baptiste Jonglez <baptiste--aur@jonglez.org>
+pkgname=kea
+pkgver=1.7.2
+pkgrel=1
+pkgdesc="DHCPv4, DHCPv6 and DDNS server from ISC"
+url="http://kea.isc.org"
+arch="all !armhf !armv7"
+license="MPL2"
+depends=""
+checkdepends="procps"
+makedepends="botan-dev log4cplus-dev boost-dev postgresql-dev mariadb-dev python3-dev"
+pkgusers="kea"
+pkggroups="kea"
+install="$pkgname.pre-install"
+subpackages="
+	$pkgname-doc
+	$pkgname-static
+	$pkgname-dev
+	$pkgname-admin::noarch
+	$pkgname-ctrl-agent:ctrlagent
+	$pkgname-dhcp-ddns:dhcpddns
+	$pkgname-dhcp4
+	$pkgname-dhcp6
+	$pkgname-hooks
+	$pkgname-http
+	$pkgname-keactrl::noarch
+	$pkgname-shell::noarch
+	$pkgname-utils
+	"
+source="https://ftp.isc.org/isc/$pkgname/$pkgver/$pkgname-$pkgver.tar.gz
+	disable-db-tests.patch
+	kea.initd.in
+	kea-ctrl-agent.initd
+	"
+validpgpkeys="BE0E9748B718253A28BB89FFF1B11BF05CF02E57" # Internet Systems Consortium, Inc. (Signing key, 2017-2018) <codesign@isc.org>
+
+prepare() {
+	default_prepare
+
+	# Remove the builddir path from the scripts to satisfy abuild checks.
+	# NOTE: There's a new script each release, so using patch file would be
+	# very inconvenient.
+	find src/share/database/scripts/ \
+		-name '*.sh.in' \
+		-exec sed -i 's|^\s*. @abs_top_builddir@/src/bin/admin/admin-utils.sh.*|echo "admin-utils.sh not found!"; exit 1|' {} \;
+}
+
+build() {
+	# Complete build for dev and doc
+
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--localstatedir=/var \
+		--libexecdir=/usr/lib \
+		--runstatedir=/run \
+		--with-mysql \
+		--with-pgsql \
+		--enable-shell
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+
+	rm -Rf "$pkgdir"/run
+
+	install -d -m 0750 -o kea -g kea \
+		"$pkgdir"/var/log/kea \
+		"$pkgdir"/var/lib/kea
+}
+
+admin() {
+	pkgdesc="$pkgdesc (Databases administration tools)"
+	depends="$pkgname=$pkgver-r$pkgrel"
+
+	amove ./usr/sbin/kea-admin
+	amove ./usr/share/kea/
+}
+
+ctrlagent() {
+	pkgdesc="$pkgdesc (Control Agent with RESTful API)"
+
+	amove usr/sbin/kea-ctrl-agent
+	amove ./etc/kea/kea-ctrl-agent.conf
+
+	install -Dm755 "$srcdir"/kea-ctrl-agent.initd "$subpkgdir"/etc/init.d/kea-ctrl-agent
+}
+
+dhcpddns() {
+	pkgdesc="$pkgdesc (DDNS Server)"
+
+	amove ./usr/sbin/kea-dhcp-ddns
+	amove ./etc/kea/kea-dhcp-ddns.conf
+	amove ./usr/lib/libkea-asiodns.so.*
+
+	_install_initd kea-dhcp-ddns
+}
+
+dhcp4() {
+	pkgdesc="$pkgdesc (DHCP4 Server)"
+
+	amove ./usr/sbin/kea-dhcp4
+	amove ./etc/kea/kea-dhcp4.conf
+
+	_install_initd kea-dhcp4
+}
+
+dhcp6() {
+	pkgdesc="$pkgdesc (DHCP6 Server)"
+
+	amove ./usr/sbin/kea-dhcp6
+	amove ./etc/kea/kea-dhcp6.conf
+
+	_install_initd kea-dhcp6
+}
+
+hooks() {
+	pkgdesc="$pkgdesc (hooks libraries)"
+
+	amove ./usr/lib/kea/hooks/
+}
+
+# Needed only by ctrl-agent and hooks.
+http() {
+	amove ./usr/lib/libkea-http.so*
+}
+
+keactrl() {
+	pkgdesc="$pkgdesc (Kea process manager)"
+
+	amove ./usr/sbin/keactrl
+	amove ./etc/kea/keactrl.conf
+}
+
+shell() {
+	pkgdesc="$pkgdesc (Text client for Control Agent)"
+	depends="python3"
+
+	amove ./usr/sbin/kea-shell
+	amove ./usr/lib/python3*
+}
+
+utils() {
+	pkgdesc="$pkgdesc (Optional Utils)"
+
+	amove ./usr/sbin/kea-lfc
+}
+
+_install_initd() {
+	local name="$1"
+
+	install -Dm755 "$srcdir"/kea.initd.in "$subpkgdir"/etc/init.d/$name
+	sed -i "s|@@NAME@@|$name|g" "$subpkgdir"/etc/init.d/$name
+}
+
+sha512sums="f84bed2e1dacd172c7aed8e4d6c11ec5e79f37ad2c7991963fc9c4a1761668f9f0e105ba5c4deed06264ab2ec13b1b5787350d823de12fd3782223192e3653f2  kea-1.7.2.tar.gz
+55780bbcbd79b81d55bdccd46da6ca6babe8b7894aa82948308dc4f8a0e2b5d33fad633276696c8ba7bd063026bb11ae529a096375d0572833c66e2132888775  disable-db-tests.patch
+94378a20f92ce03863dfc7be207faa06ab2bd207224e7beb00b89a0e81209a7bf0de102699a2bece78a415750c6efd3589aa045160ad561752ee8a390ab379f9  kea.initd.in"
