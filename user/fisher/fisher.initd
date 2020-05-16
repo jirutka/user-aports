@@ -6,6 +6,7 @@ extra_started_commands="reload"
 : ${cfgfile:="/etc/fisher/config.toml"}
 : ${logfile:="/var/log/$RC_SVCNAME.log"}
 
+name="fisher"
 command="/usr/bin/fisher"
 command_args="$cfgfile"
 command_background="yes"
