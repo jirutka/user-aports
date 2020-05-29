@@ -1,4 +1,0 @@
-#!/bin/sh
-
-setup-freeradius enable-default-mods >/dev/null 2>&1
-exit 0
