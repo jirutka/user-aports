@@ -17,7 +17,6 @@ alpine_run <<-EOF
 	patch -d / -p 1 < $(pwd)/.travis/abuild-sign.patch
 
 	adduser -u $TRAVIS_USER_UID -G wheel -G abuild -s /bin/sh -D $ALPINE_USER
-	echo '%wheel ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/wheel
 
 	mkdir -p /var/cache/distfiles
 	chmod a+w /var/cache/distfiles
