@@ -1,3 +1,0 @@
-#!/bin/sh
-
-git-metafile save && git add .metafile
