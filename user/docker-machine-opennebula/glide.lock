@@ -1,5 +1,5 @@
-hash: 161a562279dc195b2ce738ac42687376806790ab65565eed51f0adbcad241bb0
-updated: 2018-02-22T22:07:27.822962183Z
+hash: 1a6d46862aa39f626457295d46a5a91f822dffb00c94b28e42cba7fdba8d7aa7
+updated: 2021-01-08T20:06:00.000000000Z
 imports:
 - name: github.com/docker/docker
   version: a8a31eff10544860d2188dddabdee4d727545796
@@ -45,6 +45,6 @@ imports:
   - windows/registry
 - name: gopkg.in/xmlpath.v2
   version: 860cbeca3ebcc600db0b213c0e83ad6ce91f5739
-- name: launchpad.net/xmlpath
-  version: "4"
+- name: gopkg.in/xmlpath.v1
+  version: "a146725ea6e7e357ca683ef3e02e8a403742b9c0"
 testImports: []

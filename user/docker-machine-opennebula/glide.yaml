@@ -21,4 +21,4 @@ import:
   - curve25519
   - ssh
   - ssh/terminal
-- package: launchpad.net/xmlpath
+- package: gopkg.in/xmlpath.v1
