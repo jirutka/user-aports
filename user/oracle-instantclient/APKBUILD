@@ -1,0 +1,120 @@
+pkgname=oracle-instantclient
+pkgver=19.10.0.0.0
+_verurl=191000
+_vermajor=${pkgver%%.*}
+_verminor=${pkgver#*.}; _verminor=${_verminor%%.*}
+pkgrel=2
+pkgdesc="Oracle Instant Client"
+url="https://www.oracle.com/database/technologies/instant-client.html"
+arch="x86_64"
+license="Proprietary"
+makedepends="gcompat libaio libexecinfo libnsl patchelf"
+install="$pkgname.pre-install"
+subpackages="$pkgname-dev $pkgname-java $pkgname-mysql $pkgname-oci $pkgname-sqlplus"
+source="https://download.oracle.com/otn_software/linux/instantclient/$_verurl/instantclient-basiclite-linux.x64-${pkgver}dbru.zip
+	https://download.oracle.com/otn_software/linux/instantclient/$_verurl/instantclient-sdk-linux.x64-${pkgver}dbru.zip
+	https://download.oracle.com/otn_software/linux/instantclient/$_verurl/instantclient-sqlplus-linux.x64-${pkgver}dbru.zip
+	oracompat.c
+	"
+builddir="$srcdir/instantclient_${_vermajor}_${_verminor}"
+# !strip is workaround for patchelf bug(?), see https://github.com/NixOS/patchelf/issues/244
+options="!check !strip"
+
+prepare() {
+	default_prepare
+
+	# Fix broken perms.
+	find . -type f -exec chmod u+rw,g+r,g-w,o+r,o-w {} +
+
+	# Pach libs to work on Alpine
+
+	local elfs="$(find . -type f -name '*.so*') sqlplus"
+
+	patchelf --replace-needed libdl.so.2 ld-musl-x86_64.so.1 $elfs
+	patchelf --replace-needed libc.so.6 libc.musl-x86_64.so.1 $elfs
+	local i; for i in librt.so.1 libm.so.6 libresolv.so.2 libpthread.so.0; do
+		patchelf --remove-needed $i $elfs
+	done
+
+	patchelf --replace-needed libnsl.so.1 libnsl.so.2 $elfs
+
+	patchelf --add-needed libgcompat.so.0 libclntsh.so
+	patchelf --add-needed liboracompat.so.0 libclntsh.so
+	patchelf --add-needed libexecinfo.so.1 libmql*.so libnnz*.so
+}
+
+build() {
+	gcc $CFLAGS -Wall -Wextra -pedantic -c ../oracompat.c
+	gcc $LDFLAGS -shared -o liboracompat.so.0 oracompat.o
+}
+
+package() {
+	local libdir="$pkgdir/usr/lib/$pkgname"
+	local incdir="$pkgdir/usr/include/$pkgname"
+	local i
+
+	mkdir -p "$libdir"
+	cp -r *.so *.so.* *.jar "$libdir"/
+	install -m 644 BASIC_LITE_LICENSE "$libdir"/LICENSE
+
+	install -m 755 liboracompat.so.0 "$libdir"/
+
+	mkdir -p "$incdir"
+	cp -r sdk/include/* "$incdir"/
+
+	ln -s $pkgname/libclntsh.so "$pkgdir"/usr/lib/
+	ln -s $pkgname/$(readlink libclntsh.so) "$pkgdir"/usr/lib/
+
+	patchelf --set-rpath /usr/lib/$pkgname $(find "$libdir" -type f -name '*.so*')
+}
+
+dev() {
+	local libdir="$subpkgdir/usr/lib/$pkgname"
+	default_dev
+
+	mkdir -p "$libdir"/sdk
+	ln -s ../../../include/$pkgname "$libdir"/sdk/include
+}
+
+java() {
+	pkgdesc="Oracle JDBC driver"
+	depends="$pkgname=$pkgver-r$pkgrel"
+
+	amove usr/lib/$pkgname/*.jar
+	amove usr/lib/$pkgname/libocijdbc*.so
+}
+
+mysql() {
+	depends="$pkgname=$pkgver-r$pkgrel"
+
+	amove usr/lib/$pkgname/libmql1.so
+	amove usr/lib/$pkgname/liboramysql*.so
+	amove usr/lib/$pkgname/libipc1.so
+}
+
+oci() {
+	depends="$pkgname=$pkgver-r$pkgrel"
+
+	amove usr/lib/$pkgname/libocci.so*
+	amove usr/lib/$pkgname/libociicus.so
+}
+
+sqlplus() {
+	pkgdesc="The SQL*Plus command line tool for SQL and PL/SQL queries"
+	depends="$pkgname-oci=$pkgver-r$pkgrel"
+
+	amove usr/lib/$pkgname/libsqlplus.so
+	amove usr/lib/$pkgname/libsqlplusic.so
+
+	cd "$subpkgdir"
+
+	install -D -m 644 "$builddir"/glogin.sql usr/lib/$pkgname/glogin.sql
+	install -D -m 755 "$builddir"/sqlplus usr/bin/sqlplus
+
+	patchelf --set-rpath /usr/lib/$pkgname usr/bin/sqlplus
+}
+
+sha512sums="54b02be348a8905ce3e688c87ec2fc745271889a7ab004ab1ba8d945f23790f6e6b1615fea0a49a5c50d47918d71f6b985a139127b9cc1d14f01d738689e432a  instantclient-basiclite-linux.x64-19.10.0.0.0dbru.zip
+ae3ba5a2be6c2a31480cdce659060404ac8bd070650b8fa229b2ae82510cf071b164335eddaa847eb531b1f6ee2bbbff8d94805f68f89b6aa295e232b6db09f1  instantclient-sdk-linux.x64-19.10.0.0.0dbru.zip
+8e48d808d784aa6f2ded3fdb6c5b608a7130f99cd97c480824bbc6c815d569359737075f3ca09adcc9b4fe8973610a882dff2c245c07d0959d068fd0ea73f4c1  instantclient-sqlplus-linux.x64-19.10.0.0.0dbru.zip
+bd3b37f9569007d04f50eff33652329031558eefcfc7ae1d5f5aae06372c43bc160f9c0ec94b90b011a4a4fc7152a8c3d5c17bc2acf850c8a8375971f7aaa038  oracompat.c"
