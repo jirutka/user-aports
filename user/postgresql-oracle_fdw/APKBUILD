@@ -1,0 +1,31 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=postgresql-oracle_fdw
+_projname=oracle_fdw
+pkgver=2.3.0
+_gittag="ORACLE_FDW_${pkgver//./_}"
+pkgrel=0
+pkgdesc="PostgreSQL Foreign Data Wrapper for Oracle"
+url="https://github.com/laurenz/oracle_fdw"
+arch="all"
+license="custom"
+depends="oracle-instantclient-sqlplus postgresql"
+makedepends="oracle-instantclient-dev postgresql-dev"
+subpackages="$pkgname-doc"
+source="https://github.com/laurenz/oracle_fdw/archive/$_gittag/$pkgname-$pkgver.tar.gz"
+builddir="$srcdir/$_projname-$_gittag"
+options="!check"
+
+build() {
+	make ORACLE_HOME='/usr/lib/oracle-instantclient'
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+
+	rm -Rf "$pkgdir"/usr/share/doc
+
+	install -Dm 644 LICENSE "$pkgdir"/usr/share/licenses/$pkgname/LICENSE
+}
+
+sha512sums="567fe1d009c84fe9f00d352b3129f2ab751df419ecf44983ee8502363e474ed8d3c20dd08e204ce7c2c900660206f6c6e1fcb4508f04c672561f2f0acc09c2fb  postgresql-oracle_fdw-2.3.0.tar.gz"
