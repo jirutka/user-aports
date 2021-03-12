@@ -18,7 +18,7 @@ source="https://download.oracle.com/otn_software/linux/instantclient/$_verurl/in
 	"
 builddir="$srcdir/instantclient_${_vermajor}_${_verminor}"
 # !strip is workaround for patchelf bug(?), see https://github.com/NixOS/patchelf/issues/244
-options="!check !strip"
+options="!strip"
 
 prepare() {
 	default_prepare
@@ -49,6 +49,10 @@ prepare() {
 build() {
 	gcc $CFLAGS -Wall -Wextra -pedantic -c ../oracompat.c
 	gcc $LDFLAGS -shared -o liboracompat.so.0 oracompat.o
+}
+
+check() {
+	LD_LIBRARY_PATH="$builddir" ./sqlplus -V
 }
 
 package() {
