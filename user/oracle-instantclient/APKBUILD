@@ -25,22 +25,25 @@ prepare() {
 
 	# Fix broken perms.
 	find . -type f -exec chmod u+rw,g+r,g-w,o+r,o-w {} +
+	chmod -x *_LICENSE *_README
 
 	# Pach libs to work on Alpine
 
-	local elfs="$(find . -type f -name '*.so*') sqlplus"
+	local bins=$(find . -type f -executable -maxdepth 1)
 
-	patchelf --replace-needed libdl.so.2 ld-musl-x86_64.so.1 $elfs
-	patchelf --replace-needed libc.so.6 libc.musl-x86_64.so.1 $elfs
+	patchelf --replace-needed libdl.so.2 ld-musl-x86_64.so.1 $bins
+	patchelf --replace-needed libc.so.6 libc.musl-x86_64.so.1 $bins
 	local i; for i in librt.so.1 libm.so.6 libresolv.so.2 libpthread.so.0; do
-		patchelf --remove-needed $i $elfs
+		patchelf --remove-needed $i $bins
 	done
 
-	patchelf --replace-needed libnsl.so.1 libnsl.so.2 $elfs
+	patchelf --replace-needed libnsl.so.1 libnsl.so.2 $bins
 
 	patchelf --add-needed libgcompat.so.0 libclntsh.so
 	patchelf --add-needed liboracompat.so.0 libclntsh.so
 	patchelf --add-needed libexecinfo.so.1 libmql*.so libnnz*.so
+
+	patchelf --set-rpath /usr/lib/$pkgname $bins
 }
 
 build() {
@@ -64,8 +67,6 @@ package() {
 
 	ln -s $pkgname/libclntsh.so "$pkgdir"/usr/lib/
 	ln -s $pkgname/$(readlink libclntsh.so) "$pkgdir"/usr/lib/
-
-	patchelf --set-rpath /usr/lib/$pkgname $(find "$libdir" -type f -name '*.so*')
 }
 
 dev() {
@@ -110,8 +111,6 @@ sqlplus() {
 
 	install -D -m 644 "$builddir"/glogin.sql usr/lib/$pkgname/glogin.sql
 	install -D -m 755 "$builddir"/sqlplus usr/bin/sqlplus
-
-	patchelf --set-rpath /usr/lib/$pkgname usr/bin/sqlplus
 }
 
 sha512sums="54b02be348a8905ce3e688c87ec2fc745271889a7ab004ab1ba8d945f23790f6e6b1615fea0a49a5c50d47918d71f6b985a139127b9cc1d14f01d738689e432a  instantclient-basiclite-linux.x64-19.10.0.0.0dbru.zip
