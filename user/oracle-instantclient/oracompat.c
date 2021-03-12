@@ -5,7 +5,10 @@
  * They will be available in the upcoming gcompat version
  * (https://twitter.com/weh_kaniini/status/1369955979874492426).
  */
+#include <assert.h>
 #include <resolv.h>
+#include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 
@@ -30,4 +33,41 @@ extern int __dn_expand(const unsigned char *base, const unsigned char *end,
                        const unsigned char *src, char *dest, int space) {
 
 	return dn_expand(base, end, src, dest, space);
+}
+
+extern int __printf_chk(__attribute__((unused)) int flag, const char *format, ...) {
+	int ret;
+	va_list ap;
+
+	assert(format != NULL);
+
+	va_start(ap, format);
+	ret = printf(format, ap);
+	va_end(ap);
+
+	return ret;
+}
+
+extern int __fprintf_chk(FILE *fp, __attribute__((unused)) int flag, const char *format, ...) {
+	int ret;
+	va_list ap;
+
+	assert(fp != NULL);
+	assert(format != NULL);
+
+	va_start(ap, format);
+	ret = fprintf(fp, format, ap);
+	va_end(ap);
+
+	return ret;
+}
+
+extern int __vsprintf_chk(char *s, __attribute__((unused)) int flag,
+                          size_t slen, const char *format, va_list ap) {
+
+	assert(s != NULL);
+	assert(slen > 0);
+	assert(format != NULL);
+
+	return vsnprintf(s, slen, format, ap);
 }

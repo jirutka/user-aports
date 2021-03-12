@@ -1,19 +1,19 @@
 pkgname=oracle-instantclient
-pkgver=19.10.0.0.0
-_verurl=191000
+pkgver=21.1.0.0.0
+_verurl=211000
 _vermajor=${pkgver%%.*}
 _verminor=${pkgver#*.}; _verminor=${_verminor%%.*}
-pkgrel=3
+pkgrel=0
 pkgdesc="Oracle Instant Client"
 url="https://www.oracle.com/database/technologies/instant-client.html"
 arch="x86_64"
 license="Proprietary"
-makedepends="gcompat libaio libexecinfo libnsl patchelf"
+makedepends="gcompat libaio libexecinfo libnsl libtirpc-dev patchelf"
 install="$pkgname.pre-install"
 subpackages="$pkgname-dev $pkgname-java $pkgname-mysql $pkgname-oci $pkgname-sqlplus"
-source="https://download.oracle.com/otn_software/linux/instantclient/$_verurl/instantclient-basiclite-linux.x64-${pkgver}dbru.zip
-	https://download.oracle.com/otn_software/linux/instantclient/$_verurl/instantclient-sdk-linux.x64-${pkgver}dbru.zip
-	https://download.oracle.com/otn_software/linux/instantclient/$_verurl/instantclient-sqlplus-linux.x64-${pkgver}dbru.zip
+source="https://download.oracle.com/otn_software/linux/instantclient/$_verurl/instantclient-basiclite-linux.x64-${pkgver}.zip
+	https://download.oracle.com/otn_software/linux/instantclient/$_verurl/instantclient-sdk-linux.x64-${pkgver}.zip
+	https://download.oracle.com/otn_software/linux/instantclient/$_verurl/instantclient-sqlplus-linux.x64-${pkgver}.zip
 	oracompat.c
 	"
 builddir="$srcdir/instantclient_${_vermajor}_${_verminor}"
@@ -37,11 +37,10 @@ prepare() {
 		patchelf --remove-needed $i $bins
 	done
 
-	patchelf --replace-needed libnsl.so.1 libnsl.so.2 $bins
-
 	patchelf --add-needed libgcompat.so.0 libclntsh.so
 	patchelf --add-needed liboracompat.so.0 libclntsh.so
-	patchelf --add-needed libexecinfo.so.1 libmql*.so libnnz*.so
+	patchelf --add-needed libtirpc-nokrb.so.3 libclntsh.so
+	patchelf --add-needed libexecinfo.so.1 libnnz*.so
 
 	patchelf --set-rpath /usr/lib/$pkgname $bins
 }
@@ -96,9 +95,7 @@ java() {
 mysql() {
 	depends="$pkgname=$pkgver-r$pkgrel"
 
-	amove usr/lib/$pkgname/libmql1.so
 	amove usr/lib/$pkgname/liboramysql*.so
-	amove usr/lib/$pkgname/libipc1.so
 }
 
 oci() {
@@ -121,7 +118,7 @@ sqlplus() {
 	install -D -m 755 "$builddir"/sqlplus usr/bin/sqlplus
 }
 
-sha512sums="54b02be348a8905ce3e688c87ec2fc745271889a7ab004ab1ba8d945f23790f6e6b1615fea0a49a5c50d47918d71f6b985a139127b9cc1d14f01d738689e432a  instantclient-basiclite-linux.x64-19.10.0.0.0dbru.zip
-ae3ba5a2be6c2a31480cdce659060404ac8bd070650b8fa229b2ae82510cf071b164335eddaa847eb531b1f6ee2bbbff8d94805f68f89b6aa295e232b6db09f1  instantclient-sdk-linux.x64-19.10.0.0.0dbru.zip
-8e48d808d784aa6f2ded3fdb6c5b608a7130f99cd97c480824bbc6c815d569359737075f3ca09adcc9b4fe8973610a882dff2c245c07d0959d068fd0ea73f4c1  instantclient-sqlplus-linux.x64-19.10.0.0.0dbru.zip
-2a476ff61994269806fa7f41c79f7f9fb070b6c204ed3095decc777fa98f3a14d7392eb84690507bc37eb660045e7197295cb7955afe56c902919914de1e9d7b  oracompat.c"
+sha512sums="273d4a67d07686e3794812c448628120ec0dd9fb86196f43cd06f466337ac4748996e6e9a1cc7e2e9a7f636cd5c202e0c8352bb939c73d1bdcac320acf20b1f1  instantclient-basiclite-linux.x64-21.1.0.0.0.zip
+4c2c051f5fb1d4a555108d48a6e824775934b73a041f072b3e6efe5c85150e5dbbf74fe5b5e582a1f3ab7f78cd2bf117764a2d7aa82afbcec365807560a55d67  instantclient-sdk-linux.x64-21.1.0.0.0.zip
+8e34c9512c5732072ad2afcd7e45fd9d305eb832371184d5525e6be4d27c8c292e1fd5f4b347e6ca9f392e42e27717b7d3ad86687b4717ce82c92b496f1e6a9f  instantclient-sqlplus-linux.x64-21.1.0.0.0.zip
+b0d48f22da178036bf1e7c06661f79fbcd8147e9ac0d3144121d1df7cda4e9fcdf2172fc71ea42e64cc2df87eb465b7dc2fdfcc8621c682c3a5f5d6ef372868c  oracompat.c"
