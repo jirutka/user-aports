@@ -75,6 +75,10 @@ dev() {
 
 	mkdir -p "$libdir"/sdk
 	ln -s ../../../include/$pkgname "$libdir"/sdk/include
+
+	local i; for i in adrci genezi uidrvci; do
+		install -m 755 "$builddir"/$i "$libdir"/
+	done
 }
 
 java() {
