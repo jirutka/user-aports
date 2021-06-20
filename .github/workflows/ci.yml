@@ -1,0 +1,95 @@
+name: CI
+on:
+  - push
+
+env:
+  # Keep in sync with jobs.build.container.image!
+  BRANCH: v3.8
+  REPOS_DIR: /home/ci/repos
+  BUILD_REPOS: backports user bundles
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    container:
+      image: alpine:3.8
+      options: --privileged --device /dev/fuse
+      volumes:
+        - ${{ github.workspace }}:/home/ci/aports
+    steps:
+      - name: Configure repositories
+        run: |
+          cat > /etc/apk/repositories <<EOF
+          https://repo.jirutka.cz/alpine/$BRANCH/backports
+          https://dl-cdn.alpinelinux.org/alpine/$BRANCH/main
+          https://dl-cdn.alpinelinux.org/alpine/$BRANCH/community
+          https://repo.jirutka.cz/alpine/$BRANCH/user
+          EOF
+
+      - name: Install packages
+        run: apk add alpine-sdk lua-aports sshfs
+
+      - name: Checkout aports repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 10
+
+      - name: Mount remote package repository
+        run: |
+          umask 077
+          mkdir -p /root/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > /root/.ssh/id_ed25519
+          echo "${{ secrets.SSH_KNOWN_HOSTS }}" > /root/.ssh/known_hosts
+
+          umask 022
+          mkdir -p "$REPOS_DIR"
+
+          sshfs "${{ secrets.SSH_REMOTE }}" "$REPOS_DIR" \
+            -o allow_other \
+            -o auto_unmount \
+            -o compression=yes \
+            -o idmap=user \
+            -o ServerAliveInterval=60
+
+          rm /root/.ssh/id_ed25519
+
+      - name: Prepare environment
+        run: |
+          adduser -u 1001 -G abuild -s /bin/sh -D ci
+          addgroup ci wheel
+
+          install -d -g abuild -m 775 /var/cache/distfiles
+          chown -R ci:abuild ./aports
+
+          patch -d / -p 1 < aports/.github/workflows/files/abuild-sign.patch
+          patch -d / -p 1 < aports/.github/workflows/files/buildrepo.patch
+
+          sed -i "s/JOBS=[0-9]*/JOBS=$(nproc)/" /etc/abuild.conf
+
+          cp $REPOS_DIR/keys/* /etc/apk/keys/
+
+          mkdir -p .abuild
+          echo "PACKAGER_PRIVKEY=$(ls $REPOS_DIR/.secret/*.rsa | head -n1)" > .abuild/abuild.conf
+        working-directory: /home/ci
+
+      - name: Build packages
+        run: |
+          # Prepare arguments
+          args=''
+          if git log -1 --pretty=format:'%s %b' | grep -q -- '/keep-going'; then
+            args='--keep-going'
+          fi
+          for repo in $BUILD_REPOS; do
+            if [ -n "$(find $repo -maxdepth 2 -name APKBUILD)" ]; then
+              args="$args $repo"
+            fi
+          done
+
+          su ci sh -c 'buildrepo -d $REPODEST $@' -- $args
+        working-directory: /home/ci/aports
+        env:
+          REPODEST: ${{ env.REPOS_DIR }}/alpine/${{ env.BRANCH }}
+
+      - name: Unmount remote FS
+        if: ${{ always() }}
+        run: umount $REPOS_DIR
