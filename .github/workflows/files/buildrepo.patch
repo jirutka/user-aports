@@ -1,0 +1,47 @@
+Add workflow commands for GitHub Actions.
+--- a/usr/bin/buildrepo
++++ b/usr/bin/buildrepo
+@@ -8,12 +8,12 @@
+ local conf = {}
+
+ local function warn(formatstr, ...)
+-	io.stderr:write(("WARNING: %s\n"):format(formatstr:format(...)))
++	io.stderr:write(("::warning::%s\n"):format(formatstr:format(...)))
+ 	io.stderr:flush()
+ end
+
+ local function err(formatstr, ...)
+-	io.stderr:write(("ERROR: %s\n"):format(formatstr:format(...)))
++	io.stderr:write(("::error::%s\n"):format(formatstr:format(...)))
+ 	io.stderr:flush()
+ end
+
+@@ -208,6 +208,7 @@
+ 	local built = 0
+ 	local tried = 0
+ 	for aport in db:each_in_build_order(pkgs) do
++		info("::group::Build %s/%s", repo, aport.pkgname)
+ 		aport.logfile = logfile_path(conf.logdir, repo, aport)
+ 		tried = tried + 1
+ 		local progress = {
+@@ -230,6 +231,7 @@
+ 				os.exit(1)
+ 			end
+ 		end
++		info("::endgroup::")
+ 	end
+
+ 	-- purge old packages
+@@ -266,6 +268,7 @@
+ 	plugins_postrepo(conf, repo, stats[repo])
+ end
+
++info("::group::Summary")
+ for repo, stat in pairs(stats) do
+ 	info("%s built:\t%d", repo, stat.built)
+ 	info("%s tried:\t%d", repo, stat.tried)
+@@ -274,3 +277,4 @@
+ 	info("%s total relevant aports:\t%d", repo, stat.relevant_aports)
+ 	info("%s total aports:\t%d", repo, stat.total_aports)
+ end
++info("::endgroup::")
