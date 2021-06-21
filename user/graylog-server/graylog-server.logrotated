@@ -1,6 +1,0 @@
-/var/log/graylog-server/*.log {
-	compress
-	copytruncate
-	missingok
-	notifempty
-}
