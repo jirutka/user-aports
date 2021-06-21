@@ -1,6 +1,7 @@
 = My aports
 :source-language: sh
-:gh-name: jirutka/user-aports
+:repo-name: user-aports
+:gh-name: jirutka/{repo-name}
 :gh-branch: v3.12
 :key-file: jakub@jirutka.cz-56d0d9fd.rsa.pub
 :repos-uri: https://repo.jirutka.cz/alpine
@@ -147,16 +148,16 @@ server {
 
 === Set up repository
 
-. Create repository for your aports on GitHub. Let’s assume that it’s named `aports`.
+. Create repository for your aports on GitHub. Let’s assume that it’s named `{repo-name}`.
 
 . Clone branch `template` of this repository, change remote to your own repository and create branch `edge`:
 +
 [source, subs="attributes"]
 ----
-git clone --branch template https://github.com/{gh-name}.git aports
-cd aports
+git clone --branch template https://github.com/{gh-name}.git {repo-name}
+cd {repo-name}
 git remote remove origin
-git remote add origin git@github.com:<USER>/aports.git
+git remote add origin git@github.com:YOUR-USERNAME/{repo-name}.git
 git checkout -b edge
 ----
 
@@ -209,11 +210,11 @@ chmod 0400 ".keys/$KEY_NAME"
 rm .travis/deploy-key ".keys/$KEY_NAME"
 ----
 
-. Change variables `:gh-name:`, `:repos-uri:`, and `:key-file:` on the top of file `README.adoc`.
+. Change variables `:repo-name:`, `:gh-name:`, `:repos-uri:`, and `:key-file:` on the top of file `README.adoc`.
 
 . Commit changes and push to GitHub.
 
-Now create directories for your repositories (e.g. testing, main, …) and add your abuilds.
+Now create directories for your repositories (e.g. user, backports, …) and add your aports.
 
 
 == License
