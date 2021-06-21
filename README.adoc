@@ -84,33 +84,27 @@ However, if you want to build packages on your own CI server, then this approach
 
 === Set up server
 
-. Create user `{remote-user}`:
+. Create user and group `{remote-user}`:
 +
 [source, subs="attributes"]
 ----
-useradd --create-home --shell=/sbin/nologin --user-group {remote-user}
+useradd --no-create-home --shell=/bin/sh --user-group {remote-user}
 
 # or if you don' have useradd
 addgroup {remote-user}
-adduser -s /sbin/nologin -G {remote-user} -DH
+adduser -h {remote-dir} -s /bin/sh -G {remote-user} -D -H {remote-user}
+sed -i- 's/^{remote-user}:!:/{remote-user}:*:/' /etc/shadow
 ----
 
 . Prepare directories:
 +
 [source, subs="attributes"]
 ----
-mkdir -m0755 -p {remote-dir}
+install -d -m 0755 -o root -g root {remote-dir}
 cd {remote-dir}
 
-chown root:root .
-mkdir -m0755 packages
-chown alpine:alpine packages
-
-mkdir -m0700 .secret
-chown alpine:alpine .secret
-
-mkdir -m0700 ~/.ssh
-chown alpine:alpine ~/.ssh
+install -d -m 0755 -o {remote-user} -g root packages
+install -d -m 0700 -o {remote-user} -g root .secret ~/.ssh
 ----
 
 . Jail user `{remote-user}` to `{remote-dir}` and restrict him to use sftp only; add the following lines to `/etc/ssh/sshd_config`:
