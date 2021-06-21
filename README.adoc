@@ -66,7 +66,7 @@ git config --local core.hooksPath .githooks
 
 
 == How to setup your own repository
-:remote-user: alpine
+:remote-user: ci
 :remote-host: alpine.example.org
 :remote-dir: /var/www/alpine
 
@@ -87,15 +87,14 @@ However, if you want to build packages on your own CI server, then this approach
 
 === Set up server
 
-. Create user and group `{remote-user}`:
+. Create user `{remote-user}`:
 +
 [source, subs="attributes"]
 ----
-useradd --no-create-home --shell=/bin/sh --user-group {remote-user}
+useradd --no-create-home --shell=/bin/sh --gid www-data {remote-user}
 
 # or if you don' have useradd
-addgroup {remote-user}
-adduser -h {remote-dir} -s /bin/sh -G {remote-user} -D -H {remote-user}
+adduser -h {remote-dir} -s /bin/sh -G www-data -D -H {remote-user}
 sed -i- 's/^{remote-user}:!:/{remote-user}:*:/' /etc/shadow
 ----
 
