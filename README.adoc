@@ -1,6 +1,7 @@
 = My aports
 :source-language: sh
-:gh-name: jirutka/aports
+:repo-name: user-aports
+:gh-name: jirutka/{repo-name}
 :gh-branch: edge
 :key-file: change-me@example.org-56d0d9fd.rsa.pub
 :repos-uri: http://alpine.example.org/packages
@@ -45,7 +46,7 @@ git config --local core.hooksPath .githooks
 :remote-host: alpine.example.org
 :remote-dir: /var/www/alpine
 
-// This guide is from https://github.com/jirutka/aports.
+// This guide is from https://github.com/jirutka/user-aports.
 
 This guide will help you to set up your own aports repository and infrastructure for building packages using CI.
 It targets GitHub and Travis CI, but it might be modified for any other git hosting and CI.
@@ -125,16 +126,16 @@ server {
 
 === Set up repository
 
-. Create repository for your aports on GitHub. Let’s assume that it’s named `aports`.
+. Create repository for your aports on GitHub. Let’s assume that it’s named `{repo-name}`.
 
 . Clone branch `template` of this repository, change remote to your own repository and create branch `edge`:
 +
 [source, subs="attributes"]
 ----
-git clone --branch template https://github.com/{gh-name}.git aports
-cd aports
+git clone --branch template https://github.com/{gh-name}.git {repo-name}
+cd {repo-name}
 git remote remove origin
-git remote add origin git@github.com:<USER>/aports.git
+git remote add origin git@github.com:YOUR-USERNAME/{repo-name}.git
 git checkout -b edge
 ----
 
@@ -187,11 +188,11 @@ chmod 0400 ".keys/$KEY_NAME"
 rm .travis/deploy-key ".keys/$KEY_NAME"
 ----
 
-. Change variables `:gh-name:`, `:repos-uri:`, and `:key-file:` on the top of file `README.adoc`.
+. Change variables `:repo-name:`, `:gh-name:`, `:repos-uri:`, and `:key-file:` on the top of file `README.adoc`.
 
 . Commit changes and push to GitHub.
 
-Now create directories for your repositories (e.g. testing, main, …) and add your abuilds.
+Now create directories for your repositories (e.g. user, backports, …) and add your aports.
 
 
 == License
