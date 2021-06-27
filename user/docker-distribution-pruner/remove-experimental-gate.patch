@@ -1,0 +1,27 @@
+Don't require setting env. variable EXPERIMENTAL=true to use it.
+
+--- a/cmds/docker-distribution-pruner/main.go
++++ b/cmds/docker-distribution-pruner/main.go
+@@ -1,8 +1,6 @@
+ package main
+ 
+ import (
+-	"os"
+-
+ 	"gitlab.com/gitlab-org/docker-distribution-pruner/experimental"
+ )
+ 
+@@ -7,12 +7,5 @@
+ )
+ 
+ func main() {
+-	env := os.Getenv("EXPERIMENTAL")
+-	if env == "true" || env == "1" {
+-		experimental.Main()
+-		return
+-	}
+-
+-	println("Use old experimental set of the features with `EXPERIMENTAL=true`")
+-	os.Exit(1)
++	experimental.Main()
+ }
