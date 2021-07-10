@@ -1,7 +1,7 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=jj-baselayout
-pkgver=1.2.1
+pkgver=1.2.2
 pkgrel=0
 pkgdesc="My base configuration"
 url="https://github.com/jirutka/user-aports"
@@ -12,6 +12,7 @@ install="$pkgname.post-install $pkgname.post-upgrade"
 source="git
 	network-update-issue
 	profiled-admin_motd.sh
+	profiled-path.sh
 	profiled-sudo_git_vars.sh
 	sudoersd-wheel"
 options="!check"
@@ -29,7 +30,7 @@ package() {
 	mkdir -p etc/network/if-post-down.d
 	ln -s ../if-post-up.d/update-issue etc/network/if-post-down.d/update-issue
 
-	for name in admin_motd.sh sudo_git_vars.sh; do
+	for name in admin_motd.sh path.sh sudo_git_vars.sh; do
 		install -D -m 644 "$srcdir"/profiled-$name etc/profile.d/$name
 	done
 
@@ -38,8 +39,11 @@ package() {
 	ln -s color_prompt.sh.disabled etc/profile.d/color_prompt.sh
 }
 
-sha512sums="0a71fa0b0bf0f8699e6094d8cc9171c5d2b02272e5719cc015df825f306dfa9b5deaac9175525a6bfaa15b1443526c647d4a1d9128f5c1e2a36edb29853cf5d3  git
+sha512sums="
+0a71fa0b0bf0f8699e6094d8cc9171c5d2b02272e5719cc015df825f306dfa9b5deaac9175525a6bfaa15b1443526c647d4a1d9128f5c1e2a36edb29853cf5d3  git
 8dae386a5b02ed524f202470e53bf6398c435a221f864ee64c1ac1e6274c8d17c884c3a738e906818fb1602ab5b7a958b4cc4f6a542ac99875320789db1a9350  network-update-issue
 1ac76c2d1eecaac226e7818ab44c6fb0d6bb3629079287a06a7025d73f7a5f995075621f48964757ce3146161e19c608a31427ad7be9b0df05340e4b2141ce93  profiled-admin_motd.sh
+2e70c3f6d533d2678bd0c8fb0e737891f679e2362d8b7df44a15df884ba2d56898c645560748600159cd66c00dae3bdf8472f1fa3bd4eb3e48f7eb5e9b1b15f3  profiled-path.sh
 452767cf9286211c409252c2961edbd4272c6d33f836c637ae8c212db780ab7821b6e5159576af5a380a1e9b179cdd6522d6f9db15898210bb2142b70090a9a5  profiled-sudo_git_vars.sh
-e972222dae2472ef92241b41ca5bbf0801a740938e5ce23cc51166787e2ebc89d58ec5d30a1d90d744ec9b104387b6fa59b156e3e0e6ff1e5bcdb671b5bc9a85  sudoersd-wheel"
+e972222dae2472ef92241b41ca5bbf0801a740938e5ce23cc51166787e2ebc89d58ec5d30a1d90d744ec9b104387b6fa59b156e3e0e6ff1e5bcdb671b5bc9a85  sudoersd-wheel
+"
