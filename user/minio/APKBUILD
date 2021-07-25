@@ -8,7 +8,7 @@ _srctag="RELEASE.${_srcver//:/-}"
 pkgrel=1
 pkgdesc="An open source object storage server compatible with Amazon S3 APIs"
 url="https://minio.io"
-arch="all"
+#arch="all"  # FIXME: fails to build
 license="Apache-2.0"
 makedepends="go>=1.9.4"
 pkgusers="minio"

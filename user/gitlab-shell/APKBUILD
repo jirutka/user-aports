@@ -5,7 +5,7 @@ pkgver=8.4.4
 pkgrel=0
 pkgdesc="GitLab Shell handles git commands for GitLab."
 url="https://github.com/gitlabhq/gitlab-shell"
-arch="all"
+#arch="all"  # FIXME: fails to build
 license="MIT"
 depends="git>=2.8.4 openssh ruby ruby-json"
 makedepends="go"
