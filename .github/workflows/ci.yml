@@ -16,6 +16,7 @@ jobs:
       options: --privileged --device /dev/fuse
       volumes:
         - ${{ github.workspace }}:/home/ci/aports
+        - /tmp:/tmp
     steps:
       - name: Configure repositories
         run: |
