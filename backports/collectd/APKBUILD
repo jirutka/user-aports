@@ -25,7 +25,6 @@ makedepends="
 	libtool
 	libvirt-dev
 	libxml2-dev
-	lm-sensors-dev
 	lua-dev
 	mariadb-connector-c-dev
 	mosquitto-dev
@@ -100,7 +99,6 @@ _plugins="
 	python
 	redis
 	rrdtool:rrd*
-	sensors
 	serial
 	smart
 	snmp:snmp*
