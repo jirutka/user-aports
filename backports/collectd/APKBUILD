@@ -1,0 +1,211 @@
+# Contributor: Łukasz Jendrysik <scadu@yandex.com>
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=collectd
+pkgver=5.12.0
+pkgrel=4
+pkgdesc="The system statistics collection daemon"
+url="https://collectd.org/"
+# mips64, s390x and riscv64 blocked by polkit -> libvirt
+arch="all !mips64 !s390x !riscv64"
+license="GPL-2.0-or-later"
+pkgusers="collectd"
+pkggroups="collectd"
+makedepends="
+	autoconf
+	automake
+	curl-dev
+	eudev-dev
+	hiredis-dev
+	iptables-dev
+	libatasmart-dev
+	libgcrypt-dev
+	liboping-dev
+	libpcap-dev
+	libtool
+	libvirt-dev
+	libxml2-dev
+	lm-sensors-dev
+	lua-dev
+	mariadb-connector-c-dev
+	mosquitto-dev
+	net-snmp-dev
+	openipmi-dev
+	openldap-dev
+	perl-dev
+	postgresql-dev
+	python3-dev
+	riemann-c-client-dev
+	rrdtool-dev
+	yajl-dev
+	zlib-dev
+	"
+subpackages="
+	$pkgname-dev
+	$pkgname-doc
+	$pkgname-openrc
+	$pkgname-libs
+	$pkgname-perl
+	$pkgname-utils
+	$pkgname-plugins-all:_all:noarch
+	"
+install="$pkgname.pre-install $pkgname.post-upgrade"
+source="https://storage.googleapis.com/collectd-tarballs/collectd-$pkgver.tar.bz2
+	collectd.initd
+	gnu_source.patch
+	"
+options="!check"  # test_common fails
+
+# secfixes:
+#   5.5.2-r0:
+#     - CVE-2016-6254
+
+# <subpackage>[:<libname>...]
+_plugins="
+	apache
+	apcups
+	ascent
+	battery
+	bind
+	ceph
+	chrony
+	curl:curl*
+	disk
+	dns
+	email
+	exec
+	hddtemp
+	infiniband
+	ipmi
+	iptables
+	log_logstash
+	lua
+	madwifi
+	mbmon
+	mcelog
+	memcached
+	mqtt
+	multimeter
+	mysql
+	network
+	nginx
+	olsrd
+	openldap
+	openvpn
+	ovs:ovs_*
+	pcie_errors
+	ping
+	postgresql
+	powerdns
+	python
+	redis
+	rrdtool:rrd*
+	sensors
+	serial
+	smart
+	snmp:snmp*
+	statsd
+	sysevent
+	teamspeak2
+	ted
+	virt
+	vserver
+	wireless
+	write_http
+	write_redis
+	write_riemann
+	write_stackdriver
+	zookeeper
+	"
+case "$CARCH" in
+	x86 | x86_64) _plugins="$_plugins
+		turbostat
+		"
+	;;
+esac
+for _i in $_plugins; do
+	subpackages="$subpackages $pkgname-${_i%%:*}:_plugin"
+done
+
+prepare() {
+	default_prepare
+
+	autoreconf -vif
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc/collectd \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info \
+		--localstate=/var \
+		--with-libiptc \
+		--enable-rrdtool \
+		--enable-bind \
+		--disable-werror \
+		--with-perl-bindings=INSTALLDIRS=vendor
+	make
+
+	# disable plugins by default since its in a subpackage
+	sed -i -e 's/^LoadPlugin network/#LoadPlugin network/' \
+		-e 's/^LoadPlugin rrdtool/#LoadPlugin rrdtool/' \
+		src/collectd.conf
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+
+	chown root:collectd "$pkgdir"/etc/collectd/collectd.conf
+	find "$pkgdir" \( -name perllocal.pod -o -name .packlist \) -delete
+
+	install -m755 -D "$srcdir"/$pkgname.initd "$pkgdir"/etc/init.d/$pkgname
+}
+
+perl() {
+	pkgdesc="perl bindings to collectd"
+
+	amove usr/lib/collectd/perl.so
+	amove usr/lib/perl*
+	amove usr/share/perl*
+}
+
+utils() {
+	pkgdesc="$pkgname utilities"
+
+	amove usr/bin/*
+}
+
+_all() {
+	pkgdesc="Meta package for all collectd plugins"
+	depends=""
+
+	local plugin; for plugin in $_plugins; do
+		depends="$depends $pkgname-${plugin%%:*}"
+	done
+
+	mkdir -p "$subpkgdir"
+}
+
+_plugin() {
+	local name="${subpkgname#$pkgname-}"
+	pkgdesc="$name pluin for collectd"
+	depends="collectd"
+
+	local libnames=$(printf '%s\n' $_plugins | grep "^$name:" | cut -d: -f2- | tr : ' ')
+	local libname
+
+	for libname in ${libnames:-$name}; do
+		amove usr/lib/collectd/$libname.so
+	done
+}
+
+sha512sums="7a15e4c0ae587db4987d673a790a4f3bea1cab29ce24a506fb21fa7bd2f60bfec70867eaa1c1395cb5b0e0ae81a024fb6109b064da0ef50e7c146d2198871c70  collectd-5.12.0.tar.bz2
+a286c2164af196154d017658d6e5aa3cc4f76dadf90b68c3021418979d9f0377776bb990d737ae5c916c04475725365aea8b78e3bc5e2f3679d5a99f8b9af13e  collectd.initd
+3078e43fc1aa5e5d5f7042472f465cc3b077c59f43a9867ade038e59bb210f26f53bb9a1e1e8a198ca53939a4b2e03a1f05628aa54f826746f970faa36acff6a  gnu_source.patch"
