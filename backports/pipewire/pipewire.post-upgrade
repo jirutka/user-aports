@@ -1,0 +1,13 @@
+#!/bin/sh
+
+ver_old="$2"
+
+if [ "$(apk version -t "$ver_old" '0.3.33-r2')" = '<' ]; then
+	cat >&2 <<-EOF
+	*
+	* Pipewire bluez5 (Bluetooth), FFmpeg SPA plugins, pw-* and spa-* tools have
+	* been moved to subpackages. If you use them, install pipewire-spa-bluez,
+	* pipewire-spa-ffmpeg, pipewire-tools and/or pipewire-spa-tools, repsectively.
+	*
+	EOF
+fi
