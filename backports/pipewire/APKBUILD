@@ -2,7 +2,7 @@
 # Maintainer: Rasmus Thomsen <oss@cogitri.dev>
 pkgname=pipewire
 pkgver=0.3.33
-pkgrel=2
+pkgrel=3
 pkgdesc="Multimedia processing graphs"
 url="https://pipewire.org/"
 arch="all !s390x !mips64" # unit tests fail on big-endian
@@ -10,13 +10,37 @@ license="LGPL-2.1-or-later"
 # The launch script /usr/libexec/pipewire-launcher uses an argument that is unsupported by Busybox's pkill
 # So we use pkill provided by procps instead
 depends="procps"
-makedepends="meson alsa-lib-dev libx11-dev sdl2-dev ffmpeg-dev eudev-dev dbus-dev
-	glib-dev gstreamer-dev gst-plugins-base-dev sbc-dev doxygen xmltoman graphviz
-	bluez-dev jack-dev vulkan-loader-dev pulseaudio-dev libfreeaptx-dev avahi-dev
-	libldac-dev libusb-dev bash ncurses-dev fdk-aac-dev"
+makedepends="
+	alsa-lib-dev
+	avahi-dev
+	bash
+	bluez-dev
+	dbus-dev
+	doxygen
+	eudev-dev
+	fdk-aac-dev
+	ffmpeg-dev
+	glib-dev
+	graphviz
+	gst-plugins-base-dev
+	gstreamer-dev
+	jack-dev
+	libfreeaptx-dev
+	libldac-dev
+	libusb-dev
+	libx11-dev
+	meson
+	ncurses-dev
+	pulseaudio-dev
+	sbc-dev
+	sdl2-dev
+	vulkan-loader-dev
+	xmltoman
+	"
 subpackages="
 	$pkgname-dev
 	$pkgname-doc
+	$pkgname-alsa
 	$pkgname-pulse
 	$pkgname-jack
 	$pkgname-media-session:media_session
@@ -24,6 +48,7 @@ subpackages="
 	$pkgname-zeroconf
 	$pkgname-spa-bluez
 	$pkgname-spa-ffmpeg
+	$pkgname-spa-vulkan
 	$pkgname-tools
 	$pkgname-spa-tools:spa_tools
 	$pkgname-lang
@@ -40,6 +65,14 @@ source="https://gitlab.freedesktop.org/PipeWire/pipewire/-/archive/$pkgver/pipew
 	0001-Autostart-pipewire-media-session-and-pipewire-pulse.patch
 	"
 
+case "$CARCH" in
+	# Limited by webrtc-audio-processing-dev
+	x86 | x86_64 | aarch64)
+		makedepends="$makedepends webrtc-audio-processing-dev"
+		subpackages="$subpackages $pkgname-echo-cancel:echo_cancel"
+	;;
+esac
+
 build() {
 	abuild-meson \
 		-Ddocs=enabled \
@@ -48,6 +81,7 @@ build() {
 		-Dexamples=enabled \
 		-Dffmpeg=enabled \
 		-Dsystemd=disabled \
+		-Dvulkan=enabled \
 		. output
 	meson compile ${JOBS:+-j ${JOBS}} -C output
 }
@@ -59,8 +93,24 @@ check() {
 package() {
 	DESTDIR="$pkgdir" meson install --no-rebuild -C output
 
+	touch "$pkgdir"/usr/share/pipewire/media-session.d/with-alsa
+
 	install -Dm644 "$srcdir"/pipewire.desktop -t "$pkgdir"/etc/xdg/autostart/
 	install -Dm755 "$srcdir"/pipewire-launcher.sh "$pkgdir"/usr/libexec/pipewire-launcher
+}
+
+alsa() {
+	pkgdesc="ALSA support for pipewire"
+	replaces="$pkgname"  # for backward compatibility
+
+	amove usr/lib/alsa-lib
+	amove usr/share/alsa/alsa.conf.d
+	amove usr/share/pipewire/media-session.d/with-alsa
+
+	cd "$subpkgdir"
+
+	mkdir -p etc/alsa
+	cp -r usr/share/alsa/alsa.conf.d etc/alsa/
 }
 
 pulse() {
@@ -103,6 +153,13 @@ gst_plugin() {
 	amove usr/lib/gstreamer-1.0
 }
 
+echo_cancel() {
+	pkgdesc="WebRTC-based echo canceller module for PipeWire"
+	depends="$pkgname=$pkgver-r$pkgrel"
+
+	amove usr/lib/pipewire-${pkgver%.*}/libpipewire-module-echo-cancel.so
+}
+
 zeroconf() {
 	pkgdesc="$pkgdesc - Zeroconf support"
 	depends=""
@@ -115,6 +172,7 @@ zeroconf() {
 bluez() {
 	pkgdesc="PipeWire BlueZ5 SPA plugin (Bluetooth)"
 	depends=""
+	replaces="$pkgname"  # for backward compatibility
 
 	amove usr/lib/spa-*/bluez5
 }
@@ -122,13 +180,22 @@ bluez() {
 ffmpeg() {
 	pkgdesc="PipeWire FFmpeg SPA plugin"
 	depends=""
+	replaces="$pkgname"  # for backward compatibility
 
 	amove usr/lib/spa-*/ffmpeg
+}
+
+vulkan() {
+	pkgdesc="PipeWire Vulkan SPA plugin"
+	depends=""
+
+	amove usr/lib/spa-*/vulkan
 }
 
 tools() {
 	pkgdesc="PipeWire tools"
 	depends="$pkgname=$pkgver-r$pkgrel"
+	replaces="$pkgname"  # for backward compatibility
 
 	amove usr/bin/pw-*
 }
@@ -136,6 +203,7 @@ tools() {
 spa_tools() {
 	pkgdesc="PipeWire SPA tools"
 	depends=""
+	replaces="$pkgname"  # for backward compatibility
 
 	amove usr/bin/spa-*
 }
