@@ -1,0 +1,36 @@
+# Contributor: David Demelier <markand@malikania.fr>
+# Maintainer: David Demelier <markand@malikania.fr>
+pkgname=adwaita-qt
+pkgver=1.4.0
+pkgrel=0
+pkgdesc="style to bend Qt applications to look like they belong into GNOME Shell"
+url="https://github.com/FedoraQt/adwaita-qt"
+arch="all"
+license="GPL-2.0-only AND LGPL-2.1-only"
+makedepends="cmake qt5-qtbase-dev qt5-qtx11extras-dev"
+subpackages="$pkgname-dev"
+source="https://github.com/FedoraQt/adwaita-qt/archive/$pkgver/$pkgname-$pkgver.tar.gz"
+options="!check"  # no tests provided
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	cmake \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=True \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_CXX_FLAGS="$CXXFLAGS" \
+		-DCMAKE_C_FLAGS="$CFLAGS" \
+		$CMAKE_CROSSOPTS .
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+870076ec219fcaa8d5e24df5076b0dfe147ad2ba4562bccdced03cb0539a49590a59aee8bb029926b36e50d619906974ca70528f835ddc9067e14cdfb0648671  adwaita-qt-1.4.0.tar.gz
+"
