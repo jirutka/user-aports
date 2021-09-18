@@ -1,0 +1,67 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Michał Polański <michal@polanski.me>
+pkgname=seatd
+pkgver=0.6.2
+pkgrel=1
+pkgdesc="Minimal seat management daemon"
+url="https://sr.ht/~kennylevinsen/seatd/"
+license="MIT"
+arch="all !ppc64le !mips64"  # build failure
+options="suid"  # needed for seatd-launch
+pkggroups="seat"
+install="$pkgname.pre-install $pkgname.post-install $pkgname.post-upgrade"
+makedepends="meson scdoc elogind-dev linux-headers"
+subpackages="libseat:libs libseat-dev $pkgname-launch $pkgname-doc $pkgname-openrc"
+source="$pkgname-$pkgver.tar.gz::https://git.sr.ht/~kennylevinsen/seatd/archive/$pkgver.tar.gz
+	$pkgname.initd
+	$pkgname.confd
+	"
+
+# secfixes:
+#   0.6.2-r0:
+#     - CVE-2021-41387
+
+build() {
+	abuild-meson \
+		-Dlibseat-logind=elogind \
+		-Dman-pages=enabled \
+		. output
+
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+	chmod u+s "$pkgdir"/usr/bin/seatd-launch
+
+	install -Dm755 "$srcdir"/seatd.initd "$pkgdir"/etc/init.d/seatd
+	install -Dm644 "$srcdir"/seatd.confd "$pkgdir"/etc/conf.d/seatd
+}
+
+libs() {
+	default_libs
+	pkgdesc="Universal seat management library"
+}
+
+dev() {
+	default_dev
+	pkgdesc="Universal seat management library (development files)"
+}
+
+launch() {
+	pkgdesc="Command to start a process with its own seatd instance (SUID binary)"
+	depends="$pkgname"
+
+	amove usr/bin/seatd-launch
+}
+
+sha512sums="
+47e3aec819f43e72913be1cac2c0db26287f1ef8ecc738845d3591b3e2b4fee3441ac50ea45ac75a5da774e5305a18a02b8375f76f71644c8c07e95bcad52762  seatd-0.6.2.tar.gz
+b742d0cee3f6cc2145af310423fbf4de7eb4f072dee14d0a7c65e8d91f435ad4293651307c23ab0d29d124b430b2ed7d9287ce732841304c91ce38b94cf4091d  seatd.initd
+ed0a1b4e7563aad1fc35cb63ed06a52487ed98baa073744134387d86791dfa511b6b6368c8948c7813496cc9bb6bd0c9adf2acff3bde9c2d34c8d571c71bb5f7  seatd.confd
+"

@@ -1,0 +1,16 @@
+#!/sbin/openrc-run
+
+name="seatd"
+description="Seat management daemon"
+
+command="/usr/bin/seatd"
+command_args="-g seat ${command_args:-}"
+command_background="yes"
+
+start_stop_daemon_args="${loglevel:+--env SEATD_LOGLEVEL=$loglevel}"
+supervise_daemon_args="$start_stop_daemon_args"
+pidfile="/run/$RC_SVCNAME.pid"
+
+if [ "$loglevel" != 'silent' ]; then
+	: ${error_logger="logger -t $name -p daemon.${loglevel:-error}"}
+fi
