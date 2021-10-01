@@ -20,10 +20,10 @@ jobs:
       - name: Configure repositories
         run: |
           cat > /etc/apk/repositories <<EOF
-          https://repo.jirutka.cz/alpine/$BRANCH/backports
-          https://dl-cdn.alpinelinux.org/alpine/$BRANCH/main
-          https://dl-cdn.alpinelinux.org/alpine/$BRANCH/community
-          https://repo.jirutka.cz/alpine/$BRANCH/user
+          http://repo.jirutka.cz/alpine/$BRANCH/backports
+          http://dl-cdn.alpinelinux.org/alpine/$BRANCH/main
+          http://dl-cdn.alpinelinux.org/alpine/$BRANCH/community
+          http://repo.jirutka.cz/alpine/$BRANCH/user
           EOF
 
       - name: Install packages
