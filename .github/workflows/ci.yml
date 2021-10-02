@@ -62,7 +62,7 @@ jobs:
           chown -R ci:abuild ./aports
 
           patch -d / -p 1 < aports/.github/workflows/files/abuild-sign.patch
-          patch -d / -p 1 < aports/.github/workflows/files/buildrepo.patch
+          #patch -d / -p 1 < aports/.github/workflows/files/buildrepo.patch
 
           sed -i "s/JOBS=[0-9]*/JOBS=$(nproc)/" /etc/abuild.conf
 
