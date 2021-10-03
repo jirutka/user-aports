@@ -3,12 +3,9 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=rofi-wayland
 _projname=rofi
-pkgver=1.7.0
-# Tag is missing, see https://github.com/lbonn/rofi/issues/28
-_gitrev=cfc3be4a5def95a72c7b71f31d7179f160775a09
-pkgrel=1
-_libnkutils=6164bacaef10031ce77380499cfad2ae818ab6b0
-_libgwater=555fa6df92434c1c3c7548b5a583b1d8ec3fabb3
+pkgver=1.7.0_p1
+_pkgver="${pkgver%_p*}+wayland${pkgver#*_p}"
+pkgrel=0
 pkgdesc="Window switcher, run dialog and dmenu replacement - fork with wayland support"
 url="https://github.com/lbonn/rofi"
 arch="all !s390x !mips !mips64 !riscv64"  # limited by librsvg -> rust
@@ -30,27 +27,16 @@ checkdepends="check-dev cppcheck xkeyboard-config"
 provides="rofi=$pkgver-r$pkgrel"
 provider_priority=10  # lowest (other provider is rofi aport)
 subpackages="$pkgname-dev $pkgname-doc"
-source="https://github.com/lbonn/rofi/archive/$_gitrev/$_projname-$_gitrev.tar.gz
-	libnkutils-$_libnkutils.tar.gz::https://github.com/sardemff7/libnkutils/archive/$_libnkutils.tar.gz
-	libgwater-$_libgwater.tar.gz::https://github.com/sardemff7/libgwater/archive/$_libgwater.tar.gz
-	0001-Meson-Fix-version-in-rofi.pc.patch
-	0002-Remove-unused-surplus-xcb-related-includes.patch
-	0003-Allow-building-without-X11-XCB-backend.patch
+source="https://github.com/lbonn/rofi/releases/download/$_pkgver/rofi-$_pkgver.tar.gz
+	0001-Meson-Fix-version-in-rofi.pc-again.patch
+	rofi-sensible-terminal-use-sh.patch
+	disable-scrollbar-test.patch
 	"
-builddir="$srcdir/$_projname-$_gitrev"
-
-prepare() {
-	default_prepare
-
-	rm -rf subprojects/libnkutils subprojects/libgwater
-	mv "$srcdir"/libnkutils-$_libnkutils subprojects/libnkutils
-	mv "$srcdir"/libgwater-$_libgwater subprojects/libgwater
-}
+builddir="$srcdir/$_projname-$_pkgver"
 
 build() {
-	# Window mode is not implemented for Wayland backend.
 	abuild-meson \
-		-Dbackends=wayland \
+		-Dxcb=disabled \
 		-Dcheck=disabled \
 		. output
 	meson compile ${JOBS:+-j ${JOBS}} -C output
@@ -65,10 +51,8 @@ package() {
 }
 
 sha512sums="
-de5349749baad600bfd39ed98a3d30aa6e66120ec8164d8d00ab104d265da9b0354a410d92b09e77154027800d35a873717a87d4e8e19dba869d61e92aa95f39  rofi-cfc3be4a5def95a72c7b71f31d7179f160775a09.tar.gz
-b1e3b87782aa482063d1038e2bbceccba227b4b191e2de96662c64f4752739acf8ccb43f3fb35039ea3011881b737dbb3e8cb96240bcfc1f5237d8a84a2f37a6  libnkutils-6164bacaef10031ce77380499cfad2ae818ab6b0.tar.gz
-1d9307167fa18c2d7249ae1df33286f646ade3d28c0aa22307d0d7d379c281a7e866a3e7f23da039bfccbe01e13e4d8f49929cac6a9e5df51d368ae3f9088588  libgwater-555fa6df92434c1c3c7548b5a583b1d8ec3fabb3.tar.gz
-95d6e791ba33648269bd5861f4fdc1437f92daa132011e956fbd4b4b75749fa3b23923a688d8ffb8e4b975610433e1e21bec146be288ebe2c6051b9d3654cf44  0001-Meson-Fix-version-in-rofi.pc.patch
-6c5b8f425edfa9a6b61452ee7893699af12aeaa868d831955ec793475618c809040cd9f01cd541b4949a3dccc029588d274f0a9a524ce7e8496431863857ddbf  0002-Remove-unused-surplus-xcb-related-includes.patch
-d28734bf5787355d7a1df863491e50636b3f6b55a2eba89f3cc848716683bd3644fa415b9b18741de1f921d5ffa1e25f945aab36098be70db96752406278dc2c  0003-Allow-building-without-X11-XCB-backend.patch
+c76ed0d732ac43d2065a2220952903ea61eba159ff5a2c38a5d6d1f9c267aaad2eda894fec7201e07dc3f6624c382d1208dbcf2a8fab4e656e71c9a2f2ee3ee2  rofi-1.7.0+wayland1.tar.gz
+706eac9cb186d80a0e9244dac342049815314c92a6dabfef3ca8f59a2a2078d8c7c564fee0515906799f792a50bec05086fc6fa7575106ec0fd893bf7c214644  0001-Meson-Fix-version-in-rofi.pc-again.patch
+13a93621337b4f317031da9007ed9d426b055190fc946a87eb12333469f9a23e85763e2c1e0492ff2d1d50ceebd429d8125a0b275d1ab0573a4d10cd812bccd9  rofi-sensible-terminal-use-sh.patch
+5d8bd347c119b9cace9ed5a3639cdca396d8daeb418fd541f3dc4ede837307f6142cb1f7b34d44a108051e536a95cae5ef3e49b468d6e8018527567d6d0cb7f4  disable-scrollbar-test.patch
 "
