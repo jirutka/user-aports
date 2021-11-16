@@ -1,0 +1,44 @@
+# Contributor: Natanael Copa <ncopa@alpinelinux.org>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=perl-image-exiftool
+pkgver=12.30
+pkgrel=0
+pkgdesc="Perl module for editing exif metadata in files"
+url="https://exiftool.org/"
+arch="noarch"
+license="Artistic-1.0-Perl GPL-1.0-or-later"
+depends="perl"
+subpackages="$pkgname-doc exiftool"
+source="https://exiftool.org/Image-ExifTool-$pkgver.tar.gz"
+
+# secfixes:
+#   12.24-r0:
+#     - CVE-2021-22204
+
+builddir="$srcdir"/Image-ExifTool-$pkgver
+build() {
+	PERL_MM_USE_DEFAULT=1 perl Makefile.PL INSTALLDIRS=vendor
+	make
+}
+
+check() {
+	make test
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	# creates file collision among perl modules
+	find "$pkgdir" -name perllocal.pod -delete
+	find "$pkgdir" -name .packlist -delete
+}
+
+exiftool() {
+	pkgdesc="Tool for editing exif metadata in files"
+	depends="perl-image-exiftool"
+	mkdir -p "$subpkgdir"/usr
+	mv "$pkgdir"/usr/bin "$subpkgdir"/usr/
+}
+
+sha512sums="
+2966854d8fd163fd5aaaca5608eeab2a3f0681fe9e22e006840acacd2ff2aaecd6076bcec23989facb7baf64aa96425ad7eeceb4045da44004421b8f10050935  Image-ExifTool-12.30.tar.gz
+"
