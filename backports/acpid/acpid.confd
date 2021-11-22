@@ -1,7 +1,0 @@
-# Configuration file for /etc/init.d/acpid (from acpid package)
-
-# Additional arguments to pass to acpid.
-command_args="--logevents"
-
-# Uncomment to use process supervisor.
-#supervisor="supervise-daemon"
