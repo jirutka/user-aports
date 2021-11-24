@@ -2,7 +2,7 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=jj-baselayout
 pkgver=1.2.2
-pkgrel=0
+pkgrel=1
 pkgdesc="My base configuration"
 url="https://github.com/jirutka/user-aports"
 arch="noarch"
@@ -15,7 +15,8 @@ source="git
 	profiled-path.sh
 	profiled-sudo_git_vars.sh
 	sudoersd-wheel"
-options="!check"
+# !tracedeps - avoid adding cmd:git=$pkgver to dependencies.
+options="!check !tracedeps"
 
 package() {
 	local name
