@@ -1,0 +1,16 @@
+nvui-0.2.1/src/grid.cpp:155:47: error: extra ';' [-Werror=pedantic]
+  155 | QPoint GridBase::top_left() { return {x, y}; };
+      |                                               ^
+compilation terminated due to -Wfatal-errors.
+
+--- a/src/grid.cpp
++++ b/src/grid.cpp
+@@ -152,7 +152,7 @@
+   evt_q.push({PaintKind::Draw, 0, r});
+ }
+ /// Grid's top left position
+-QPoint GridBase::top_left() { return {x, y}; };
++QPoint GridBase::top_left() { return {x, y}; }
+ QPoint GridBase::bot_right() { return {x + cols, y + rows}; }
+ /// Grid's bottom right position
+ QPoint GridBase::bot_left() { return {x, y + rows}; }
