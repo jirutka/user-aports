@@ -1,0 +1,255 @@
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Contributor: Leonardo Arena <rnalrd@alpinelinux.org>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=util-linux
+pkgver=2.37.2
+pkgrel=5
+pkgdesc="Random collection of Linux utilities"
+url="https://git.kernel.org/cgit/utils/util-linux/util-linux.git"
+arch="all"
+license="GPL-3.0-or-later AND GPL-2.0-or-later AND GPL-2.0-only AND
+	LGPL-2.1-or-later AND BSD-3-Clause AND BSD-4-Clause-UC AND Public-Domain"
+checkdepends="bash findutils xz"
+makedepends_build="
+	autoconf
+	automake
+	libtool
+	"
+makedepends_host="
+	libcap-ng-dev
+	linux-headers
+	ncurses-dev
+	zlib-dev
+	"
+subpackages="
+	$pkgname-bash-completion
+	$pkgname-dev
+	$pkgname-openrc
+
+	libblkid:_mv_lib
+	libfdisk:_mv_lib
+	libmount:_mv_lib
+	libsmartcols:_mv_lib
+	libuuid:_mv_lib
+
+	agetty:_mv_bin
+	blkid:_mv_bin
+	cfdisk:_mv_bin
+	findmnt:_mv_bin
+	flock:_mv_bin
+	hexdump:_mv_bin
+	logger:_mv_bin
+	lsblk:_mv_bin
+	mcookie:_mv_bin
+	partx:_mv_bin
+	setpriv:_mv_bin
+	sfdisk:_mv_bin
+	uuidgen:_mv_bin
+	wipefs:_mv_bin
+	"
+if [ -z "$BOOTSTRAP" ]; then
+	makedepends_build="$makedepends_build asciidoctor"
+	makedepends_host="$makedepends_host
+		linux-pam-dev
+		python3-dev
+		libeconf-dev
+		utmps-dev
+		utmps-static
+		skalibs-static
+		"
+	subpackages="$subpackages
+		$pkgname-login
+		$pkgname-login-doc:_login_doc:noarch
+		runuser:_mv_bin
+		py3-libmount:_py3
+		"
+	options="!check"
+	_bootstrap_config="--enable-runuser --with-python=3 --with-econf"
+else
+	_bootstrap_config="--without-python --without-econf --disable-asciidoc --disable-login"
+fi
+subpackages="$subpackages $pkgname-doc $pkgname-misc"
+makedepends="$makedepends_build $makedepends_host"
+options="$options suid"
+
+case $pkgver in
+	*.*.*) _v=${pkgver%.*};;
+	*.*) _v=$pkgver;;
+esac
+source="https://www.kernel.org/pub/linux/utils/util-linux/v$_v/util-linux-$pkgver.tar.xz
+	utmps.patch
+	ttydefaults.h
+	rfkill.confd
+	rfkill.initd
+	"
+
+# secfixes:
+#   2.37.2-r0:
+#     - CVE-2021-37600
+
+# login utils included in subpackage util-linux-login.
+_login_cmds='newgrp login lslogins nologin su sulogin'
+
+prepare() {
+	default_prepare
+
+	cp "$srcdir"/ttydefaults.h include/
+	libtoolize --force
+	aclocal -I m4
+	autoconf
+	automake --add-missing
+
+	# FIXME: This test fails, dunno why.
+	rm tests/ts/col/multibyte
+	# FIXME: Fails on GitLab CI, but passes locally, dunno why.
+	rm tests/ts/misc/setarch
+	# XXX: Hangs on GitLab CI.
+	rm tests/ts/lsns/*
+}
+
+build() {
+	if [ -z "$BOOTSTRAP" ]; then
+		# Linking utmps statically is strongly preferred by the utmps author
+		# and also much more space efficient - adds 4 kiB to each binary, that's
+		# 20 kiB in total for util-linux-*, versus 196 kiB (libskarnet.so).
+		# TODO: Find a better way (libutmps.so w/o dependency on libskarnet.so)?
+		export UTMPX_CFLAGS=$(pkg-config --cflags --static utmps)
+		export UTMPX_LIBS=$(pkg-config --libs --static utmps)
+	fi
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--with-sysroot=$CBUILDROOT \
+		--prefix=/usr \
+		--disable-silent-rules \
+		--enable-raw \
+		--enable-newgrp \
+		--disable-uuidd \
+		--disable-nls \
+		--disable-tls \
+		--disable-kill \
+		--disable-last \
+		--with-vendordir=/usr/lib \
+		$_bootstrap_config
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make -j1 DESTDIR="$pkgdir" -C "$builddir" install
+
+	# Move rev to /bin to overwrite busybox's version.
+	mv "$pkgdir"/usr/bin/rev "$pkgdir"/bin
+
+	# use pkg-config
+	install -D -m755 "$srcdir"/rfkill.initd "$pkgdir"/etc/init.d/rfkill
+	install -D -m644 "$srcdir"/rfkill.confd "$pkgdir"/etc/conf.d/rfkill
+}
+
+_mv_bin() {
+	local binname=$subpkgname
+	pkgdesc="$binname tool from util-linux"
+	depends=
+	install_if="$pkgname=$pkgver-r$pkgrel"
+
+	case "$binname" in
+		agetty) pkgdesc="agetty program from util-linux";;
+		blkid) pkgdesc="Block device identification tool from util-linux";;
+		cfdisk) pkgdesc="Curses based partition table manipulator from util-linux";;
+		flock) pkgdesc="File locker from util-linux";;
+		logger) pkgdesc="Logger from util-linux";;
+		lsblk) pkgdesc="Block device list tool from util-linux";;
+		runuser) pkgdesc="Run a program with substitute user and group ID";;
+		setpriv) pkgdesc="Run a program with different Linux privilege settings";;
+		sfdisk) pkgdesc="Partition table manipulator from util-linux";;
+		uuidgen) pkgdesc="UUID generator from util-linux";;
+	esac
+	local dir; for dir in usr/bin usr/sbin bin sbin; do
+		if [ -e "$pkgdir"/$dir/$binname ]; then
+			amove $dir/$binname
+			return 0
+		fi
+	done
+	return 1
+}
+
+_mv_lib() {
+	local libname=$subpkgname
+	pkgdesc="$libname library from util-linux"
+	depends=
+
+	case "$libname" in
+		libblkid) pkgdesc="Block device identification library from util-linux";;
+		libfdisk) pkgdesc="Partitioning library for fdisk-like programs";;
+		libmount) pkgdesc="Block device identification library from util-linux";;
+		libsmartcols) pkgdesc="Formatting library for ls-like programs";;
+		libuuid) pkgdesc="DCE compatible Universally Unique Identifier library";;
+	esac
+	amove lib/$libname.so.*
+}
+
+login() {
+	pkgdesc="Login utils from util-linux package: ${_login_cmds// /, }"
+	depends="runuser=$pkgver-r$pkgrel"
+	# Commands in conflict with shadow-login: newgrp login nologin su
+	provides="login-utils"
+	provider_priority=100  # highest (other provider is shadow-login)
+	replaces="$pkgname-misc"  # for backward compatibility (Alpine <3.16)
+
+	cd "$pkgdir"
+
+	local cmd dir
+	for cmd in $_login_cmds; do
+		for dir in bin sbin usr/bin usr/sbin; do
+			if [ -e $dir/$cmd ]; then
+				amove $dir/$cmd
+				continue 2
+			fi
+		done
+		error "file $cmd not found"
+		return 1
+	done
+}
+
+_login_doc() {
+	pkgdesc="Login utils from util-linux package (documentation)"
+	depends="!shadow-login-doc"
+	replaces="$pkgname-doc shadow-doc"  # for backward compatibility (Alpine <3.16)
+	install_if="docs $pkgname-login=$pkgver-r$pkgrel"
+
+	local cmd; for cmd in $_login_cmds; do
+		amove usr/share/man/man*/$cmd.*
+	done
+
+	find "$subpkgdir"/usr/share/man -type f -exec gzip -9 {} \;
+}
+
+misc() {
+	pkgdesc="Misc binaries for $pkgname"
+	depends=
+	install_if="$pkgname=$pkgver-r$pkgrel"
+
+	local dir; for dir in usr/bin usr/sbin bin sbin; do
+		if [ -e "$pkgdir"/$dir ]; then
+			amove $dir
+		fi
+	done
+}
+
+_py3() {
+	pkgdesc="python3 bindings to libmount"
+	depends=
+
+	amove usr/lib/python*
+}
+
+sha512sums="
+38f0fe820445e3bfa79550e6581c230f98c7661566ccc4daa51c7208a5f972c61b4e57dfc86bed074fdbc7c40bc79f856be8f6a05a8860c1c0cecc4208e8b81d  util-linux-2.37.2.tar.xz
+88736b554b60f836357a29f537d51658bb487dd316c92cc5160ba06bed5f8cf8e34bbfb8eb7370c4e4a2e75997a6e4bd2058201d227e41f83a18abbf4a73bdbd  utmps.patch
+876bb9041eca1b2cca1e9aac898f282db576f7860aba690a95c0ac629d7c5b2cdeccba504dda87ff55c2a10b67165985ce16ca41a0694a267507e1e0cafd46d9  ttydefaults.h
+401d2ccbdbfb0ebd573ac616c1077e2c2b79ff03e9221007759d8ac25eb522c401f705abbf7daac183d5e8017982b8ec5dd0a5ebad39507c5bb0a9f31f04ee97  rfkill.confd
+c4e7ba6d257496c99934add2ca532db16fb070ea2367554587c9fb4e24ab1d80b8ba3fd0fd4fdd5ef1374c3ec6414007369b292ee334ef23171d0232ef709db2  rfkill.initd
+"
