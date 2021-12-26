@@ -1,0 +1,3 @@
+# See /etc/profile.d/sudo_git_vars.sh and package doas-sudo-shim for
+# information about the specified environment variables.
+permit nopass setenv { SUDO_UID SUDO_GID SUDO_USER SUDO_GIT_NAME SUDO_GIT_EMAIL } :wheel

@@ -1,7 +1,7 @@
 # This script sets environment variables SUDO_GIT_NAME and SUDO_GIT_EMAIL
 # with values from the user's .gitconfig. The variables are used by
 # /usr/local/sbin/git wrapper script to pass user's name and email to git
-# when executed via sudo root (both sudo git and sudo sh).
+# when executed via sudo root (both sudo git and sudo sh) or doas.
 
 # If root, do nothing.
 [ "$USER" != root ] || return

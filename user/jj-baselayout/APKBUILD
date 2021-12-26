@@ -1,20 +1,22 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=jj-baselayout
-pkgver=1.2.2
-pkgrel=1
+pkgver=1.2.3
+pkgrel=0
 pkgdesc="My base configuration"
 url="https://github.com/jirutka/user-aports"
 arch="noarch"
 license="MIT"
-depends="ca-certificates less logrotate git git-metafile skel sudo"
+depends="ca-certificates less logrotate git git-metafile skel cmd:sudo"
 install="$pkgname.post-install $pkgname.post-upgrade"
 source="git
 	network-update-issue
 	profiled-admin_motd.sh
 	profiled-path.sh
 	profiled-sudo_git_vars.sh
-	sudoersd-wheel"
+	sudoersd-wheel
+	wheel.doasd
+	"
 # !tracedeps - avoid adding cmd:git=$pkgver to dependencies.
 options="!check !tracedeps"
 
@@ -36,6 +38,7 @@ package() {
 	done
 
 	install -D -m 640 "$srcdir"/sudoersd-wheel etc/sudoers.d/wheel
+	install -D -m 640 "$srcdir"/wheel.doasd etc/doas.d/wheel.conf
 
 	ln -s color_prompt.sh.disabled etc/profile.d/color_prompt.sh
 }
@@ -45,6 +48,7 @@ sha512sums="
 8dae386a5b02ed524f202470e53bf6398c435a221f864ee64c1ac1e6274c8d17c884c3a738e906818fb1602ab5b7a958b4cc4f6a542ac99875320789db1a9350  network-update-issue
 1ac76c2d1eecaac226e7818ab44c6fb0d6bb3629079287a06a7025d73f7a5f995075621f48964757ce3146161e19c608a31427ad7be9b0df05340e4b2141ce93  profiled-admin_motd.sh
 2e70c3f6d533d2678bd0c8fb0e737891f679e2362d8b7df44a15df884ba2d56898c645560748600159cd66c00dae3bdf8472f1fa3bd4eb3e48f7eb5e9b1b15f3  profiled-path.sh
-452767cf9286211c409252c2961edbd4272c6d33f836c637ae8c212db780ab7821b6e5159576af5a380a1e9b179cdd6522d6f9db15898210bb2142b70090a9a5  profiled-sudo_git_vars.sh
+00d99a76955172249f833770b3dfdfd2c7437dc99b01587a4acec8d9d0f020a9e10447c7f241cb0596f0bc5fad4f6700c2d67eac30afd3994dca229d2f6e995a  profiled-sudo_git_vars.sh
 e972222dae2472ef92241b41ca5bbf0801a740938e5ce23cc51166787e2ebc89d58ec5d30a1d90d744ec9b104387b6fa59b156e3e0e6ff1e5bcdb671b5bc9a85  sudoersd-wheel
+a03f101c8a7acfc9793d7d79fdb3474772469c1c623e6c626cc333c34e2d24b617794eee33763e93ceb1d046e7b9d753e7795888d042730b7dc79689802e8f6d  wheel.doasd
 "
