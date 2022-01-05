@@ -5,7 +5,7 @@
 pkgname=avizo
 pkgver=1.0_git20210621
 _gitrev=7b3874e5ee25c80800b3c61c8ea30612aaa6e8d1
-pkgrel=0
+pkgrel=1
 pkgdesc="A neat notification daemon"
 url="https://github.com/misterdanb/avizo"
 arch="all"
@@ -17,7 +17,9 @@ makedepends="
 	meson
 	vala
 	"
-source="https://github.com/misterdanb/avizo/archive/$_gitrev/$pkgname-$_gitrev.tar.gz"
+source="https://github.com/misterdanb/avizo/archive/$_gitrev/$pkgname-$_gitrev.tar.gz
+	pr-19.patch
+	"
 builddir="$srcdir/$pkgname-$_gitrev"
 
 build() {
@@ -41,4 +43,5 @@ package() {
 
 sha512sums="
 b723ba412553a503fc0f82daac272eca071e9c14f95948dcc9842e599986a4ed8b1b55b9e2f8dfbbdf0dbfc121f4efaa8b14e88635943d3daf5ab14e5e791844  avizo-7b3874e5ee25c80800b3c61c8ea30612aaa6e8d1.tar.gz
+91d0d581482a81a9e2f91db63f6822418d697e08c32aa28f6b7e3bd166c38147cd32ff669ecb2caea01af0a9575aedb89038841d874255d3f7913c1d3eca3572  pr-19.patch
 "

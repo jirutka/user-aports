@@ -1,0 +1,788 @@
+Patch-Source: https://github.com/misterdanb/avizo/pull/19
+
+From e3fc61d1478a93c1991c7fb59b22ea22555826b1 Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Tue, 4 Jan 2022 18:34:27 +0100
+Subject: [PATCH 01/11] Fix warning: Local variable 'server' declared but never
+ used
+
+---
+ src/avizo_service.vala | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/avizo_service.vala b/src/avizo_service.vala
+index 995708f..49a16e9 100644
+--- a/src/avizo_service.vala
++++ b/src/avizo_service.vala
+@@ -114,7 +114,7 @@ public class AvizoWindow : Gtk.Window
+ 		}
+ 
+ 		draw.connect(on_draw);
+-		
++
+ 		var pixbuf = new Gdk.Pixbuf.from_resource("/org/danb/avizo/data/images/volume_muted.png");
+ 		image.set_from_pixbuf(pixbuf);
+ 	}
+@@ -229,7 +229,7 @@ public class AvizoService : GLib.Object
+ 		get { return _window.height; }
+ 		set { _window.height = value; }
+ 	}
+-	
++
+ 	public int padding
+ 	{
+ 		get { return _window.padding; }
+@@ -320,7 +320,7 @@ public void main(string[] args)
+ 	             () => {},
+ 	             () => stderr.printf("Could not aquire name\n"));
+ 
+-	AvizoService server = new AvizoService();
++	new AvizoService();
+ 
+ 	Gtk.main();
+ }
+
+From 6d653cde7f0219160852fa45328353129deb72b7 Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Tue, 4 Jan 2022 18:35:57 +0100
+Subject: [PATCH 02/11] Fix warning: [GtkChild] fields must be declared as
+ 'unowned'
+
+---
+ src/avizo_service.vala | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/avizo_service.vala b/src/avizo_service.vala
+index 49a16e9..d7f7177 100644
+--- a/src/avizo_service.vala
++++ b/src/avizo_service.vala
+@@ -89,7 +89,7 @@ public class AvizoWindow : Gtk.Window
+ 	}
+ 
+ 	[GtkChild]
+-	private Gtk.Image image;
++	private unowned Gtk.Image image;
+ 
+ 	public AvizoWindow()
+ 	{
+
+From 6742bb867a94c4d8cca99bdf1156fd52bd2607dc Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Tue, 4 Jan 2022 18:38:48 +0100
+Subject: [PATCH 03/11] Simplify image loading - use set_from_{file,resource}
+
+This also fixes unhandled GLib.Error.
+---
+ src/avizo_service.vala | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
+
+diff --git a/src/avizo_service.vala b/src/avizo_service.vala
+index d7f7177..615f020 100644
+--- a/src/avizo_service.vala
++++ b/src/avizo_service.vala
+@@ -12,8 +12,7 @@ public class AvizoWindow : Gtk.Window
+ 		{
+ 			_image_path = value;
+ 
+-			var pixbuf = new Gdk.Pixbuf.from_file(_image_path);
+-			image.set_from_pixbuf(pixbuf);
++			image.set_from_file(_image_path);
+ 		}
+ 	}
+ 
+@@ -25,8 +24,7 @@ public class AvizoWindow : Gtk.Window
+ 		{
+ 			_image_resource = value;
+ 
+-			var pixbuf = new Gdk.Pixbuf.from_resource(@"/org/danb/avizo/data/images/$(_image_resource).png");
+-			image.set_from_pixbuf(pixbuf);
++			image.set_from_resource(@"/org/danb/avizo/data/images/$(_image_resource).png");
+ 		}
+ 	}
+ 
+@@ -115,8 +113,7 @@ public class AvizoWindow : Gtk.Window
+ 
+ 		draw.connect(on_draw);
+ 
+-		var pixbuf = new Gdk.Pixbuf.from_resource("/org/danb/avizo/data/images/volume_muted.png");
+-		image.set_from_pixbuf(pixbuf);
++		image_resource = "volume_muted";
+ 	}
+ 
+ 	private bool on_draw(Gtk.Widget widget, Cairo.Context ctx)
+
+From 1e6ec25e1802451dd995fd18fcb12b9c48396144 Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Tue, 4 Jan 2022 18:43:13 +0100
+Subject: [PATCH 04/11] Remove useless image_path and image_resource setters in
+ AvizoWindow
+
+---
+ src/avizo_service.vala | 12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
+
+diff --git a/src/avizo_service.vala b/src/avizo_service.vala
+index 615f020..be09fae 100644
+--- a/src/avizo_service.vala
++++ b/src/avizo_service.vala
+@@ -4,27 +4,19 @@ using GtkLayerShell;
+ [GtkTemplate (ui = "/org/danb/avizo/ui/avizo.ui")]
+ public class AvizoWindow : Gtk.Window
+ {
+-	private string _image_path = "";
+ 	public string image_path
+ 	{
+-		get { return _image_path; }
+ 		set
+ 		{
+-			_image_path = value;
+-
+-			image.set_from_file(_image_path);
++			image.set_from_file(value);
+ 		}
+ 	}
+ 
+-	public string _image_resource = "";
+ 	public string image_resource
+ 	{
+-		get { return _image_resource; }
+ 		set
+ 		{
+-			_image_resource = value;
+-
+-			image.set_from_resource(@"/org/danb/avizo/data/images/$(_image_resource).png");
++			image.set_from_resource(@"/org/danb/avizo/data/images/$(value).png");
+ 		}
+ 	}
+ 
+
+From 4d3ee0b6f613495731728cfadd36dec2420e2f63 Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Tue, 4 Jan 2022 13:28:31 +0100
+Subject: [PATCH 05/11] Unify names of background and foreground properties
+
+To allow using property binding.
+---
+ src/avizo_service.vala | 30 +++++++++++++++---------------
+ 1 file changed, 15 insertions(+), 15 deletions(-)
+
+diff --git a/src/avizo_service.vala b/src/avizo_service.vala
+index be09fae..2aef1c5 100644
+--- a/src/avizo_service.vala
++++ b/src/avizo_service.vala
+@@ -60,21 +60,21 @@ public class AvizoWindow : Gtk.Window
+ 	public int block_spacing { get; set; default = 2; }
+ 	public int block_count { get; set; default = 20; }
+ 
+-	public Gdk.RGBA bg { get; set; }
++	public Gdk.RGBA background { get; set; }
+ 
+-	public Gdk.RGBA _fg;
+-	public Gdk.RGBA fg
++	public Gdk.RGBA _foreground;
++	public Gdk.RGBA foreground
+ 	{
+ 		get
+ 		{
+-			return _fg;
++			return _foreground;
+ 		}
+ 
+ 		set
+ 		{
+-			_fg = value;
++			_foreground = value;
+ 
+-			image.opacity = double.min(1.0, _fg.alpha * 2.0);
++			image.opacity = double.min(1.0, _foreground.alpha * 2.0);
+ 		}
+ 	}
+ 
+@@ -90,11 +90,11 @@ public class AvizoWindow : Gtk.Window
+ 
+ 		var new_bg = Gdk.RGBA();
+ 		new_bg.parse("rgba(255, 255, 255, 0.5)");
+-		bg = new_bg;
++		background = new_bg;
+ 
+ 		var new_fg = Gdk.RGBA();
+ 		new_fg.parse("rgba(0, 0, 0, 0.5)");
+-		fg = new_fg;
++		foreground = new_fg;
+ 
+ 		var screen = get_screen();
+ 		var visual = screen.get_rgba_visual();
+@@ -123,10 +123,10 @@ public class AvizoWindow : Gtk.Window
+ 		draw_rect(ctx, 0, 0, _width, _height);
+ 
+ 		ctx.set_operator(Cairo.Operator.SOURCE);
+-		ctx.set_source_rgba(_bg.red, _bg.green, _bg.blue, _bg.alpha);
++		ctx.set_source_rgba(background.red, background.green, background.blue, background.alpha);
+ 		draw_round_rect(ctx, 0, 0, _width, _height, 16);
+ 
+-		ctx.set_source_rgba(_bg.red, _bg.green, _bg.blue, _bg.alpha / 1.5);
++		ctx.set_source_rgba(background.red, background.green, background.blue, background.alpha / 1.5);
+ 
+ 		for (int i = 0; i < block_count; i++)
+ 		{
+@@ -136,7 +136,7 @@ public class AvizoWindow : Gtk.Window
+ 			               block_height);
+ 		}
+ 
+-		ctx.set_source_rgba(fg.red, fg.green, fg.blue, fg.alpha);
++		ctx.set_source_rgba(foreground.red, foreground.green, foreground.blue, foreground.alpha);
+ 
+ 		for (int i = 0; i < (int) (block_count * progress); i++)
+ 		{
+@@ -245,14 +245,14 @@ public class AvizoService : GLib.Object
+ 
+ 	public Gdk.RGBA background
+ 	{
+-		get { return _window.bg; }
+-		set { _window.bg = value; }
++		get { return _window.background; }
++		set { _window.background = value; }
+ 	}
+ 
+ 	public Gdk.RGBA foreground
+ 	{
+-		get { return _window.fg; }
+-		set { _window.fg = value; }
++		get { return _window.foreground; }
++		set { _window.foreground = value; }
+ 	}
+ 
+ 	private AvizoWindow _window = null;
+
+From 5e50cab4369bb852043a7ab0eb5aa7afe98e6cf2 Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Tue, 4 Jan 2022 14:43:26 +0100
+Subject: [PATCH 06/11] Use bind_property to pass properties from Service to
+ Window
+
+---
+ src/avizo_service.vala | 86 +++++++++++-------------------------------
+ 1 file changed, 21 insertions(+), 65 deletions(-)
+
+diff --git a/src/avizo_service.vala b/src/avizo_service.vala
+index 2aef1c5..371feab 100644
+--- a/src/avizo_service.vala
++++ b/src/avizo_service.vala
+@@ -189,71 +189,22 @@ public class AvizoWindow : Gtk.Window
+ [DBus (name = "org.danb.avizo.service")]
+ public class AvizoService : GLib.Object
+ {
+-	public string image_path
+-	{
+-		get { return _window.image_path; }
+-		set { _window.image_path = value; }
+-	}
+-
+-	public string image_resource
+-	{
+-		get { return _window.image_resource; }
+-		set { _window.image_resource = value; }
+-	}
+-
+-	public double progress
+-	{
+-		get { return _window.progress; }
+-		set { _window.progress = value; }
+-	}
+-
+-	public int width
+-	{
+-		get { return _window.width; }
+-		set { _window.width = value; }
+-	}
+-
+-	public int height
+-	{
+-		get { return _window.height; }
+-		set { _window.height = value; }
+-	}
+-
+-	public int padding
+-	{
+-		get { return _window.padding; }
+-		set { _window.padding = value; }
+-	}
+-
+-	public int block_height
+-	{
+-		get { return _window.block_height; }
+-		set { _window.block_height = value; }
+-	}
+-
+-	public int block_spacing
+-	{
+-		get { return _window.block_spacing; }
+-		set { _window.block_spacing = value; }
+-	}
+-
+-	public int block_count
+-	{
+-		get { return _window.block_count; }
+-		set { _window.block_count = value; }
+-	}
+-
+-	public Gdk.RGBA background
+-	{
+-		get { return _window.background; }
+-		set { _window.background = value; }
+-	}
+-
+-	public Gdk.RGBA foreground
+-	{
+-		get { return _window.foreground; }
+-		set { _window.foreground = value; }
+-	}
++	private static string[] props = {
++		"image_path", "image_resource", "progress", "width", "height", "padding",
++		"block_height", "block_spacing", "block_count", "background", "foreground",
++	};
++
++	public string image_path { get; set; default = ""; }
++	public string image_resource { get; set; default = ""; }
++	public double progress { get; set; }
++	public int width { get; set; }
++	public int height { get; set; }
++	public int padding { get; set; }
++	public int block_height { get; set; }
++	public int block_spacing { get; set; }
++	public int block_count { get; set; }
++	public Gdk.RGBA background { get; set; }
++	public Gdk.RGBA foreground { get; set; }
+ 
+ 	private AvizoWindow _window = null;
+ 	private int _open_timeouts = 0;
+@@ -262,6 +213,11 @@ public class AvizoService : GLib.Object
+ 	{
+ 		_window = new AvizoWindow();
+ 
++		foreach (var prop_name in props)
++		{
++			bind_property(prop_name, _window, prop_name, BindingFlags.DEFAULT);
++		}
++
+ 		GtkLayerShell.init_for_window(_window);
+ 		GtkLayerShell.auto_exclusive_zone_enable(_window);
+ 		GtkLayerShell.set_layer(_window, GtkLayerShell.Layer.OVERLAY);
+
+From 5f41024730f74076ec9324551cc650b845d026bc Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Tue, 4 Jan 2022 18:12:51 +0100
+Subject: [PATCH 07/11] Move defaults from AvizoWindow to AvizoService
+
+---
+ src/avizo_service.vala | 66 +++++++++++++++++++++++-------------------
+ 1 file changed, 36 insertions(+), 30 deletions(-)
+
+diff --git a/src/avizo_service.vala b/src/avizo_service.vala
+index 371feab..bb43bc6 100644
+--- a/src/avizo_service.vala
++++ b/src/avizo_service.vala
+@@ -8,7 +8,10 @@ public class AvizoWindow : Gtk.Window
+ 	{
+ 		set
+ 		{
+-			image.set_from_file(value);
++			if (value != "")
++			{
++				image.set_from_file(value);
++			}
+ 		}
+ 	}
+ 
+@@ -16,11 +19,14 @@ public class AvizoWindow : Gtk.Window
+ 	{
+ 		set
+ 		{
+-			image.set_from_resource(@"/org/danb/avizo/data/images/$(value).png");
++			if (value != "")
++			{
++				image.set_from_resource(@"/org/danb/avizo/data/images/$(value).png");
++			}
+ 		}
+ 	}
+ 
+-	public double progress { get; set; default = 0.0; }
++	public double progress { get; set; }
+ 
+ 	private int _width = 248;
+ 	public int width
+@@ -54,15 +60,15 @@ public class AvizoWindow : Gtk.Window
+ 		}
+ 	}
+ 
+-	public int padding { get; set; default = 24; }
++	public int padding { get; set; }
+ 
+-	public int block_height { get; set; default = 10; }
+-	public int block_spacing { get; set; default = 2; }
+-	public int block_count { get; set; default = 20; }
++	public int block_height { get; set; }
++	public int block_spacing { get; set; }
++	public int block_count { get; set; }
+ 
+-	public Gdk.RGBA background { get; set; }
++	public Gdk.RGBA background { get; set; default = Gdk.RGBA(); }
+ 
+-	public Gdk.RGBA _foreground;
++	public Gdk.RGBA _foreground = Gdk.RGBA();
+ 	public Gdk.RGBA foreground
+ 	{
+ 		get
+@@ -88,14 +94,6 @@ public class AvizoWindow : Gtk.Window
+ 
+ 		set_default_size(_width, _height);
+ 
+-		var new_bg = Gdk.RGBA();
+-		new_bg.parse("rgba(255, 255, 255, 0.5)");
+-		background = new_bg;
+-
+-		var new_fg = Gdk.RGBA();
+-		new_fg.parse("rgba(0, 0, 0, 0.5)");
+-		foreground = new_fg;
+-
+ 		var screen = get_screen();
+ 		var visual = screen.get_rgba_visual();
+ 		if (visual != null && screen.is_composited())
+@@ -104,8 +102,6 @@ public class AvizoWindow : Gtk.Window
+ 		}
+ 
+ 		draw.connect(on_draw);
+-
+-		image_resource = "volume_muted";
+ 	}
+ 
+ 	private bool on_draw(Gtk.Widget widget, Cairo.Context ctx)
+@@ -195,16 +191,16 @@ public class AvizoService : GLib.Object
+ 	};
+ 
+ 	public string image_path { get; set; default = ""; }
+-	public string image_resource { get; set; default = ""; }
+-	public double progress { get; set; }
+-	public int width { get; set; }
+-	public int height { get; set; }
+-	public int padding { get; set; }
+-	public int block_height { get; set; }
+-	public int block_spacing { get; set; }
+-	public int block_count { get; set; }
+-	public Gdk.RGBA background { get; set; }
+-	public Gdk.RGBA foreground { get; set; }
++	public string image_resource { get; set; default = "volume_muted"; }
++	public double progress { get; set; default = 0.0; }
++	public int width { get; set; default = 248; }
++	public int height { get; set; default = 232; }
++	public int padding { get; set; default = 24; }
++	public int block_height { get; set; default = 10; }
++	public int block_spacing { get; set; default = 2; }
++	public int block_count { get; set; default = 20; }
++	public Gdk.RGBA background { get; set; default = rgba(255, 255, 255, 0.5); }
++	public Gdk.RGBA foreground { get; set; default = rgba(0, 0, 0, 0.5); }
+ 
+ 	private AvizoWindow _window = null;
+ 	private int _open_timeouts = 0;
+@@ -215,7 +211,7 @@ public class AvizoService : GLib.Object
+ 
+ 		foreach (var prop_name in props)
+ 		{
+-			bind_property(prop_name, _window, prop_name, BindingFlags.DEFAULT);
++			bind_property(prop_name, _window, prop_name, BindingFlags.DEFAULT | BindingFlags.SYNC_CREATE);
+ 		}
+ 
+ 		GtkLayerShell.init_for_window(_window);
+@@ -244,6 +240,16 @@ public class AvizoService : GLib.Object
+ 	}
+ }
+ 
++Gdk.RGBA rgba(double red, double green, double blue, double alpha)
++{
++	var o = Gdk.RGBA();
++	o.red = red;
++	o.green = green;
++	o.blue = blue;
++	o.alpha = alpha;
++	return o;
++}
++
+ void on_bus_aquired(DBusConnection conn)
+ {
+ 	try
+
+From b2d6bbf030e9a37398cfbe6e13a80827c079d582 Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Tue, 4 Jan 2022 18:25:19 +0100
+Subject: [PATCH 08/11] Show window on all monitors
+
+---
+ src/avizo_service.vala | 53 ++++++++++++++++++++++++++++++------------
+ 1 file changed, 38 insertions(+), 15 deletions(-)
+
+diff --git a/src/avizo_service.vala b/src/avizo_service.vala
+index bb43bc6..8ff94cc 100644
+--- a/src/avizo_service.vala
++++ b/src/avizo_service.vala
+@@ -202,28 +202,32 @@ public class AvizoService : GLib.Object
+ 	public Gdk.RGBA background { get; set; default = rgba(255, 255, 255, 0.5); }
+ 	public Gdk.RGBA foreground { get; set; default = rgba(0, 0, 0, 0.5); }
+ 
+-	private AvizoWindow _window = null;
++	private Array<AvizoWindow> _windows = new Array<AvizoWindow>();
+ 	private int _open_timeouts = 0;
+ 
+-	public AvizoService()
++	public void show(double seconds) throws DBusError, IOError
+ 	{
+-		_window = new AvizoWindow();
++		var display = Gdk.Display.get_default();
++		var monitors = display.get_n_monitors();
+ 
+-		foreach (var prop_name in props)
++		if (_windows.length < monitors)
+ 		{
+-			bind_property(prop_name, _window, prop_name, BindingFlags.DEFAULT | BindingFlags.SYNC_CREATE);
++			_windows.set_size(monitors);
+ 		}
+ 
+-		GtkLayerShell.init_for_window(_window);
+-		GtkLayerShell.auto_exclusive_zone_enable(_window);
+-		GtkLayerShell.set_layer(_window, GtkLayerShell.Layer.OVERLAY);
+-		GtkLayerShell.set_keyboard_interactivity(_window, false);
+-	}
++		for (int i = 0; i < monitors; i++)
++		{
++			var window = _windows.index(i);
++			if (window == null)
++			{
++				window = create_window();
++				_windows.insert_val(i, window);
++			}
++			GtkLayerShell.set_monitor(window, display.get_monitor(i));
+ 
+-	public void show(double seconds) throws DBusError, IOError
+-	{
+-		_window.show();
+-		_window.queue_draw();
++			window.show();
++			window.queue_draw();
++		}
+ 
+ 		_open_timeouts++;
+ 		Timeout.add((int) (seconds * 1000), () =>
+@@ -232,12 +236,31 @@ public class AvizoService : GLib.Object
+ 
+ 			if (_open_timeouts == 0)
+ 			{
+-				_window.hide();
++				for (int i = 0; i < monitors; i++) {
++					_windows.index(i).hide();
++				}
+ 			}
+ 
+ 			return false;
+ 		});
+ 	}
++
++	private AvizoWindow create_window()
++	{
++		var window = new AvizoWindow();
++
++		foreach (var prop_name in props)
++		{
++			bind_property(prop_name, window, prop_name, BindingFlags.DEFAULT | BindingFlags.SYNC_CREATE);
++		}
++
++		GtkLayerShell.init_for_window(window);
++		GtkLayerShell.auto_exclusive_zone_enable(window);
++		GtkLayerShell.set_layer(window, GtkLayerShell.Layer.OVERLAY);
++		GtkLayerShell.set_keyboard_interactivity(window, false);
++
++		return window;
++	}
+ }
+ 
+ Gdk.RGBA rgba(double red, double green, double blue, double alpha)
+
+From 2e481939d5bf06a3336d4289902e70b28d6d2c91 Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Wed, 5 Jan 2022 00:28:09 +0100
+Subject: [PATCH 09/11] Add support for vertical offset
+
+---
+ src/avizo_client.vala  |  4 ++++
+ src/avizo_service.vala | 20 +++++++++++++++-----
+ 2 files changed, 19 insertions(+), 5 deletions(-)
+
+diff --git a/src/avizo_client.vala b/src/avizo_client.vala
+index 03487e4..2bc0cbf 100644
+--- a/src/avizo_client.vala
++++ b/src/avizo_client.vala
+@@ -9,6 +9,7 @@ interface AvizoService : GLib.Object
+ 	public abstract int width { owned get; set; }
+ 	public abstract int height { owned get; set; }
+ 	public abstract int padding { owned get; set; }
++	public abstract double y_offset { owned get; set; }
+ 	public abstract int block_height { owned get; set; }
+ 	public abstract int block_spacing { owned get; set; }
+ 	public abstract int block_count { owned get; set; }
+@@ -31,6 +32,7 @@ public class AvizoClient : GLib.Application
+ 	private static double _progress = 0.0;
+ 	private static int _width = 248;
+ 	private static int _height = 232;
++	private static double _y_offset = 0.5;
+ 	private static int _padding = 24;
+ 	private static int _block_height = 10;
+ 	private static int _block_spacing = 2;
+@@ -48,6 +50,7 @@ public class AvizoClient : GLib.Application
+ 		{ "progress", 0, 0, OptionArg.DOUBLE, ref _progress, "Sets the progress in the notification, allowed values range from 0 to 1", "DOUBLE" },
+ 		{ "width", 0, 0, OptionArg.INT, ref _width, "Sets the width of the notification", "INT" },
+ 		{ "height", 0, 0, OptionArg.INT, ref _height, "Sets the height of the notification", "INT" },
++		{ "y-offset", 0, 0, OptionArg.DOUBLE, ref _y_offset, "Sets relative offset of the notification from the top of the screen, allowed values range from 0 (top) to 1.0 (bottom)", "DOUBLE" },
+ 		{ "padding", 0, 0, OptionArg.INT, ref _padding, "Sets the inner padding of the notification", "INT" },
+ 		{ "block-height", 0, 0, OptionArg.INT, ref _block_height, "Sets the block height of the progress indicator", "INT" },
+ 		{ "block-spacing", 0, 0, OptionArg.INT, ref _block_spacing, "Sets the spacing between blocks in the progress indicator", "INT" },
+@@ -130,6 +133,7 @@ public class AvizoClient : GLib.Application
+ 		_service.width = _width;
+ 		_service.height = _height;
+ 		_service.padding = _padding;
++		_service.y_offset = _y_offset;
+ 		_service.block_height = _block_height;
+ 		_service.block_spacing = _block_spacing;
+ 		_service.block_count = _block_count;
+diff --git a/src/avizo_service.vala b/src/avizo_service.vala
+index 8ff94cc..7861d1c 100644
+--- a/src/avizo_service.vala
++++ b/src/avizo_service.vala
+@@ -196,6 +196,7 @@ public class AvizoService : GLib.Object
+ 	public int width { get; set; default = 248; }
+ 	public int height { get; set; default = 232; }
+ 	public int padding { get; set; default = 24; }
++	public double y_offset { get; set; default = 0.5; }
+ 	public int block_height { get; set; default = 10; }
+ 	public int block_spacing { get; set; default = 2; }
+ 	public int block_count { get; set; default = 20; }
+@@ -223,10 +224,7 @@ public class AvizoService : GLib.Object
+ 				window = create_window();
+ 				_windows.insert_val(i, window);
+ 			}
+-			GtkLayerShell.set_monitor(window, display.get_monitor(i));
+-
+-			window.show();
+-			window.queue_draw();
++			show_window(window, display.get_monitor(i));
+ 		}
+ 
+ 		_open_timeouts++;
+@@ -255,12 +253,24 @@ public class AvizoService : GLib.Object
+ 		}
+ 
+ 		GtkLayerShell.init_for_window(window);
+-		GtkLayerShell.auto_exclusive_zone_enable(window);
+ 		GtkLayerShell.set_layer(window, GtkLayerShell.Layer.OVERLAY);
++		GtkLayerShell.set_anchor(window, GtkLayerShell.Edge.TOP, true);
++		GtkLayerShell.set_exclusive_zone(window, -1);
+ 		GtkLayerShell.set_keyboard_interactivity(window, false);
+ 
+ 		return window;
+ 	}
++
++	private void show_window(AvizoWindow window, Gdk.Monitor monitor)
++	{
++		GtkLayerShell.set_monitor(window, monitor);
++
++		var margin = (int) Math.lround((monitor.workarea.height - height) * y_offset);
++		GtkLayerShell.set_margin(window, GtkLayerShell.Edge.TOP, margin);
++
++		window.show();
++		window.queue_draw();
++	}
+ }
+ 
+ Gdk.RGBA rgba(double red, double green, double blue, double alpha)
+
+From a9c7889bf302c4f63555255f39dbea8c704e2231 Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Wed, 5 Jan 2022 01:30:28 +0100
+Subject: [PATCH 10/11] Change default y-offset from 0.5 to 0.75 (bottom half
+ of screen)
+
+---
+ src/avizo_client.vala  | 2 +-
+ src/avizo_service.vala | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/avizo_client.vala b/src/avizo_client.vala
+index 2bc0cbf..cea2543 100644
+--- a/src/avizo_client.vala
++++ b/src/avizo_client.vala
+@@ -32,7 +32,7 @@ public class AvizoClient : GLib.Application
+ 	private static double _progress = 0.0;
+ 	private static int _width = 248;
+ 	private static int _height = 232;
+-	private static double _y_offset = 0.5;
++	private static double _y_offset = 0.75;
+ 	private static int _padding = 24;
+ 	private static int _block_height = 10;
+ 	private static int _block_spacing = 2;
+diff --git a/src/avizo_service.vala b/src/avizo_service.vala
+index 7861d1c..7b39085 100644
+--- a/src/avizo_service.vala
++++ b/src/avizo_service.vala
+@@ -196,7 +196,7 @@ public class AvizoService : GLib.Object
+ 	public int width { get; set; default = 248; }
+ 	public int height { get; set; default = 232; }
+ 	public int padding { get; set; default = 24; }
+-	public double y_offset { get; set; default = 0.5; }
++	public double y_offset { get; set; default = 0.75; }
+ 	public int block_height { get; set; default = 10; }
+ 	public int block_spacing { get; set; default = 2; }
+ 	public int block_count { get; set; default = 20; }
+
+From 007649eccca5ac0c277c5520af4a6d93d7e7f886 Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Wed, 5 Jan 2022 01:53:23 +0100
+Subject: [PATCH 11/11] Fix issue with window resizing
+
+AvizoWindow instances remembers the first size and when a smaller size
+is requested later, the notification rectangle is shrinked, but not
+the window beneath.
+---
+ src/avizo_service.vala | 9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
+
+diff --git a/src/avizo_service.vala b/src/avizo_service.vala
+index 7b39085..7587ad5 100644
+--- a/src/avizo_service.vala
++++ b/src/avizo_service.vala
+@@ -40,7 +40,7 @@ public class AvizoWindow : Gtk.Window
+ 		{
+ 			_width = value;
+ 
+-			set_default_size(_width, _height);
++			set_size_request(_width, _height);
+ 		}
+ 	}
+ 
+@@ -56,7 +56,7 @@ public class AvizoWindow : Gtk.Window
+ 		{
+ 			_height = value;
+ 
+-			set_default_size(_width, _height);
++			set_size_request(_width, _height);
+ 		}
+ 	}
+ 
+@@ -89,11 +89,6 @@ public class AvizoWindow : Gtk.Window
+ 
+ 	public AvizoWindow()
+ 	{
+-		_width = width;
+-		_height = height;
+-
+-		set_default_size(_width, _height);
+-
+ 		var screen = get_screen();
+ 		var visual = screen.get_rgba_visual();
+ 		if (visual != null && screen.is_composited())
