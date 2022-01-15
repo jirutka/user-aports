@@ -1,7 +1,6 @@
 Patch-Source: https://github.com/misterdanb/avizo/pull/31
-
 diff --git a/config.ini b/config.ini
-index 3e58340..0e176bb 100644
+index 3e58340..0603cd5 100644
 --- a/config.ini
 +++ b/config.ini
 @@ -5,6 +5,9 @@
@@ -40,10 +39,10 @@ index 3e58340..0e176bb 100644
 -# Note that this does not affect the image.
 -;foreground = rgba(0, 0, 0, 0.5)
 +# The color of the unfilled bar blocks in format rgba([0, 255], [0, 255], [0, 255], [0, 1]).
-+# Defaults to 'background' with 2x brightness.
++# Defaults to 'background' with 2/3 brightness.
 +;bar-bg-color =
 diff --git a/src/avizo_client.vala b/src/avizo_client.vala
-index 849bb03..8585d60 100644
+index 849bb03..4e4e530 100644
 --- a/src/avizo_client.vala
 +++ b/src/avizo_client.vala
 @@ -5,16 +5,19 @@ interface AvizoService : GLib.Object
@@ -137,9 +136,9 @@ index 849bb03..8585d60 100644
 +			if (_bar_bg_color == "")
 +			{
 +				var bar_color = color.copy();
-+				bar_color.red /= 2;
-+				bar_color.green /= 2;
-+				bar_color.blue /= 2;
++				bar_color.red /= 1.5;
++				bar_color.green /= 1.5;
++				bar_color.blue /= 1.5;
 +				_service.bar_bg_color = bar_color;
 +			}
  		}
@@ -179,7 +178,7 @@ index 849bb03..8585d60 100644
  {
  	AvizoClient client = new AvizoClient();
 diff --git a/src/avizo_service.vala b/src/avizo_service.vala
-index 7587ad5..4f14ef5 100644
+index 7587ad5..99f75f6 100644
 --- a/src/avizo_service.vala
 +++ b/src/avizo_service.vala
 @@ -26,6 +26,17 @@ public class AvizoWindow : Gtk.Window
@@ -282,7 +281,7 @@ index 7587ad5..4f14ef5 100644
 -	public Gdk.RGBA foreground { get; set; default = rgba(0, 0, 0, 0.5); }
 +	public Gdk.RGBA background { get; set; default = rgba(160, 160, 160, 0.8); }
 +	public Gdk.RGBA bar_fg_color { get; set; default = rgba(0, 0, 0, 0.8); }
-+	public Gdk.RGBA bar_bg_color { get; set; default = rgba(80, 80, 80, 0.8); }
++	public Gdk.RGBA bar_bg_color { get; set; default = rgba(106, 106, 106, 0.8); }
 
  	private Array<AvizoWindow> _windows = new Array<AvizoWindow>();
  	private int _open_timeouts = 0;
