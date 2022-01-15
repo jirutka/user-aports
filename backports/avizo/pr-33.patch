@@ -1,0 +1,29 @@
+Patch-Source: https://github.com/misterdanb/avizo/pull/33
+
+From 23f792a5706af27be6324de3f1ba6fd1175f23bd Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Sat, 15 Jan 2022 03:03:04 +0100
+Subject: [PATCH] Fix bug in loading of first image after service start
+
+When avizo-client is called with --image-path, it is overriden by
+the default image_resource = "volume_muted", until another another
+image is requested.
+
+This bug was introduced in 5f41024730f74076ec9324551cc650b845d026bc.
+---
+ src/avizo_service.vala | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/avizo_service.vala b/src/avizo_service.vala
+index 7587ad5..0faaac3 100644
+--- a/src/avizo_service.vala
++++ b/src/avizo_service.vala
+@@ -186,7 +186,7 @@ public class AvizoService : GLib.Object
+ 	};
+
+ 	public string image_path { get; set; default = ""; }
+-	public string image_resource { get; set; default = "volume_muted"; }
++	public string image_resource { get; set; default = ""; }
+ 	public double image_opacity { get; set; default = 1.0; }
+ 	public double progress { get; set; default = 0.0; }
+ 	public int width { get; set; default = 248; }
