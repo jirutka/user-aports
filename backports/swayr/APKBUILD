@@ -2,13 +2,15 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=swayr
 pkgver=0.12.0
-pkgrel=0
+pkgrel=1
 pkgdesc="A window switcher (and more) for Sway"
 url="https://sr.ht/~tsdh/swayr/"
 arch="aarch64 armhf armv7 ppc64le x86 x86_64"  # limited by rust/cargo
 license="GPL-3.0-or-later"
 makedepends="cargo"
-source="$pkgname-$pkgver.tar.gz::https://git.sr.ht/~tsdh/swayr/archive/v$pkgver.tar.gz"
+source="$pkgname-$pkgver.tar.gz::https://git.sr.ht/~tsdh/swayr/archive/v$pkgver.tar.gz
+	placeholder-truncation.patch
+	"
 builddir="$srcdir/$pkgname-v$pkgver"
 
 prepare() {
@@ -42,4 +44,5 @@ package() {
 
 sha512sums="
 dc0c80634046027ecccd35218874300ddb10f17f3188219bd5605a8e0f4c721b2e912360fdd420fe99d1aa17bd067c4af85c7ef45e19c2cd1e355235fd2df0b7  swayr-0.12.0.tar.gz
+cd538220b6bad5927ab64afe2565b254f4c48a6cd9d9fb9bc771356cd2e8137b5132f5bd91b7b4e14ccb621d04e9a87b9d7799de3ffbe68db4b3465bfebded15  placeholder-truncation.patch
 "
