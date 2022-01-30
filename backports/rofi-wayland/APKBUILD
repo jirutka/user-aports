@@ -3,10 +3,8 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=rofi-wayland
 _projname=rofi
-pkgver=1.7.2_p1_git20220125
-_gitrev=dd249bdc0fd25a0898704159db72248ef3c5be31
-_gitrev_libnkutils=d08fa898d71da4c11653284968ec14384dd70b6a
-_gitrev_libgwater=555fa6df92434c1c3c7548b5a583b1d8ec3fabb3
+pkgver=1.7.3_p1
+_pkgver="${pkgver%_p*}+wayland${pkgver#*_p}"
 pkgrel=0
 pkgdesc="Window switcher, run dialog and dmenu replacement - fork with wayland support"
 url="https://github.com/lbonn/rofi"
@@ -29,21 +27,11 @@ makedepends="
 checkdepends="check-dev cppcheck xkeyboard-config"
 provider_priority=10  # lowest (other provider is rofi aport)
 subpackages="$pkgname-dev $pkgname-doc"
-source="https://github.com/jirutka/rofi/archive/$_gitrev/$_projname-$_gitrev.tar.gz
-	libnkutils-$_gitrev_libnkutils.tar.gz::https://github.com/sardemff7/libnkutils/archive/$_gitrev_libnkutils.tar.gz
-	libgwater-$_gitrev_libgwater.tar.gz::https://github.com/sardemff7/libgwater/archive/$_gitrev_libgwater.tar.gz
+source="https://github.com/lbonn/rofi/releases/download/$_pkgver/rofi-$_pkgver.tar.gz
 	rofi-sensible-terminal-use-sh.patch
 	disable-scrollbar-test.patch
 	"
-builddir="$srcdir/$_projname-$_gitrev"
-
-prepare() {
-	default_prepare
-
-	rm -rf subprojects/libnkutils subprojects/libgwater
-	mv "$srcdir"/libnkutils-$_gitrev_libnkutils subprojects/libnkutils
-	mv "$srcdir"/libgwater-$_gitrev_libgwater subprojects/libgwater
-}
+builddir="$srcdir/$_projname-$_pkgver"
 
 build() {
 	abuild-meson \
@@ -65,9 +53,7 @@ package() {
 }
 
 sha512sums="
-dcefb35e26a27fcfaf15ff534c2af92032d64e7801f0b9c7fbf4cb30cdba366e076483ba4636fe0362a8dd07aec43ecc84e6ac05ba7ce2732c70ef66f3dc62de  rofi-dd249bdc0fd25a0898704159db72248ef3c5be31.tar.gz
-ed5fca928929e9af09bf1889f8012b6c31d7a3fc780680e15c577152c79ec8df395a798b33816c07f6ccd5ea6938b88a69f8357612de944c1ff2a4f50b98f34d  libnkutils-d08fa898d71da4c11653284968ec14384dd70b6a.tar.gz
-1d9307167fa18c2d7249ae1df33286f646ade3d28c0aa22307d0d7d379c281a7e866a3e7f23da039bfccbe01e13e4d8f49929cac6a9e5df51d368ae3f9088588  libgwater-555fa6df92434c1c3c7548b5a583b1d8ec3fabb3.tar.gz
+6be235987b40c5e713f347f07cb8f30dbba149a38a10682d2ac0434687ba75d8c53916a2bef846310efc19c6063de808a7f4c7d931c3b080e0be835b4c9b4d55  rofi-1.7.3+wayland1.tar.gz
 13a93621337b4f317031da9007ed9d426b055190fc946a87eb12333469f9a23e85763e2c1e0492ff2d1d50ceebd429d8125a0b275d1ab0573a4d10cd812bccd9  rofi-sensible-terminal-use-sh.patch
 e00b6ad74ed482ce5a77e7311ad6797481440825006fded5676b5417548bc93b4baa39b80f0f86e645d804dd2e606a894384d7974e10739193561c56af6343f1  disable-scrollbar-test.patch
 "
