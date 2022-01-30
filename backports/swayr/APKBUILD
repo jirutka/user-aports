@@ -1,7 +1,7 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=swayr
-pkgver=0.13.0_beta0
+pkgver=0.13.0_beta1
 _pkgver=${pkgver/_beta/-beta.}
 pkgrel=0
 pkgdesc="A window switcher (and more) for Sway"
@@ -42,5 +42,5 @@ package() {
 }
 
 sha512sums="
-7e9a6e3e036a64054d078d7c386f5ff8bb5310ba322798beb0c5cba7a83c44575e706da7e5b49ef22f8c827bfd5421b01ab7d9a0555431676490db7f6f012160  swayr-v0.13.0-beta.0.tar.gz
+369033477a79027a53bf1788ef46414d754373e5e366205c87e58c16193965751a10baf2a6c43755203c383051f2d74cef1ee5c4560dab887dac408d93a78191  swayr-v0.13.0-beta.1.tar.gz
 "
