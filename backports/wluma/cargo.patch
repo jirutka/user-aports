@@ -1,0 +1,60 @@
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Sun, 6 Feb 2022 22:23:00 +0100
+Subject: [PATCH] Patch dependencies
+
+- Link libvulkan.so at build-time (not necessary, but it's better).
+- Use latest v4l and fix incorrect types (needed for building against musl).
+
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -15,3 +15,3 @@
+-ash = "0.35"
++ash = { version = "0.35", features = ["linked"], default-features = false }
+ itertools = "0.10"
+-v4l = { version = "0.12", features = ["libv4l"], default-features = false }
++v4l = { git = "https://github.com/raymanfx/libv4l-rs", rev = "d7ac716", features = ["libv4l"], default-features = false }
+@@ -23,3 +23,12 @@
+ 
+ [dev-dependencies]
+ mockall = "0.10"
++
++[package.metadata.patch.v4l]
++patches = [
++  "../v4l-01-fix-string-pointer-cast.cargo-patch",
++  "../v4l-02-fix-wrong-_IOC_TYPE-on-musl.cargo-patch",
++]
++
++[patch.'https://github.com/raymanfx/libv4l-rs']
++v4l = { path = "./target/patch/d7ac716" }
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -31,9 +31,6 @@
+ version = "0.35.1+1.2.203"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "b7fd04def1c9101b5fb488c131022d2d6f87753ef4b1b11b279e2af404fae6b9"
+-dependencies = [
+- "libloading",
+-]
+ 
+ [[package]]
+ name = "atty"
+@@ -1072,9 +1069,7 @@
+ 
+ [[package]]
+ name = "v4l"
+-version = "0.12.1"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "4f6eca58bca86b4b353b55e18828694f91e83dd7e9c4d7f127515e4687d5a8e9"
++version = "0.12.2"
+ dependencies = [
+  "bitflags",
+  "libc",
+@@ -1084,8 +1079,6 @@
+ [[package]]
+ name = "v4l-sys"
+ version = "0.2.0"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "f91dc47f9668a0a1a0af7ba194f2d543a68c2ef9eb61888f89565d60b34247fe"
+ dependencies = [
+  "bindgen",
+ ]
