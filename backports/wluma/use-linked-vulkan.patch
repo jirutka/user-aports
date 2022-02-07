@@ -4,8 +4,8 @@ Subject: [PATCH] Use ash (vulkan) in linked mode
 
 This depends on cargo.patch - enabling feature "linked" for ash crate.
 
---- a/src/frame/processor/vulkan.rs
-+++ b/src/frame/processor/vulkan.rs
+--- a/src/frame/vulkan.rs
++++ b/src/frame/vulkan.rs
 @@ -100,7 +100,7 @@
              vk::KhrGetPhysicalDeviceProperties2Fn::name().as_ptr(),
          ];
