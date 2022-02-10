@@ -1,17 +1,17 @@
 From: Jakub Jirutka <jakub@jirutka.cz>
-Date: Sun, 6 Feb 2022 22:23:00 +0100
-Subject: [PATCH] Use ash (vulkan) in linked mode
+Date: Thu, 10 Feb 2022 20:16:00 +0100
+Subject: [PATCH] Link vulkan-loader at runtime
 
-This depends on cargo.patch - enabling feature "linked" for ash crate.
+This depends on cargo.patch - enabling ash's feature 'loaded'.
 
 --- a/src/frame/vulkan.rs
 +++ b/src/frame/vulkan.rs
-@@ -100,7 +100,7 @@
+@@ -44,7 +44,7 @@
              vk::KhrGetPhysicalDeviceProperties2Fn::name().as_ptr(),
          ];
  
--        let entry = unsafe { Entry::load()? };
-+        let entry = Entry::linked();  // XXX-Patched
+-        let entry = Entry::linked();
++        let entry = unsafe { Entry::load()? };
  
          let create_info = vk::InstanceCreateInfo::builder()
              .application_info(&app_info)
