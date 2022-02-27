@@ -1,8 +1,8 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=avizo
-pkgver=1.1
-pkgrel=4
+pkgver=1.2
+pkgrel=0
 pkgdesc="A neat notification daemon"
 url="https://github.com/misterdanb/avizo"
 arch="all"
@@ -16,10 +16,6 @@ makedepends="
 	"
 subpackages="$pkgname-scripts::noarch"
 source="https://github.com/misterdanb/avizo/archive/$pkgver/$pkgname-$pkgver.tar.gz
-	pr-28.patch
-	pr-31.patch
-	pr-32.patch
-	pr-33.patch
 	unbundle-images.patch
 	"
 options="!check"  # no tests provided
@@ -42,10 +38,6 @@ scripts() {
 }
 
 sha512sums="
-a13647be722c3b9cd8814039f2427e30e9912d0ee575f091f024222f711f63a424577eeb8e77c898fbb134cad9906fd8db69d6f87854eaf9e47c69637e093acd  avizo-1.1.tar.gz
-362a1743780d9bc3556d246f18c526e84faf051346dc74356a4e647c7f226c0f1a73a300945a5e4f5d71fab5f76a3a5e8ee76a5878105777a4e524394b634d3d  pr-28.patch
-8a7f75ee812c17293da76b0caa41d4c09135ae8a77e5a65258020d5cffee0d8bfee0f9777e88900e1310878f1979f246e3a8a9ea705ed66b50a5d7c7b1f6ec0d  pr-31.patch
-a40edbaf97a2249b2bd36997e68458689c4f7b23d8330becb0c045e4527cc1f356e68f0685094bf02b7590f58acc0c347aed4b35378a948834a392500d024116  pr-32.patch
-aabf332dbe95de82f4a215d022ea3abcdfb4db0e051aa395b716902b39c5d6538ddcac8549f569a04d77bd5afa65a8c530d9b47aaef26939f113265a1e3b0a79  pr-33.patch
+8752ecc26e5e5ec904d178b9504cccb09272be8368580c971ee44691c9fdfdb2893f45d9ed22e88ed696f8e58d350cec33e9f6038eea3094a8feb8ed0a6865c5  avizo-1.2.tar.gz
 a42195eeb15e2ca2596c28904b6e23d6956a270939ffc972190756220e77be93a9006faacba0340d45dbb26e29fcdb622b89e8ea4bae341957262d6320eed24c  unbundle-images.patch
 "
