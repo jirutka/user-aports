@@ -1,7 +1,7 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=apk-deploy-tool
-pkgver=0.4.2
+pkgver=0.5.0
 pkgrel=0
 pkgdesc="Script for deploying applications in APK packages via SSH"
 url="https://github.com/jirutka/user-aports"
@@ -33,5 +33,7 @@ package() {
 		./home/deploy/.ssh
 }
 
-sha512sums="4248f245aa63f4a3f165fef5acc00d8c7ad65162b0353d124088ac7210982f6388ef3486e552f14c7a3fa57f14ff3867cd4c761c37aa330f0f5360f6f3642b42  apk-deploy-tool-0.4.2.tar.gz
-a945ba0d23efcfe04f997b8a98d837f626f8b0ebdedb3ebb9f8cbfd4408fb9e848c8648e3db7cb30215b43ec8a516049de162ee717eaf09ada14979bfc2e1856  apk-deploy-tool.sudoersd"
+sha512sums="
+188d15c88a22d06e14f8c8451b21cc757045554db2a79ca144505f24d4b18f2e3d180014abf160b0418abf91d582593c02f4d6ffa93a5d9061372eb87eedff91  apk-deploy-tool-0.5.0.tar.gz
+a945ba0d23efcfe04f997b8a98d837f626f8b0ebdedb3ebb9f8cbfd4408fb9e848c8648e3db7cb30215b43ec8a516049de162ee717eaf09ada14979bfc2e1856  apk-deploy-tool.sudoersd
+"
