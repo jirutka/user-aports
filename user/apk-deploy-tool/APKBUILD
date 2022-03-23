@@ -7,14 +7,14 @@ pkgdesc="Script for deploying applications in APK packages via SSH"
 url="https://github.com/jirutka/user-aports"
 arch="noarch"
 license="MIT"
-depends="apk-tools openssh-keygen sudo"
+depends="apk-tools doas openssh-keygen"
 pkgusers="deploy"
 pkggroups="$pkgusers"
 provides="apk-deploy=$pkgver-r$pkgrel"  # for backward compatibility
 replaces="apk-deploy"  # for backward compatibility
 install="$pkgname.pre-install"
 source="https://github.com/jirutka/apk-deploy-tool/archive/v$pkgver/$pkgname-$pkgver.tar.gz
-	$pkgname.sudoersd
+	$pkgname.doasd
 	"
 builddir="$srcdir/$pkgname-$pkgver"
 options="!check"
@@ -24,7 +24,7 @@ package() {
 
 	cd "$pkgdir"
 
-	install -D -m 640 "$srcdir"/$pkgname.sudoersd ./etc/sudoers.d/$pkgname
+	install -D -m 640 "$srcdir"/$pkgname.doasd ./etc/doas.d/$pkgname.conf
 
 	install -d -m 755 -o $pkgusers -g "$pkggroups" \
 		./home/deploy \
@@ -35,5 +35,5 @@ package() {
 
 sha512sums="
 188d15c88a22d06e14f8c8451b21cc757045554db2a79ca144505f24d4b18f2e3d180014abf160b0418abf91d582593c02f4d6ffa93a5d9061372eb87eedff91  apk-deploy-tool-0.5.0.tar.gz
-a945ba0d23efcfe04f997b8a98d837f626f8b0ebdedb3ebb9f8cbfd4408fb9e848c8648e3db7cb30215b43ec8a516049de162ee717eaf09ada14979bfc2e1856  apk-deploy-tool.sudoersd
+55c3fc8c72d12ee09e7fd81c808be61340fa6657081d654396d02435a915baefe1680fca602dc434dfc5496c525894bc4031d48053c93c9bcefc7e1db969f9bb  apk-deploy-tool.doasd
 "

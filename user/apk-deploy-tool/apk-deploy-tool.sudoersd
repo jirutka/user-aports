@@ -1,1 +1,0 @@
-deploy ALL=(root) NOPASSWD: /usr/bin/apk-deploy-pkg
