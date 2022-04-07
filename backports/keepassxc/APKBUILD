@@ -1,0 +1,98 @@
+# Contributor: Leonardo Arena <rnalrd@alpinelinux.org>
+# Contributor: August Klein <amatcoder@gmail.com>
+# Contributor: Orson Teodoro <orsonteodoro@hotmail.com>
+# Contributor: Max Rees <maxcrees@me.com>
+# Maintainer: Orson Teodoro <orsonteodoro@hotmail.com>
+pkgname=keepassxc
+pkgver=2.7.1
+pkgrel=0
+pkgdesc="Community-driven port of the Windows application Keepass Password Safe"
+url="https://keepassxc.org/"
+arch="all"
+license="GPL-2.0-only OR GPL-3.0-only"
+provides="dbus:org.freedesktop.Secrets"
+provider_priority=5 # Smallest priority, unusual setup
+depends="hicolor-icon-theme"
+makedepends="
+	argon2-dev
+	asciidoctor
+	botan-dev
+	cmake
+	libqrencode-dev
+	libusb-dev
+	libxi-dev
+	libxtst-dev
+	minizip-dev
+	pcsc-lite-dev
+	qt5-qtbase-dev
+	qt5-qtsvg-dev
+	qt5-qttools-dev
+	qt5-qtx11extras-dev
+	readline-dev
+	samurai
+	zlib-dev
+	"
+checkdepends="dbus xvfb-run"
+install="$pkgname.post-upgrade"
+subpackages="$pkgname-doc $pkgname-lang::noarch $pkgname-autotype"
+source="https://github.com/keepassxreboot/keepassxc/releases/download/$pkgver/keepassxc-$pkgver-src.tar.xz"
+
+build() {
+	export CXXFLAGS="$CXXFLAGS -flto -fno-fat-lto-objects"
+	export LDFLAGS="$LDFLAGS -flto"
+
+	cmake -G Ninja -B build \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=/usr/lib \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DKEEPASSXC_BUILD_TYPE=Release \
+		-DWITH_XC_AUTOTYPE=ON \
+		-DWITH_XC_NETWORKING=ON \
+		-DWITH_XC_BROWSER=ON \
+		-DWITH_XC_YUBIKEY=ON \
+		-DWITH_XC_SSHAGENT=ON \
+		-DWITH_XC_KEESHARE=ON \
+		-DWITH_XC_UPDATECHECK=OFF \
+		-DWITH_XC_FDOSECRETS=ON \
+		-DWITH_GUI_TESTS=ON
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest -E 'testcli' # v2.6.4 testcli fails
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+
+	install -D -t "$pkgdir"/usr/share/doc/$pkgname/ \
+		CHANGELOG.md README.md
+
+	cd "$pkgdir"
+	mv usr/share/keepassxc/docs/* usr/share/doc/$pkgname/
+	rmdir usr/share/keepassxc/docs
+}
+
+lang() {
+	pkgdesc="Languages for package $pkgname"
+	install_if="$pkgname=$pkgver-r$pkgrel lang"
+	local langdir='usr/share/keepassxc/translations'
+
+	amove $langdir
+
+	mkdir -p "$pkgdir"/$langdir
+	mv "$subpkgdir"/$langdir/keepassxc_en_US.qm "$pkgdir"/$langdir/
+}
+
+autotype() {
+	pkgdesc="KeePassXC Auto-Type feature for X11"
+	install_if="$pkgname=$pkgver-r$pkgrel xorg-server"
+	depends=""
+
+	amove usr/lib/keepassxc/libkeepassxc-autotype-xcb.so
+}
+
+sha512sums="
+ca0950e7c0e6d119b7c7122ac2684084a668be6798eb22a6e1271f8e05a86c943203f7f1c56b948deab3948f6b376e838db364e5bc5f6f7bc73ba72ad9461299  keepassxc-2.7.1-src.tar.xz
+"
