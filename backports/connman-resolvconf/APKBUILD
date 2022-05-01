@@ -1,0 +1,36 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=connman-resolvconf
+pkgver=0_git20220501
+_gitrev=1ac6b9d29a922a15491ddfb5f8f9cc26a8be01e8
+pkgrel=0
+pkgdesc="ConnMan integration with resolvconf(8)"
+url="https://github.com/jirutka/connman-resolvconf"
+arch="aarch64 armhf armv7 ppc64le x86 x86_64"  # blocked by rust/cargo
+license="MIT"
+depends="connman dbus cmd:resolvconf"
+makedepends="cargo dbus-dev"
+subpackages="$pkgname-openrc"
+source="https://github.com/jirutka/connman-resolvconf/archive/$_gitrev/connman-resolvconf-$_gitrev.tar.gz"
+builddir="$srcdir/$pkgname-$_gitrev"
+options="!check"  # no tests provided
+
+prepare() {
+	default_prepare
+
+	cargo fetch --locked
+}
+
+build() {
+	cargo build --frozen --release
+}
+
+package() {
+	install -D -m755 target/release/connman-resolvconfd -t "$pkgdir"/usr/sbin/
+	install -D -m755 contrib/openrc/$pkgname.initd "$pkgdir"/etc/init.d/$pkgname
+	install -D -m644 contrib/openrc/$pkgname.confd "$pkgdir"/etc/conf.d/$pkgname
+}
+
+sha512sums="
+1438332fb587f8928e795b764815b5fbcadd5661dbc32c0a77d1c8ce73c19971ea9412cef12493fbc6466cf2409c039ea327f618614ca70daf4771bfd1877257  connman-resolvconf-1ac6b9d29a922a15491ddfb5f8f9cc26a8be01e8.tar.gz
+"
