@@ -1,8 +1,8 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=connman-resolvconf
-pkgver=0_git20220501
-_gitrev=1ac6b9d29a922a15491ddfb5f8f9cc26a8be01e8
+pkgver=0_git20220503
+_gitrev=1a428117ec747713ab1800e4a81c0f6553dd0e70
 pkgrel=0
 pkgdesc="ConnMan integration with resolvconf(8)"
 url="https://github.com/jirutka/connman-resolvconf"
@@ -32,5 +32,5 @@ package() {
 }
 
 sha512sums="
-1438332fb587f8928e795b764815b5fbcadd5661dbc32c0a77d1c8ce73c19971ea9412cef12493fbc6466cf2409c039ea327f618614ca70daf4771bfd1877257  connman-resolvconf-1ac6b9d29a922a15491ddfb5f8f9cc26a8be01e8.tar.gz
+65e92fc2d16df36ceaef71890fb83c92ff71908cf3cf4c64f8c9f18d4f90032c819fc784b911970812bf0ea5672b3726bded69f15bdb1c4377da267fcd560bc7  connman-resolvconf-1a428117ec747713ab1800e4a81c0f6553dd0e70.tar.gz
 "
