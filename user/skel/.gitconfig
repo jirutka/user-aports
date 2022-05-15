@@ -9,3 +9,6 @@
 	lg = log --graph --abbrev-commit --decorate --date=short --format=format:'%C(blue)%h%C(reset) %C(green)%ad%C(reset) : %C(white)%s%C(reset)  %C(dim white)<%an>%C(reset) %C(bold yellow)%d%C(reset)' --all
 	s = status
 	st = status
+[safe]
+	# Don't complain about repo in /etc.
+	directory = /etc
