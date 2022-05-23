@@ -4,7 +4,7 @@ on:
 
 env:
   # Keep in sync with jobs.build.container.image!
-  BRANCH: v3.15
+  BRANCH: v3.16
   REPOS_DIR: /home/ci/repos
   BUILD_REPOS: backports user bundles
 
@@ -12,7 +12,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: alpine:3.15
+      image: alpine:3.16
       options: --privileged --device /dev/fuse
       volumes:
         - ${{ github.workspace }}:/home/ci/aports
