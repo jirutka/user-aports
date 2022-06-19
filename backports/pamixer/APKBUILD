@@ -1,0 +1,30 @@
+# Contributor: Alex McGrath <amk@amk.ie>
+# Maintainer: Alex McGrath <amk@amk.ie>
+pkgname=pamixer
+pkgver=1.6
+pkgrel=0
+pkgdesc="pulseaudio command line mixer"
+url="https://github.com/cdemoulins/pamixer"
+arch="all"
+license="GPL-3.0-only"
+makedepends="
+	cxxopts-dev
+	meson
+	pulseaudio-dev
+	"
+subpackages="$pkgname-doc"
+source="https://github.com/cdemoulins/pamixer/archive/$pkgver/$pkgname-$pkgver.tar.gz"
+options="!check"  # no tests provided
+
+build() {
+	abuild-meson . output
+	meson compile -j ${JOBS:-0} -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+c01b7c4184901955bff82aaeef0cde7f0b613e6ebff1158b3603f2835e13590a9353920a430598a3cde5c305a7316a78e302186bf4d3bf458133262578b42eb3  pamixer-1.6.tar.gz
+"
