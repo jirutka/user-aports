@@ -1,0 +1,168 @@
+# Maintainer: Jakub Panek <me@panekj.dev>
+pkgname=wezterm
+pkgver=20220624.141144
+_pkgver="20220624-141144-bd1b7c5d"
+pkgrel=1
+pkgdesc="GPU-accelerated cross-platform terminal emulator and multiplexer written in Rust"
+url="https://wezfurlong.org/wezterm/"
+# s390x, riscv64 limited by rust
+# ppc64le limited by ring https://github.com/briansmith/ring/issues/389
+# armv7 armhf x86 limited by 32-bit incompatibility
+arch="x86_64 aarch64"
+license="MIT"
+options="net"
+depends="
+	$pkgname-common=$pkgver-r$pkgrel
+	"
+# See remove-bundled-fonts.patch for more info about fonts.
+_depends_fonts="
+	font-jetbrains-mono-vf
+	font-nerd-fonts-symbols
+	font-noto-emoji
+	font-roboto
+	"
+makedepends="
+	cargo
+	fontconfig-dev
+	freetype-dev
+	harfbuzz-dev
+	libgit2-dev
+	libpng-dev
+	libssh2-dev
+	libx11-dev
+	libxkbcommon-dev
+	lua5.4-dev
+	ncurses
+	openssl-dev
+	python3
+	wayland-dev
+	xcb-imdkit-dev
+	xcb-util-dev
+	xcb-util-image-dev
+	xcb-util-keysyms-dev
+	xcb-util-wm-dev
+	zlib-dev
+	zstd-dev
+	"
+checkdepends="openssh"
+install="$pkgname.post-install $pkgname.post-upgrade"
+subpackages="
+	$pkgname-common
+	$pkgname-mux-server:_mux_server
+	$pkgname-extra-terminfo:_extra_terminfo:noarch
+	$pkgname-fonts::noarch
+	$pkgname-bash-completion
+	$pkgname-fish-completion
+	$pkgname-zsh-completion
+	"
+source="
+	https://github.com/wez/wezterm/releases/download/$_pkgver/wezterm-$_pkgver-src.tar.gz
+	link-against-system-libs.patch
+	remove-update-checker.patch
+	remove-bundled-fonts.patch
+	remove-rare-image-formats.patch
+	"
+builddir="$srcdir/wezterm-$_pkgver"
+options="!check"
+
+export CARGO_PROFILE_RELEASE_LTO="true"
+export CARGO_PROFILE_RELEASE_PANIC="abort"
+export CARGO_PROFILE_RELEASE_OPT_LEVEL="s"
+export CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1
+export LIBSSH2_SYS_USE_PKG_CONFIG=1  # use system libssh2
+
+prepare() {
+	cargo fetch --locked
+
+	default_prepare
+
+	cargo fetch  # regenerate Cargo.lock after patching
+
+	# dont print malformed sshd config, this can possibly fail on builders but not on CI
+	sed 's|std::fs::write|//std::fs::write|g' -i "$builddir"/wezterm-ssh/tests/sshd.rs
+}
+
+build() {
+	cargo build --release --frozen --manifest-path wezterm/Cargo.toml
+	cargo build --release --frozen --manifest-path wezterm-gui/Cargo.toml
+	cargo build --release --frozen --manifest-path wezterm-mux-server/Cargo.toml
+	cargo build --release --frozen --manifest-path strip-ansi-escapes/Cargo.toml
+
+	tic -x -o "$builddir"/terminfo "$builddir"/termwiz/data/wezterm.terminfo
+}
+
+check() {
+	# Skipped test fails due to remove-bundled-fonts.patch.
+	cargo test --frozen -- \
+		--skip shaper::harfbuzz::test::ligatures
+
+	# required to unstuck CI
+	killall -q sshd || true
+}
+
+package() {
+	local appid="org.wezfurlong.wezterm"
+
+	cd target/release
+	install -Dm755 -t "$pkgdir"/usr/bin/ \
+		wezterm \
+		wezterm-gui \
+		wezterm-mux-server \
+		strip-ansi-escapes
+
+	cd "$builddir"
+
+	install -Dm644 assets/wezterm.desktop "$pkgdir"/usr/share/applications/$appid.desktop
+	install -Dm644 assets/wezterm.appdata.xml "$pkgdir"/usr/share/metainfo/$appid.appdata.xml
+	install -Dm644 LICENSE.md -t "$pkgdir"/usr/share/licences/$pkgname/
+	install -Dm644 assets/shell-integration/wezterm.sh -t "$pkgdir"/etc/profile.d/
+
+	install -Dm644 assets/icon/terminal.png "$pkgdir"/usr/share/icons/hicolor/128x128/apps/$appid.png
+	install -Dm644 assets/icon/wezterm-icon.svg "$pkgdir"/usr/share/icons/hicolor/scalable/apps/$appid.svg
+
+	install -Dm644 terminfo/w/wezterm "$pkgdir"/usr/share/terminfo/w/wezterm
+
+	install -Dm644 assets/shell-completion/bash "$pkgdir"/usr/share/bash-completion/completions/wezterm
+	install -Dm644 assets/shell-completion/fish "$pkgdir"/usr/share/fish/completions/wezterm.fish
+	install -Dm644 assets/shell-completion/zsh "$pkgdir"/usr/share/zsh/site-functions/_wezterm
+}
+
+# NOTE: This package contains programs that don't depend on Gtk, X11 etc.
+#  It may be installed on a remote server.
+common() {
+	pkgdesc="Common files for WezTerm GUI and multiplexer server"
+	depends="$pkgname-extra-terminfo=$pkgver-r$pkgrel"
+
+	amove etc/profile.d
+	amove usr/bin/strip-ansi-escapes
+	amove usr/bin/wezterm
+}
+
+_mux_server() {
+	pkgdesc="WezTerm multiplexer server"
+	depends="$pkgname-common=$pkgver-r$pkgrel"
+
+	amove usr/bin/wezterm-mux-server
+}
+
+_extra_terminfo() {
+	pkgdesc="$pkgdesc (extra terminfo data)"
+	depends="ncurses-terminfo-base"
+
+	amove usr/share/terminfo/w/wezterm
+}
+
+fonts() {
+	pkgdesc="Meta package for fonts bundled in Wezterm"
+	depends="$_depends_fonts"
+
+	mkdir -p "$subpkgdir"
+}
+
+sha512sums="
+b07989b9b0125616744300f2c1311b8ec0d36cc1ac21a472ed13deb1bbcb6c1d48c9852b07a3d4a851e9e5b8548225cb930b52834249fe2ab0b3955605ab65aa  wezterm-20220624-141144-bd1b7c5d-src.tar.gz
+c0b4ab7b9c5d456409356484285541436add920dcb58d32923331f92d24c17cc4b3236c5135c5543636c4b75f716feaba60f7f6bdf85ffdcbc99279b50bb8664  link-against-system-libs.patch
+f0ff414cd61acc921921faef214c2ab8cb2e1a5e84da64c69d5cc17ad77b001fbd4d2550d5653289b91395430b3210911edc83f94105e8fc0cc23c111f322434  remove-update-checker.patch
+6fbf31c584b66c43c16f036eaf72a0d6aa621e244dbcf73e2d996fb9be654d50a64b6e058af9883ae6009fbc38b6054ce3568d9309b388f98ed592bd529d37fc  remove-bundled-fonts.patch
+66b7878808e1237ba9467d1529b9d2d3136a441b94e61b8fdd78944ca763105593e1f95ac5de92f15c10249f8560f2621dcea75391ea7b969422255a36e52a6a  remove-rare-image-formats.patch
+"

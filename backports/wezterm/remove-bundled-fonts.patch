@@ -1,0 +1,49 @@
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Mon, 25 Jul 2022 00:22:00 +0200
+Subject: [PATCH] Don't bundle fonts FFS!
+
+There's no reason to bundle fonts in the binary, we install them separately.
+
+Roboto is a sans-serif font, Wezterm uses it for its UI; any other sans-serif
+font will work.
+
+LastResortHE is a special-purpose font which may cause troubles when installed
+as a normal font (https://github.com/unicode-org/last-resort-font/issues/3).
+
+--- a/wezterm-font/src/parser.rs
++++ b/wezterm-font/src/parser.rs
+@@ -691,34 +691,6 @@
+     }
+     let lib = crate::ftwrap::Library::new()?;
+     for (data, name) in &[
+-        font!("../../assets/fonts/JetBrainsMono-BoldItalic.ttf"),
+-        font!("../../assets/fonts/JetBrainsMono-Bold.ttf"),
+-        font!("../../assets/fonts/JetBrainsMono-ExtraBoldItalic.ttf"),
+-        font!("../../assets/fonts/JetBrainsMono-ExtraBold.ttf"),
+-        font!("../../assets/fonts/JetBrainsMono-ExtraLightItalic.ttf"),
+-        font!("../../assets/fonts/JetBrainsMono-ExtraLight.ttf"),
+-        font!("../../assets/fonts/JetBrainsMono-Italic.ttf"),
+-        font!("../../assets/fonts/JetBrainsMono-LightItalic.ttf"),
+-        font!("../../assets/fonts/JetBrainsMono-Light.ttf"),
+-        font!("../../assets/fonts/JetBrainsMono-MediumItalic.ttf"),
+-        font!("../../assets/fonts/JetBrainsMono-Medium.ttf"),
+-        font!("../../assets/fonts/JetBrainsMono-Regular.ttf"),
+-        font!("../../assets/fonts/JetBrainsMono-ThinItalic.ttf"),
+-        font!("../../assets/fonts/JetBrainsMono-Thin.ttf"),
+-        font!("../../assets/fonts/Roboto-Black.ttf"),
+-        font!("../../assets/fonts/Roboto-BlackItalic.ttf"),
+-        font!("../../assets/fonts/Roboto-Bold.ttf"),
+-        font!("../../assets/fonts/Roboto-BoldItalic.ttf"),
+-        font!("../../assets/fonts/Roboto-Italic.ttf"),
+-        font!("../../assets/fonts/Roboto-Light.ttf"),
+-        font!("../../assets/fonts/Roboto-LightItalic.ttf"),
+-        font!("../../assets/fonts/Roboto-Medium.ttf"),
+-        font!("../../assets/fonts/Roboto-MediumItalic.ttf"),
+-        font!("../../assets/fonts/Roboto-Regular.ttf"),
+-        font!("../../assets/fonts/Roboto-Thin.ttf"),
+-        font!("../../assets/fonts/Roboto-ThinItalic.ttf"),
+-        font!("../../assets/fonts/NotoColorEmoji.ttf"),
+-        font!("../../assets/fonts/Symbols-Nerd-Font-Mono.ttf"),
+         font!("../../assets/fonts/LastResortHE-Regular.ttf"),
+     ] {
+         let locator = FontDataHandle {
