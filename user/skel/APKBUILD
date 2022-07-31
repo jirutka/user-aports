@@ -1,7 +1,7 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=skel
-pkgver=1.2
+pkgver=1.3
 pkgrel=0
 pkgdesc="Base dotfiles into /etc/skel"
 url="https://github.com/jirutka/user-aports"
@@ -28,5 +28,5 @@ package() {
 sha512sums="
 149237f008e90509e29eca0a71f0c6b959772e5097a22cc3a3bbd78f5518c5c2588df8e1132256e2161d2e90222a0b3bdb4a06900d9f0bdd163fc6e77c59bc12  .gitconfig
 6998fb4230ba08f057dc994972c4a1e148f66e85386d114ee3fc2ddcecff949bdb007bb2ebd91010a9b93be8e2bc9600789459c900571484eb1a513f804cf040  .profile
-5943ed017f9f79ac1e801e54470deff77b67126eb001e35066bf5e06b50f3dbe84f66f8b5021d37fe0189f08ae500bb511e294609d8912e0e813b0028c2ab763  .vimrc
+c9d342477cf6941615c10f6dffd780ca1e771e50e9a81436dcd248c68428c9ef1bc0a63b2fbc0c47882114b7c45579d277332b45352455cc7763b0522c8e664a  .vimrc
 "

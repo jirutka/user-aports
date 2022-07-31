@@ -1,40 +1,41 @@
+let s:cachedir = exists("$XDG_CACHE_HOME") ? $XDG_CACHE_HOME : $HOME . '/.cache'
+let s:cachedir .= '/vim'
+
+" NOTE: Double trailing slashes // in paths are to include path info in file
+"  name (e.g. backup file for /root/foo is saved as %root%foo).
+
 " Save your backups to a less annoying place than the current directory.
-" If you have .vim/backup in the current directory, it'll use that.
-" Otherwise it saves it to ~/.vim/backup or . if all else fails.
-if isdirectory($HOME . '/.vim/backup') == 0
-  :silent !mkdir -p ~/.vim/backup >/dev/null 2>&1
+" If you have .vim/ in the current directory, it will be used.
+" Otherwise it saves it to $XDG_CACHE_HOME/vim/backup/ or ./ if all else fail.
+let s:backupdir = s:cachedir . '/backup'
+if !isdirectory(s:backupdir)
+  silent! call mkdir(s:backupdir, 'p', 0700)
 endif
-set backupdir-=.
-set backupdir+=.
-set backupdir-=~/
-set backupdir^=~/.vim/backup/
-set backupdir^=./.vim/backup/
+let &backupdir = join(['./.vim/backup/', s:backupdir . '//', '.'], ',')
 set backup
 
 " Save your swp files to a less annoying place than the current directory.
-" If you have .vim/swap in the current directory, it'll use that.
-" Otherwise it saves it to ~/.vim/swap, ~/tmp or .
-if isdirectory($HOME . '/.vim/swap') == 0
-  :silent !mkdir -p ~/.vim/swap >/dev/null 2>&1
+" If you have .vim/ in the current directory, it will be used.
+" Otherwise it saves it to $XDG_CACHE_HOME/vim/swap/, or ./ if all else fail.
+let s:swapdir = s:cachedir . '/swap'
+if !isdirectory(s:swapdir)
+  silent! call mkdir(s:swapdir, 'p', 0700)
 endif
-set directory=./.vim/swap//
-set directory+=~/.vim/swap//
-set directory+=~/tmp//
-set directory+=.
+let &directory = join(['./.vim/swap/' , s:swapdir . '//', '.'], ',')
 
 " viminfo stores the the state of your previous editing session
-set viminfo+=n~/.vim/viminfo
+let &viminfo .= ',n' . s:cachedir . '/viminfo'
 
+" This is only present in 7.3+
 if exists('+undofile')
-  " undofile - This allows you to use undos after exiting and restarting
-  " This, like swap and backups, uses .vim/undo first, then ~/.vim/undo
+  " undofile allows you to use undos after exiting and restarting
+  " This, like swap and backups, uses .vim/ first, then $XDG_CACHE_HOME/vim/undo/.
   " :help undo-persistence
-  " This is only present in 7.3+
-  if isdirectory($HOME . '/.vim/undo') == 0
-    :silent !mkdir -p ~/.vim/undo > /dev/null 2>&1
+  let s:undodir = s:cachedir . '/undo'
+  if !isdirectory(s:undodir)
+    silent! call mkdir(s:undodir, 'p', 0700)
   endif
-  set undodir=./.vim/undo//
-  set undodir+=~/.vim/undo//
+  let &undodir = join(['./.vim/undo/', s:undodir . '//'], ',')
   set undofile
 endif
 
