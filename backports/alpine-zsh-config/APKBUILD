@@ -1,0 +1,28 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=alpine-zsh-config
+pkgver=0.5.0
+pkgrel=0
+pkgdesc="A sensible default configuration for Zsh"
+url="https://github.com/jirutka/alpine-zsh-config"
+arch="noarch"
+license="MIT"
+depends="tty-copy>=0.2.0 zsh>=5.8.1-r1"
+source="https://github.com/jirutka/alpine-zsh-config/archive/v$pkgver/alpine-zsh-config-$pkgver.tar.gz"
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+
+	install -D -m644 /dev/stdin "$pkgdir"/usr/share/zsh/scripts/newuser <<-EOF
+	# The purpose of this empty file is to disable that obstructive newuser setup
+	# wizard (zsh/newuser module). It has been installed by $pkgname package.
+	EOF
+}
+
+sha512sums="
+68433bb2efe5935bf6342f2cf1a6485397e3c0cda5510530fb9f82cfe8f84d1943355fff030f09ed5e98947ffc071a32ce937a1d8306cd79f5e307491f4ac4f7  alpine-zsh-config-0.5.0.tar.gz
+"
