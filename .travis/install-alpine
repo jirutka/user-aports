@@ -4,8 +4,8 @@ set -eu
 
 . "$(dirname "$0")"/common.sh
 
-APK_TOOLS_URI='https://github.com/alpinelinux/apk-tools/releases/download/v2.7.2/apk-tools-2.7.2-x86_64-linux.tar.gz'
-APK_TOOLS_SHA256='e949d3826d08ad41622b29186f960b135711dd96aacfb80ff8238c0fd69d051f'
+APK_TOOLS_URI='https://github.com/alpinelinux/apk-tools/releases/download/v2.10.4/apk-tools-2.10.4-x86_64-linux.tar.gz'
+APK_TOOLS_SHA256='efe948160317fe78058e207554d0d9195a3dfcc35f77df278d30448d7b3eb892'
 
 echo '\n==> Downloading apk-tools-static'
 
