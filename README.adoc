@@ -7,11 +7,11 @@
 :repos-uri: https://repo.jirutka.cz/alpine
 
 ifdef::env-github[]
-image:https://travis-ci.org/{gh-name}.svg?branch={gh-branch}["Build Status", link="https://travis-ci.org/{gh-name}"]
+image:https://github.com/{gh-name}/workflows/CI/badge.svg?branch={gh-branch}[Build Status, link=https://github.com/{gh-name}/actions?query=workflow%3ACI+branch%3A{gh-branch}]
 endif::env-github[]
 
-This repository contains aports that are not merged in the official http://alpinelinux.org[Alpine Linux] repository yet or don’t adhere to Alpine polices (bundles).
-Packages are automatically build on Travis CI for x86_64 architecture and synchronized with a remote server using SSHFS (SSH Filesystem).
+This repository contains aports that are not merged in the official https://alpinelinux.org[Alpine Linux] repository yet or don’t adhere to Alpine polices (e.g. bundles).
+Packages are automatically built on Travis CI for x86_64 architecture and synchronized with a remote server using SSHFS (SSH Filesystem).
 
 
 == Repositories
@@ -71,13 +71,12 @@ git config --local core.hooksPath .githooks
 :remote-dir: /var/www/alpine
 
 This guide will help you to set up your own aports repository and infrastructure for building packages using CI.
-It targets GitHub and Travis CI, but it might be modified for any other git hosting and CI.
+It targets GitHub and GitHub Actions, but it might be modified for any other git hosting and CI.
 However, if you want to build packages on your own CI server, then this approach might be unnecessarily complicated.
 
 .*You will need:*
-* Account on GitHub and Travis CI.
+* Account on GitHub.
 * Some server with SSH access for serving static files via HTTP(S) (e.g. using nginx), with enough disk space for binary packages.
-* Travis CLI utility (install it using `gem install travis`).
 
 .*We will use the following variables:*
 * Domain name of your server: `{remote-host}` _(replace with your own domain)_
@@ -154,35 +153,20 @@ git remote add origin git@github.com:YOUR-USERNAME/{repo-name}.git
 git checkout -b edge
 ----
 
-. Enable Travis for your repository:
-+
-[source]
-----
-travis enable
-----
-
-. Encrypt variable `REMOTE` and add it to `.travis.yml`:
-+
-[source, subs="attributes"]
-----
-travis encrypt REMOTE="{remote-user}@{remote-host}:/" --add
-----
-
 . Generate SSH deploy key:
 +
 [source]
 ----
-ssh-keygen -b 3096 -C "" -P "" -f .travis/deploy-key
+mkdir -p .keys
+ssh-keygen -C '' -t ed25519 -N '' -f .keys/deploy-key
 ----
 
-. Encrypt the private part of the deploy key:
-+
-[source]
-----
-travis encrypt-file .travis/deploy-key .travis/deploy-key.enc --add
-----
+. Go to *Settings > Secret* in your repository on GitHub and add new secrets:
+** `SSH_KNOWN_HOSTS` – paste output of `ssh-keyscan {remote-host}`
+** `SSH_PRIVATE_KEY` – paste content of `.keys/deploy-key`
+** `SSH_REMOTE` – `{remote-user}@{remote-host}:/`
 
-. Copy `.travis/deploy-key.pub` to file `~/.ssh/authorized_keys` in home directory of user `{remote-user}` on your server. This file *must* be owned by `{remote-user}` and has mode 0600!
+. Copy `.keys/deploy-key.pub` to file `~/.ssh/authorized_keys` in home directory of user `{remote-user}` on your server. This file *must* be owned by `{remote-user}` and has mode 0600!
 
 . Generate a security key for signing packages:
 +
@@ -191,19 +175,20 @@ travis encrypt-file .travis/deploy-key .travis/deploy-key.enc --add
 KEY_NAME="$(git config --get user.email)-$(printf "%x" $(date +%s)).rsa"
 openssl genrsa -out ".keys/$KEY_NAME" 2048
 openssl rsa -in ".keys/$KEY_NAME" -pubout -out ".keys/$KEY_NAME.pub"
-chmod 0400 ".keys/$KEY_NAME"
 ----
 
-. Copy `.keys/$KEY_NAME` to file `{remote-dir}/.secret/$KEY_NAME` on the server, set owner `{remote-user}` and mode `0400`.
+. Copy `$KEY_NAME` to file `{remote-dir}/.secret/$KEY_NAME` on the server, set owner `{remote-user}` and mode `0400`.
 
-. Remove unencrypted private keys:
+. Delete generated private keys:
 +
 [source]
 ----
-rm .travis/deploy-key ".keys/$KEY_NAME"
+rm .keys/deploy-key ".keys/$KEY_NAME"
 ----
 
-. Change variables `:repo-name:`, `:gh-name:`, `:repos-uri:`, and `:key-file:` on the top of file `README.adoc`.
+. Adjust `BRANCH`, `BUILD_REPOS` and repositories (step “Configure repositories”) in link:.github/workflows/ci.yml[].
+
+. Change variables `:repo-name:`, `:gh-name:`, `:repos-uri:`, and `:key-file:` on the top of file link:README.adoc[].
 
 . Commit changes and push to GitHub.
 
