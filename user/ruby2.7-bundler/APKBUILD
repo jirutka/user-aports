@@ -1,0 +1,48 @@
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=ruby2.7-bundler
+_gemname=bundler
+pkgver=2.2.20
+pkgrel=0
+pkgdesc="Manage an application's gem dependencies"
+url="https://bundler.io/"
+arch="noarch"
+license="MIT"
+depends="ruby2.7 ruby2.7-etc ruby2.7-io-console !ruby-bundler"
+subpackages="$pkgname-doc"
+source="https://github.com/rubygems/rubygems/archive/bundler-v$pkgver.tar.gz
+	manpages.patch
+	"
+builddir="$srcdir/rubygems-bundler-v$pkgver/bundler"
+options="!check"  # tests require deps not available in main repo
+
+build() {
+	gem build $_gemname.gemspec
+}
+
+package() {
+	local gemdir="$pkgdir/$(ruby -e 'puts Gem.default_dir')"
+
+	gem install --local \
+		--install-dir "$gemdir" \
+		--bindir "$pkgdir/usr/bin" \
+		--ignore-dependencies \
+		--no-document \
+		--verbose \
+		$_gemname
+
+	local n; for n in 1 5; do
+		mkdir -p "$pkgdir"/usr/share/man/man$n
+		mv "$gemdir"/gems/$_gemname-$pkgver/lib/bundler/man/*.$n "$pkgdir"/usr/share/man/man$n/
+	done
+
+	rm -rf "$gemdir"/cache \
+		"$gemdir"/build_info \
+		"$gemdir"/doc \
+		"$gemdir"/gems/$_gemname-$pkgver/man \
+		"$gemdir"/gems/$_gemname-$pkgver/*.md
+}
+
+sha512sums="
+e264101094e810b4a327e0bd3b294514b5c7d74dc96dc269ff62418407b925ce80dad56b2a58ab53602c1b0589fb15dbb41dd3a77c04a99671e11392ce30a9cd  bundler-v2.2.20.tar.gz
+5c9cc8046120360f9daa3d94da092c8db452672b8fb46b1a8188fae690e4362a090c0fcce35487399aedfec2f7f6b212c0d873a065475871b76d09313964596a  manpages.patch
+"
