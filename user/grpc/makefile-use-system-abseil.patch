@@ -1,0 +1,22 @@
+--- a/Makefile
++++ b/Makefile
+@@ -576,8 +576,8 @@
+ 
+ # Setup abseil dependency
+ 
+-GRPC_ABSEIL_DEP = $(LIBDIR)/$(CONFIG)/libgrpc_abseil.a
+-GRPC_ABSEIL_MERGE_LIBS = $(LIBDIR)/$(CONFIG)/libgrpc_abseil.a
++GRPC_ABSEIL_DEP = -labsl_base -labsl_int128 -labsl_strings -labsl_time -labsl_bad_optional_access -labsl_throw_delegate -labsl_str_format_internal
++GRPC_ABSEIL_MERGE_LIBS = -labsl_base -labsl_int128 -labsl_strings -labsl_time -labsl_bad_optional_access -labsl_throw_delegate -labsl_str_format_internal
+ ifeq ($(HOST_IS_X86_64),true)
+ ABSL_RANDOM_HWAES_FLAGS = -maes
+ else
+@@ -2675,7 +2675,7 @@
+     third_party/abseil-cpp/absl/types/bad_variant_access.cc \
+ 
+ 
+-LIBGRPC_ABSEIL_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGRPC_ABSEIL_SRC))))
++LIBGRPC_ABSEIL_OBJS =
+ 
+ $(LIBGRPC_ABSEIL_OBJS): CPPFLAGS += -g $(ABSL_RANDOM_HWAES_FLAGS) -Ithird_party/abseil-cpp
+ 

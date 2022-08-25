@@ -1,0 +1,45 @@
+Patch-Source: https://src.fedoraproject.org/rpms/grpc/blob/f36/f/0001-Minimal-fix-for-invalid-implicit-absl-string_view-nu.patch
+--
+From 39d8f1440941ab56fe4bfa45ce4bd6177165f919 Mon Sep 17 00:00:00 2001
+From: "Benjamin A. Beasley" <code@musicinmybrain.net>
+Date: Sun, 16 Jan 2022 09:47:21 -0500
+Subject: [PATCH] Minimal fix for invalid implicit absl::string_view(nullptr_t)
+
+---
+ .../client_channel/lb_policy/xds/xds_cluster_resolver.cc    | 2 +-
+ test/core/security/evaluate_args_test.cc                    | 6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/core/ext/filters/client_channel/lb_policy/xds/xds_cluster_resolver.cc b/src/core/ext/filters/client_channel/lb_policy/xds/xds_cluster_resolver.cc
+index ff936b9100..a55d811527 100644
+--- a/src/core/ext/filters/client_channel/lb_policy/xds/xds_cluster_resolver.cc
++++ b/src/core/ext/filters/client_channel/lb_policy/xds/xds_cluster_resolver.cc
+@@ -139,7 +139,7 @@ class XdsClusterResolverLb : public LoadBalancingPolicy {
+     // to use for LRS load reporting. Caller must ensure that config_ is set
+     // before calling.
+     std::pair<absl::string_view, absl::string_view> GetLrsClusterKey() const {
+-      if (!parent_->is_xds_uri_) return {parent_->server_name_, nullptr};
++      if (!parent_->is_xds_uri_) return {parent_->server_name_, absl::string_view()};
+       return {
+           parent_->config_->discovery_mechanisms()[index_].cluster_name,
+           parent_->config_->discovery_mechanisms()[index_].eds_service_name};
+diff --git a/test/core/security/evaluate_args_test.cc b/test/core/security/evaluate_args_test.cc
+index a8df9b3003..82fc26cd9d 100644
+--- a/test/core/security/evaluate_args_test.cc
++++ b/test/core/security/evaluate_args_test.cc
+@@ -32,9 +32,9 @@ class EvaluateArgsTest : public ::testing::Test {
+ 
+ TEST_F(EvaluateArgsTest, EmptyMetadata) {
+   EvaluateArgs args = util_.MakeEvaluateArgs();
+-  EXPECT_EQ(args.GetPath(), nullptr);
+-  EXPECT_EQ(args.GetMethod(), nullptr);
+-  EXPECT_EQ(args.GetHost(), nullptr);
++  EXPECT_EQ(args.GetPath(), std::string_view());
++  EXPECT_EQ(args.GetMethod(), std::string_view());
++  EXPECT_EQ(args.GetHost(), std::string_view());
+   EXPECT_THAT(args.GetHeaders(), ::testing::ElementsAre());
+   EXPECT_EQ(args.GetHeaderValue("some_key", nullptr), absl::nullopt);
+ }
+-- 
+2.33.1
+
