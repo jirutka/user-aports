@@ -1,0 +1,117 @@
+Go dep (https://github.com/golang/dep) has been deprecated in favour of Go
+modules.
+
+The Makefile patch is based on https://github.com/OpenNebula/one/pull/5136.
+
+--- a/Makefile
++++ b/Makefile
+@@ -1,4 +1,4 @@
+-SHELL := /bin/bash
++SHELL := /bin/sh
+ 
+ BUILD_ID := $(shell head -c20 /dev/urandom|od -An -tx1|tr -d ' \n')
+ REPO_ROOT ?= $(shell realpath ../../../../)
+@@ -24,17 +24,16 @@
+ 	cp -f $< $@
+ 
+ # architecture dependent builds
+-bin/docker-machine-driver-opennebula.%: vendor
++bin/docker-machine-driver-opennebula.%:
+ 	GOPATH=$(GOPATH) GOARCH=${*} go build -ldflags "-B 0x$(BUILD_ID)" -o "$@" ./bin
+ 
+ vendor:
+ 	rm -rf vendor/
+-	GOPATH=$(GOPATH) dep ensure
++	GOPATH=$(GOPATH) go mod init
+ ifeq ($(USE_LOCAL_GOCA),yes)
+-	set -e; trap 'rm -rf vendor/' ERR; \
+-	rm -rf vendor/github.com/OpenNebula/one; \
+-	ln -s ${REPO_ROOT} vendor/github.com/OpenNebula/one
++	GOPATH=$(GOPATH) go mod edit -replace github.com/OpenNebula/one/src/oca/go/src/goca=$(REPO_ROOT)/src/oca/go/src/goca
+ endif
++	GOPATH=$(GOPATH) go mod tidy
+ 
+ clean:
+ 	-rm -rf vendor/ bin/docker-machine-driver-opennebula*
+new file mode 100644
+--- /dev/null
++++ /go.mod
+@@ -0,0 +1,29 @@
++module docker_machine
++
++go 1.18
++
++require (
++	github.com/OpenNebula/one/src/oca/go/src/goca v0.0.0-00010101000000-000000000000
++	github.com/docker/machine v0.14.0
++)
++
++require (
++	github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78 // indirect
++	github.com/docker/docker v17.12.0-ce-rc1.0.20180319221241-0c1006f1abc1+incompatible // indirect
++	github.com/google/go-cmp v0.5.8 // indirect
++	github.com/gotestyourself/gotestyourself v2.2.0+incompatible // indirect
++	github.com/hashicorp/go-cleanhttp v0.5.1 // indirect
++	github.com/kolo/xmlrpc v0.0.0-20190717152603-07c4ee3fd181 // indirect
++	github.com/pkg/errors v0.9.1 // indirect
++	github.com/sirupsen/logrus v1.0.5 // indirect
++	github.com/stretchr/testify v1.8.0 // indirect
++	golang.org/x/crypto v0.0.0-20180319061731-c3a3ad6d03f7 // indirect
++	golang.org/x/sys v0.0.0-20180320104726-7ceb54c8418b // indirect
++	golang.org/x/text v0.3.7 // indirect
++	gopkg.in/airbrake/gobrake.v2 v2.0.9 // indirect
++	gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405 // indirect
++	gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2 // indirect
++	gotest.tools v2.2.0+incompatible // indirect
++)
++
++replace github.com/OpenNebula/one/src/oca/go/src/goca => /home/jirutjak/user-aports/user/docker-machine-opennebula/src/one-release-6.2.0.1/src/oca/go/src/goca
+new file mode 100644
+--- /dev/null
++++ /go.sum
+@@ -0,0 +1,45 @@
++github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78 h1:w+iIsaOQNcT7OZ575w+acHgRric5iCyQh+xv+KJ4HB8=
++github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78/go.mod h1:LmzpDX56iTiv29bbRTIsUNlaFfuhWRQBWjQdVyAevI8=
++github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
++github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
++github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
++github.com/docker/docker v17.12.0-ce-rc1.0.20180319221241-0c1006f1abc1+incompatible h1:Cg50zJJiSYm/M1mtf7pAM8rtu8rv6Vvlhc6SEVELy40=
++github.com/docker/docker v17.12.0-ce-rc1.0.20180319221241-0c1006f1abc1+incompatible/go.mod h1:eEKB0N0r5NX/I1kEveEz05bcu8tLC/8azJZsviup8Sk=
++github.com/docker/machine v0.14.0 h1:7zMwMAz0XbL27Q4NPqtW7I0wuhOaGFpq5WfvrUfZROM=
++github.com/docker/machine v0.14.0/go.mod h1:I8mPNDeK1uH+JTcUU7X0ZW8KiYz0jyAgNaeSJ1rCfDI=
++github.com/google/go-cmp v0.5.8 h1:e6P7q2lk1O+qJJb4BtCQXlK8vWEO8V1ZeuEdJNOqZyg=
++github.com/google/go-cmp v0.5.8/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
++github.com/gotestyourself/gotestyourself v2.2.0+incompatible h1:AQwinXlbQR2HvPjQZOmDhRqsv5mZf+Jb1RnSLxcqZcI=
++github.com/gotestyourself/gotestyourself v2.2.0+incompatible/go.mod h1:zZKM6oeNM8k+FRljX1mnzVYeS8wiGgQyvST1/GafPbY=
++github.com/hashicorp/go-cleanhttp v0.5.1 h1:dH3aiDG9Jvb5r5+bYHsikaOUIpcM0xvgMXVoDkXMzJM=
++github.com/hashicorp/go-cleanhttp v0.5.1/go.mod h1:JpRdi6/HCYpAwUzNwuwqhbovhLtngrth3wmdIIUrZ80=
++github.com/kolo/xmlrpc v0.0.0-20190717152603-07c4ee3fd181 h1:TrxPzApUukas24OMMVDUMlCs1XCExJtnGaDEiIAR4oQ=
++github.com/kolo/xmlrpc v0.0.0-20190717152603-07c4ee3fd181/go.mod h1:o03bZfuBwAXHetKXuInt4S7omeXUu62/A845kiycsSQ=
++github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
++github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
++github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
++github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
++github.com/sirupsen/logrus v1.0.5 h1:8c8b5uO0zS4X6RPl/sd1ENwSkIc0/H2PaHxE3udaE8I=
++github.com/sirupsen/logrus v1.0.5/go.mod h1:pMByvHTf9Beacp5x1UXfOR9xyW/9antXMhjMPG0dEzc=
++github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
++github.com/stretchr/objx v0.4.0/go.mod h1:YvHI0jy2hoMjB+UWwv71VJQ9isScKT/TqJzVSSt89Yw=
++github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
++github.com/stretchr/testify v1.8.0 h1:pSgiaMZlXftHpm5L7V1+rVB+AZJydKsMxsQBIJw4PKk=
++github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO+kdMU+MU=
++golang.org/x/crypto v0.0.0-20180319061731-c3a3ad6d03f7 h1:ryKu9k3oWWgQUTahNaa+lDY2fruNO/7fqQVKQfl0Vmc=
++golang.org/x/crypto v0.0.0-20180319061731-c3a3ad6d03f7/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
++golang.org/x/sys v0.0.0-20180320104726-7ceb54c8418b h1:WKP1eI2iMDQvlropsVj5qaJqfptKPbEtSVapbXDthpU=
++golang.org/x/sys v0.0.0-20180320104726-7ceb54c8418b/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
++golang.org/x/text v0.3.7 h1:olpwvP2KacW1ZWvsR7uQhoyTYvKAupfQrRGBFM352Gk=
++golang.org/x/text v0.3.7/go.mod h1:u+2+/6zg+i71rQMx5EYifcz6MCKuco9NR6JIITiCfzQ=
++gopkg.in/airbrake/gobrake.v2 v2.0.9 h1:7z2uVWwn7oVeeugY1DtlPAy5H+KYgB1KeKTnqjNatLo=
++gopkg.in/airbrake/gobrake.v2 v2.0.9/go.mod h1:/h5ZAUhDkGaJfjzjKLSjv6zCL6O0LLBxU4K+aSYdM/U=
++gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405 h1:yhCVgyC4o1eVCa2tZl7eS0r+SDo693bJlVdllGtEeKM=
++gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
++gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2 h1:OAj3g0cR6Dx/R07QgQe8wkA9RNjB2u4i700xBkIT4e0=
++gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2/go.mod h1:Xk6kEKp8OKb+X14hQBKWaSkCsqBpgog8nAV2xsGOxlo=
++gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
++gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
++gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
++gotest.tools v2.2.0+incompatible h1:VsBPFP1AI068pPrMxtb/S8Zkgf9xEmTLJjfM+P5UIEo=
++gotest.tools v2.2.0+incompatible/go.mod h1:DsYFclhRJ6vuDpmuTbkuFWG+y2sxOXAzmJt81HFBacw=
