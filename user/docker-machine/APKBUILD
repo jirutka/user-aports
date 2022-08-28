@@ -1,34 +1,34 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=docker-machine
-_pkgname=machine
-pkgver=0.13.0
+pkgver=0.16.2.18
+_pkgver="v${pkgver%.*}-gitlab.${pkgver##*.}"
 pkgrel=0
 pkgdesc="Machine management for a shit-centric world"
-url="https://github.com/docker/machine"
-#arch="all"  # FIXME: fails to build
+url="https://gitlab.com/gitlab-org/ci-cd/docker-machine"
+arch="all"
 license="Apache-2.0"
 makedepends="go"
-source="$pkgname-$pkgver.tar.gz::https://github.com/docker/machine/archive/v$pkgver.tar.gz"
+source="https://gitlab.com/gitlab-org/ci-cd/docker-machine/-/archive/$_pkgver/docker-machine-$_pkgver.tar.gz"
 builddir="$srcdir/src/github.com/docker/machine"
+options="chmod-clean"
 
 prepare() {
 	mkdir -p "${builddir%/*}"
-	mv "$srcdir"/$_pkgname-$pkgver "$builddir"
+	mv "$srcdir"/$pkgname-$_pkgver "$builddir"
 
 	default_prepare
 }
 
 build() {
-	cd "$builddir"
 	make build \
+		GO111MODULE=off \
 		GOPATH="$srcdir" \
-		GO_LDFLAGS="-X $(go list ./version).GitCommit=0000000" \
+		GO_LDFLAGS="-X $(cat .godir)/version.GitCommit=0000000" \
 		VERBOSE=true
 }
 
 check() {
-	cd "$builddir"
 	./bin/docker-machine --version
 }
 
@@ -36,4 +36,6 @@ package() {
 	install -D -m 755 "$builddir"/bin/$pkgname "$pkgdir"/usr/bin/$pkgname
 }
 
-sha512sums="c31b3505e475f5e55310cc3b8805db8b94522703956a640954c3898c584fc3a07830c346535855cbb2fb10016dd0e7ef72e7174e919a3651f05e18b652132121  docker-machine-0.13.0.tar.gz"
+sha512sums="
+d9ea274347a56fd607766c5976222de6bf085611a92f86b91a4ba3b97552fd7322d8904addc0bb2cc22f4e9c91cfdd380ea51073aa6a1601a80220e4f235c952  docker-machine-v0.16.2-gitlab.18.tar.gz
+"

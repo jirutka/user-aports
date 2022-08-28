@@ -65,7 +65,7 @@ new file mode 100644
 +	gotest.tools v2.2.0+incompatible // indirect
 +)
 +
-+replace github.com/OpenNebula/one/src/oca/go/src/goca => /home/jirutjak/user-aports/user/docker-machine-opennebula/src/one-release-6.2.0.1/src/oca/go/src/goca
++replace github.com/OpenNebula/one/src/oca/go/src/goca => ../../../oca/go/src/goca
 new file mode 100644
 --- /dev/null
 +++ /go.sum
