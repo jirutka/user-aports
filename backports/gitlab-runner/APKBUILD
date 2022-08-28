@@ -1,0 +1,69 @@
+# Contributor: Carlo Landmeter <clandmeter@alpinelinux.org>
+# Contributor: Rasmus Thomsen <oss@cogitir.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=gitlab-runner
+pkgver=15.3.0
+pkgrel=1
+# first 8 chars of the git hash of the release, see
+# https://gitlab.com/gitlab-org/gitlab-runner/-/tags
+# PLEASE update this, since they're used to determine what version of
+# https://hub.docker.com/r/gitlab/gitlab-runner-helper/tags to use
+_rev=bbcb5aba
+pkgdesc="GitLab runner for CI/CD jobs"
+url="https://docs.gitlab.com/runner/"
+arch="all"
+license="MIT"
+makedepends="go"
+install="$pkgname.pre-install $pkgname.pre-upgrade"
+pkgusers="gitlab-runner"
+pkggroups="gitlab-runner"
+options="!check chmod-clean" # Need to be run in a git repo
+subpackages="$pkgname-helper $pkgname-openrc"
+source="https://gitlab.com/gitlab-org/gitlab-runner/-/archive/v$pkgver/gitlab-runner-v$pkgver.tar.gz
+	$pkgname.initd
+	$pkgname.confd
+	"
+builddir="$srcdir/$pkgname-v$pkgver"
+
+export CGO_ENABLED=0
+export GOCACHE="$srcdir/go-cache"
+export GOTMPDIR="$srcdir"
+export GOMODCACHE="$srcdir/go"
+
+build() {
+	local ldflags="
+		-X gitlab.com/gitlab-org/$pkgname/common.NAME=$pkgname
+		-X gitlab.com/gitlab-org/$pkgname/common.VERSION=$pkgver
+		-X gitlab.com/gitlab-org/$pkgname/common.REVISION=$_rev
+		-X gitlab.com/gitlab-org/$pkgname/common.BUILT=$(date -u +%Y-%m-%dT%H:%M:%S%z)
+		-X gitlab.com/gitlab-org/$pkgname/common.BRANCH=master
+		"
+	# required for github.com/docker/docker
+	export GO111MODULE=auto
+	go build -ldflags "$ldflags" -o bin/gitlab-runner
+	go build -ldflags "$ldflags" -o bin/gitlab-runner-helper \
+		./apps/gitlab-runner-helper
+}
+
+package() {
+	install -Dm755 bin/gitlab-runner -t "$pkgdir"/usr/bin/
+	install -Dm755 bin/gitlab-runner-helper -t "$pkgdir"/usr/bin/
+
+	install -Dm755 "$srcdir"/$pkgname.initd "$pkgdir"/etc/init.d/gitlab-runner
+	install -Dm644 "$srcdir"/$pkgname.confd "$pkgdir"/etc/conf.d/gitlab-runner
+
+	install -d -m750 -o "$pkgusers" -g "$pkggroups" "$pkgdir"/etc/gitlab-runner
+	install -d -m700 -o "$pkgusers" -g "$pkggroups" "$pkgdir"/var/lib/gitlab-runner
+}
+
+helper() {
+	pkgdesc="$pkgdesc (helper)"
+
+	amove usr/bin/gitlab-runner-helper
+}
+
+sha512sums="
+8eabe9a4fd04e46d4bf306dc202664e29f5cb12cba5d73820888957d694711702e026f79a84e1d5f5237cb3d1e7efed8e035129814dcc6354e708ee98e98cbe9  gitlab-runner-v15.3.0.tar.gz
+3fca01086e2937280c7ea8dbcca754fab6cb9a9ad548c5a9dbc9f15a46a5dfdb79192dc1680fde823ffb21aabe8d5526cc82dee6585a8d440a646474d62f6c09  gitlab-runner.initd
+c3510822b4d77dcb58e9023ff26ba2038dc8348a2cf3ee78ad16886eda92f3085fe62dc0e1f59d221f51f6989a127a2778115a51abcb4eeb52a33f9771310979  gitlab-runner.confd
+"
