@@ -1,0 +1,20 @@
+# Configuration for /etc/init.d/gitlab.rails
+
+# Path to the Puma configuration file.
+#puma_config="/etc/gitlab/puma.rb"
+
+# IP address and port for Puma server to listen on.
+#puma_listen_tcp="127.0.0.1:8080"
+
+# Absolute path of unix socket for Puma server to listen on.
+#puma_listen_unix="/run/gitlab/gitlab.socket"
+
+# Path to the file to redirect stdout from Puma server to.
+#puma_stdout_file="/var/log/gitlab/puma_stdout.log"
+
+# Path to the file to redirect stderr from Puma server to.
+#puma_stderr_file="/var/log/gitlab/puma_stderr.log"
+
+# Action Cable uses a separate thread pool per Puma worker. This configures
+# number of threads in the pool.
+#action_cable_worker_pool_size=4

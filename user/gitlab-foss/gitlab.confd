@@ -1,7 +1,6 @@
 # Configuration file for /etc/init.d/gitlab and
 # /etc/init.d/gitlab.{workhorse,sidekiq,pages,mailroom}
 
-
 # Base directory of the GitLab app.
 #gitlab_base="/usr/lib/bundles/gitlab"
 
@@ -11,32 +10,36 @@
 # Path to the gitlab.yml config file.
 #gitlab_config="/etc/gitlab/gitlab.yml"
 
+# Path to the base directory for the Prometheus metrics used by Puma and
+# Sidekiq.
+#metrics_dir=/dev/shm/gitlab
+
 
 #
-# GitLab Rails (Unicorn server)
+# GitLab Rails (Puma server)
 #
 
-# IP address and port where the Unicorn server should listen on.
-# This is used just for communication with Workhorse.
-#unicorn_listen_tcp="127.0.0.1:8181"
+# Path to the Puma configuration file.
+#puma_config="/etc/gitlab/puma.rb"
 
-# Absolute path of the unix socket the Unicorn should listen on.
-# This is used for communication with gitlab-shell.
-#unicorn_listen_unix="/run/gitlab/unicorn.sock"
+# How many Puma worker processes to create (0 to disable cluster mode).
+#puma_workers=3
 
-# Number of Unicorn worker processes.
-#unicorn_workers="2"
+# IP address and port for Puma server to listen on.
+#puma_listen_tcp="127.0.0.1:8080"
 
-# The timeout for Unicorn workers in seconds.
-# Workers handling the request/app.call/response cycle taking longer than this
-# time period will be forcibly killed.
-#unicorn_timeout="60"
+# Absolute path of unix socket for Puma server to listen on.
+#puma_listen_unix="/run/gitlab/gitlab.socket"
 
-# The minimum memory threshold (in MiB) for the Unicorn worker killer.
-#unicorn_memory_min="400"
+# Path to the file to redirect stdout from Puma server to.
+#puma_stdout_file="/var/log/gitlab/puma_stdout.log"
 
-# The maximum memory threshold (in MiB) for the Unicorn worker killer.
-#unicorn_memory_max="650"
+# Path to the file to redirect stderr from Puma server to.
+#puma_stderr_file="/var/log/gitlab/puma_stderr.log"
+
+# Action Cable uses a separate thread pool per Puma worker. This configures
+# number of threads in the pool.
+#action_cable_worker_pool_size=4
 
 
 #
@@ -56,7 +59,7 @@
 
 # IP address and port, or absolute path of the unix socket, where should
 # Workhorse listen on for connections from a web server.
-#workhorse_listen="0.0.0.0:8080"
+#workhorse_listen="/run/gitlab/workhorse.socket"
 
 # How long to wait for response headers when proxying the request.
 #workhorse_proxy_header_timeout="1m0s"
@@ -73,8 +76,14 @@
 # Long polling duration for job requesting for runners (default 0s - disabled)
 #workhorse_ci_long_polling_duration=
 
-# File that hold configuration, currently only for Redis.
-#workhorse_config=
+# File that holds Workhorse configuration.
+#workhorse_config=/etc/gitlab/workhorse.toml
+
+# Log format to use: text, json, structured, none. Defaults to "text".
+#workhorse_log_format=
+
+# Prometheus listening address.
+#workhorse_prometheus_listen=
 
 # Sentry DSN for Workhorse.
 #workhorse_sentry_dsn=
@@ -87,18 +96,35 @@
 # Sidekiq
 #
 
+# Specify how many processes to create using sidekiq-cluster and which queue
+# they should handle. Each whitespace-separated item equates to one additional
+# Sidekiq process, and comma-separated values in each item determine the queues
+# it works on. The special queue name "*" means all queues.
+# Example: "* gitlab_shell process_commit,post_receive"
+# See https://docs.gitlab.com/ee/administration/sidekiq/extra_sidekiq_processes.html.
+#sidekiq_queue_groups="*"
+
+# Maximum threads to use with Sidekiq (default: 50, 0 to disable).
+#sidekiq_max_concurrency=
+
+# Minimum threads to use with Sidekiq (default: 0).
+#sidekiq_min_concurrency=
+
+# The number of seconds to wait between worker checks.
+#sidekiq_interval=
+
+# Graceful timeout for all running processes.
+#sidekiq_shutdown_timeout=
+
+# Run workers for all queues in sidekiq_queues.yml except the given ones.
+#sidekiq_negate=no
+
+# Run workers based on the provided selector.
+#sidekiq_queue_selector=no
+
 # Memory limit (in MiB) for the Sidekiq process. If the RSS (Resident Set Size)
 # of the Sidekiq process exceeds this limit, a delayed shutdown is triggered.
-#sidekiq_memkiller_max_rss=976
-
-# Number of seconds how long the Sidekiq process will keep working normally
-# after shutdown is triggered. Default is 900s.
-#sidekiq_memkiller_grace_time=
-
-# Number of seconds to get existing jobs to finish after the grace time has
-# expired. After that, the MemoryKiller tells Sidekiq to shut down, and the
-# OpenRC daemon supervisor will restart Sidekiq. Default is 30s.
-#sidekiq_memkiller_shutdown_wait=
+#sidekiq_memkiller_max_rss=2000
 
 # Path to the Sidekiq log file.
 #sidekiq_logfile="/var/log/gitlab/sidekiq.log"

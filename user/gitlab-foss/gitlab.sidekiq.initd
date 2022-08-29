@@ -1,6 +1,5 @@
 #!/sbin/openrc-run
 
-supervisor=supervise-daemon
 extra_started_commands="finish reopen"
 
 name="GitLab Sidekiq"
@@ -9,26 +8,34 @@ description_finish="Stop fetching new jobs and finish current ones"
 description_reopen="Reopen log files"
 
 : ${gitlab_base:="/usr/lib/bundles/gitlab"}
-: ${sidekiq_config:="/etc/gitlab/sidekiq_queues.yml"}
+: ${metrics_dir:="/dev/shm/gitlab"}
+
 : ${sidekiq_logfile:="/var/log/gitlab/sidekiq.log"}
-: ${sidekiq_memkiller_max_rss:="976"}  # default per Omnibus
-: ${sidekiq_memkiller_grace_time:=}
-: ${sidekiq_memkiller_shutdown_wait:=}
+: ${sidekiq_memkiller_max_rss:="2000"}  # default per Omnibus
+: ${sidekiq_metrics_dir:="$metrics_dir/sidekiq"}
+: ${sidekiq_negate:="no"}
+: ${sidekiq_queue_groups:="*"}
+: ${sidekiq_queue_selector:="no"}
 
-command="$gitlab_base/bin/sidekiq"
-command_args="-C $sidekiq_config"
+command="$gitlab_base/bin/sidekiq-cluster"
+# Note: The rest of the options is set in start_pre().
+command_args="-r $gitlab_base -e production ${command_args:-}"
+command_background="yes"
+command_user="git"
 
-user="git"
+directory="$gitlab_base"
+error_log="$sidekiq_logfile"
+output_log="$sidekiq_logfile"
+
 supervise_daemon_args="
-	--chdir $gitlab_base
-	--user $user
-	--stdout $sidekiq_logfile
-	--stderr $sidekiq_logfile
 	--env RAILS_ENV=production
+	--env NODE_ENV=production
+	--env EXECJS_RUNTIME=Disabled
+	--env TZ=:/etc/localtime
 	--env SIDEKIQ_MEMORY_KILLER_MAX_RSS=$(( sidekiq_memkiller_max_rss * 1024 ))
-	--env SIDEKIQ_MEMORY_KILLER_GRACE_TIME=$sidekiq_memkiller_grace_time
-	--env SIDEKIQ_MEMORY_KILLER_SHUTDOWN_WAIT=$sidekiq_memkiller_shutdown_wait
+	--env prometheus_multiproc_dir=$sidekiq_metrics_dir
 	"
+start_stop_daemon_args="--interpreted $supervise_daemon_args"
 pidfile="/run/gitlab/sidekiq.pid"
 
 depend() {
@@ -37,19 +44,42 @@ depend() {
 }
 
 start_pre() {
-	checkpath -d -m 755 -o $user "${pidfile%/*}"
-	checkpath -f -m 644 -o $user "$sidekiq_logfile"
+	yesno "$sidekiq_queue_selector" && command_args="$command_args --queue-selector"
+
+	command_args="$command_args
+		$(optif --max-concurrency ${sidekiq_max_concurrency:-})
+		$(optif --min-concurrency ${sidekiq_min_concurrency:-})
+		$(optif --interval ${sidekiq_interval:-})
+		$(optif --timeout ${sidekiq_shutdown_timeout:-})
+		$(set -f; printf "'%s' " $sidekiq_queue_groups)
+		"
+	yesno "$sidekiq_negate" && command_args="$command_args --negate"
+
+	checkpath -d -m 755 -o $command_user -q "${pidfile%/*}" || return 1
+	checkpath -d -m 700 -o $command_user -q "$metrics_dir" || return 1
+	checkpath -d -m 700 -o $command_user --directory-truncate "$sidekiq_metrics_dir" || return 1
+	checkpath -f -m 644 -o $command_user "$sidekiq_logfile"
 }
 
 finish() {
 	ebegin "Telling $name to stop fetching new jobs"
-	kill -TSTP $(head -n1 $pidfile)
+
+	if [ "$supervisor" ]; then
+		$supervisor "$RC_SVCNAME" --signal TSTP
+	else
+		start-stop-daemon --pidfile "$pidfile" --signal TSTP
+	fi
 	eend $?
 }
 
 reopen() {
 	ebegin "Telling $name to reopen log files"
-	kill -USR2 $(head -n1 $pidfile)
+
+	if [ "$supervisor" ]; then
+		$supervisor "$RC_SVCNAME" --signal USR2
+	else
+		start-stop-daemon --pidfile "$pidfile" --signal USR2
+	fi
 	eend $?
 }
 

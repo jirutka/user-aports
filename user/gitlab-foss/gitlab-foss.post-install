@@ -4,8 +4,9 @@ set -eu
 group='git'
 data_dir='/var/lib/gitlab'
 secrets_file='/etc/gitlab/secrets.yml'
-shell_secret_file='/etc/gitlab/gitlab-shell.secret'
-workhorse_secret_file='/etc/gitlab/gitlab-workhorse.secret'
+shell_secret_file='/etc/gitlab/gitlab_shell_secret'
+workhorse_secret_file='/etc/gitlab/gitlab_workhorse_secret'
+kas_secret_file='/etc/gitlab/gitlab_kas_secret'
 
 gen_random_hex() {
 	local bits="$1"
@@ -35,13 +36,16 @@ ruby <<-EOF
 	secrets = YAML.load_file(secrets_file) if File.exist?(secrets_file)
 	secrets ||= {}
 	prod = secrets['production'] ||= {}
+	prod['db_key_base'] ||= ( changed = true; SecureRandom.hex(64) )
 	prod['secret_key_base'] ||= ( changed = true; SecureRandom.hex(64) )
 	prod['otp_key_base'] ||= ( changed = true; SecureRandom.hex(64) )
-	prod['db_key_base'] ||= ( changed = true; SecureRandom.hex(64) )
+	prod['encrypted_settings_key_base'] ||= ( changed = true; SecureRandom.hex(64) )
 	prod['openid_connect_signing_key'] ||= begin
 	  changed = true
 	  prod.delete('jws_private_key') || OpenSSL::PKey::RSA.new(2048).to_pem
 	end
+	# db/fixtures/production/010_settings.rb
+	prod['ci_jwt_signing_key'] ||= ( changed = true; OpenSSL::PKey::RSA.new(2048).to_pem )
 
 	if changed
 	  STDERR.puts "* Generating random secrets into #{secrets_file}"
@@ -65,6 +69,15 @@ if [ ! -f "$workhorse_secret_file" ]; then
 	gen_random_b64 32 > "$workhorse_secret_file"
 	chown root:$group "$workhorse_secret_file"
 	chmod 0640 "$workhorse_secret_file"
+fi
+
+if [ ! -f "$kas_secret_file" ]; then
+	echo "* Generating random secret in $kas_secret_file" >&2
+
+	# Sync with lib/gitlab/workhorse.rb.
+	gen_random_b64 32 > "$kas_secret_file"
+	chown root:$group "$kas_secret_file"
+	chmod 0640 "$kas_secret_file"
 fi
 
 # NOTE: We create this symlink in post-install script instead of APKBULD,
@@ -91,7 +104,7 @@ else
 	*
 	*     psql -c "CREATE ROLE gitlab PASSWORD 'top-secret' INHERIT LOGIN;"
 	*     psql -c "CREATE DATABASE gitlab OWNER gitlab ENCODING 'UTF-8';"
-	*     psql -d gitlab -c "CREATE EXTENSION pg_trgm;"
+	*     psql -d gitlab -c "CREATE EXTENSION pg_trgm; CREATE EXTENSION btree_gist;"
 	*
 	* 3. Run "gitlab-rake gitlab:setup", or "gitlab-rake gitlab:db:configure" if
 	*    you are updating existing database.

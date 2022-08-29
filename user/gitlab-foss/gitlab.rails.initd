@@ -8,41 +8,51 @@ description_reload="Reload configuration"
 description_reopen="Reopen log files"
 
 : ${gitlab_base:="/usr/lib/bundles/gitlab"}
+: ${metrics_dir:="/dev/shm/gitlab"}
+
+: ${action_cable_worker_pool_size:=4}
 : ${gitlab_config:="/etc/gitlab/gitlab.yml"}
-: ${unicorn_listen_tcp:="127.0.0.1:8181"}
-: ${unicorn_listen_unix:="/run/gitlab/unicorn.sock"}
-: ${unicorn_workers:="2"}
-: ${unicorn_timeout:="60"}
-: ${unicorn_memory_min:="400"}  # default per Omnibus
-: ${unicorn_memory_max:="650"}  # default per Omnibus
-: ${unicorn_logfile:="/var/log/gitlab/unicorn.log"}
-: ${unicorn_config:="$gitlab_base/config/unicorn.rb"}
+: ${puma_workers:=3}
+: ${puma_listen_unix:="/run/gitlab/gitlab.socket"}
+: ${puma_listen_tcp:="127.0.0.1:8080"}
+: ${puma_stdout_file:="/var/log/gitlab/puma_stdout.log"}
+: ${puma_stderr_file:="/var/log/gitlab/puma_stderr.log"}
+: ${puma_config:="/etc/gitlab/puma.rb"}
+: ${puma_metrics_dir:="$metrics_dir/puma"}
 
-command="$gitlab_base/bin/unicorn_rails"
-command_args="-c $unicorn_config -E production"
+command="$gitlab_base/bin/puma"
+command_args="
+	--config $puma_config
+	--workers $puma_workers
+	--bind tcp://$puma_listen_tcp
+	--bind unix://$puma_listen_unix
+	--redirect-stdout $puma_stdout_file
+	--redirect-stderr $puma_stderr_file
+	--redirect-append
+	--state /run/gitlab/puma.state
+	"
 command_background="yes"
+command_user="git"
+directory="$gitlab_base"
 
-user="git"
-start_stop_daemon_args="
-	--chdir $gitlab_base
-	--user $user
-	--interpreted
-	--stdout $unicorn_logfile
-	--stderr $unicorn_logfile
+supervise_daemon_args="
+	--env ACTION_CABLE_WORKER_POOL_SIZE=$action_cable_worker_pool_size
 	--env RAILS_ENV=production
 	--env NODE_ENV=production
 	--env EXECJS_RUNTIME=Disabled
 	--env GITLAB_BASE=$gitlab_base
-	--env UNICORN_LISTEN_TCP=$unicorn_listen_tcp
-	--env UNICORN_LISTEN_UNIX=$unicorn_listen_unix
-	--env UNICORN_WORKERS=$unicorn_workers
-	--env UNICORN_TIMEOUT=$unicorn_timeout
-	--env GITLAB_UNICORN_MEMORY_MIN=$(( unicorn_memory_min * 1024 * 1024 ))
-	--env GITLAB_UNICORN_MEMORY_MAX=$(( unicorn_memory_max * 1024 * 1024 ))
+	--env TZ=:/etc/localtime
+	--env prometheus_multiproc_dir=$puma_metrics_dir
+	${supervise_daemon_args:-}
 	"
-pidfile="/run/gitlab/unicorn.pid"
+start_stop_daemon_args="
+	--interpreted
+	$supervise_daemon_args
+	$start_stop_daemon_args
+	"
+pidfile="/run/gitlab/puma.pid"
 
-required_files="$gitlab_config $unicorn_config"
+required_files="$gitlab_config $puma_config"
 
 depend() {
 	need redis
@@ -51,10 +61,12 @@ depend() {
 }
 
 start_pre() {
-	checkpath -d -m 755 -o $user "$(dirname "$pidfile")"
-	checkpath -d -m 755 -o $user "$(dirname "$unicorn_listen_unix")"
-	checkpath -d -m 700 -o $user "$(readlink -f "$gitlab_base"/tmp)"
-	checkpath -f -m 644 -o $user "$unicorn_logfile"
+	checkpath -d -m 755 -o $command_user -q "${pidfile%/*}" || return 1
+	checkpath -d -m 700 -o $command_user -q "$(readlink -f "$gitlab_base"/tmp)" || return 1
+	checkpath -d -m 700 -o $command_user -q "$metrics_dir" || return 1
+	checkpath -d -m 700 -o $command_user --directory-truncate "$puma_metrics_dir" || return 1
+	checkpath -f -m 644 -o $command_user "$puma_stdout_file" || return 1
+	checkpath -f -m 644 -o $command_user "$puma_stderr_file" || return 1
 
 	# Ruby requires sticky bit on TMP directory.
 	checkpath -d -m 1777 /tmp
@@ -63,19 +75,29 @@ start_pre() {
 		production.gitlab.repository_downloads_path)"
 
 	if [ -n "$downloads_path" ]; then
-		checkpath -d -m 700 -o $user "$downloads_path"
+		checkpath -d -m 700 -o $command_user -q "$downloads_path"
 	fi
 }
 
 reload() {
 	ebegin "Reloading $name"
-	kill -USR2 $(head -n1 $pidfile)
+
+	if [ "$supervisor" ]; then
+		$supervisor "$RC_SVCNAME" --signal USR2
+	else
+		start-stop-daemon --pidfile "$pidfile" --signal USR2
+	fi
 	eend $?
 }
 
 reopen() {
 	ebegin "Telling $name to reopen log files"
-	kill -USR1 $(head -n1 $pidfile)
+
+	if [ "$supervisor" ]; then
+		$supervisor "$RC_SVCNAME" --signal USR1
+	else
+		start-stop-daemon --pidfile "$pidfile" --signal USR1
+	fi
 	eend $?
 }
 

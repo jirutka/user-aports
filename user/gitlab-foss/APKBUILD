@@ -2,69 +2,83 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitlab-foss
 _pkgname=${pkgname%-foss}
-pkgver=11.8.10_p2
-pkgrel=2
+pkgver=15.2.2_p1
+_gitrev=a7e7b8bc4c65c75a9ce1bf17ca6e499493526624
+pkgrel=0
 pkgdesc="A version control for your server"
 url="https://gitlab.com/gitlab-org/gitlab-foss"
-arch=""  # FIXME
+arch="x86_64"
 license="MIT"
 # ruby-irb is needed only for Rails console (gitlab-rails console)
-depends="$pkgname-assets=$pkgver-r$pkgrel
-	gitaly~=1.20
-	gitlab-shell~=8.4
-	gitlab-workhorse~=8.3
+depends="
+	$pkgname-assets=$pkgver-r$pkgrel
 	ca-certificates
+	cmd:dpkg-deb
+	exiftool
 	git>=2.18.0
+	gitaly~=15.2
+	gitlab-shell~=14.9
+	graphicsmagick
 	http-parser
-	libgit2=~0.27
 	procps
 	py-docutils
 	python3
 	redis>=2.8
+	ruby2.7
+	ruby2.7-bigdecimal
+	ruby2.7-bundler
+	ruby2.7-fiddle
+	ruby2.7-io-console
+	ruby2.7-irb
+	ruby2.7-json
+	ruby2.7-rake
+	ruby2.7-webrick
+	shared-mime-info
 	tzdata
-	ruby
-	ruby-io-console
-	ruby-bigdecimal
-	ruby-json
-	ruby-rake
-	ruby-irb
-	ruby-webrick
-	ruby-bundler>=1.15.4
 	"
 makedepends="
+	cmd:chrpath
+	go
 	gpgme-dev
 	icu-dev
 	libffi-dev
 	libgcrypt-dev
-	libgit2-dev=~0.27
+	libgit2-dev~=1.4
 	libxml2-dev
 	libxslt-dev
 	linux-headers
 	openssl-dev
 	postgresql-dev
 	protobuf-dev
-	nodejs>=8.0.0
+	nodejs
 	re2-dev
-	ruby-dev
-	ruby-grpc
+	ruby2.7-dev
+	ruby2.7-grpc
 	yarn>=1.2.0
 	"
 pkgusers="git"
-pkggroups="git"
+pkggroups="git www-data"
 install="$pkgname.pre-install $pkgname.post-install $pkgname.post-upgrade"
 subpackages="$pkgname-assets::noarch"
-source="https://github.com/jirutka/gitlabhq/archive/v$pkgver/gitlabhq-v$pkgver.tar.gz
+source="https://github.com/jirutka/gitlab-foss/archive/$_gitrev/gitlabhq-$_gitrev.tar.gz
+	libgit-1.4-compat.patch
 	$_pkgname.initd
 	$_pkgname.mailroom.initd
 	$_pkgname.rails.initd
 	$_pkgname.sidekiq.initd
+	$_pkgname.workhorse.initd
 	$_pkgname.confd
 	$_pkgname.logrotate
 	bin-wrapper.in
 	"
-builddir="$srcdir/gitlabhq-$pkgver"
+builddir="$srcdir/gitlab-foss-$_gitrev"
 
-_prefix="/usr/lib/bundles/$_pkgname"
+_prefix="usr/lib/bundles/$_pkgname"
+
+export BUNDLE_DEPLOYMENT=true
+export BUNDLE_FORCE_RUBY_PLATFORM=true
+export BUNDLE_FROZEN=true
+export BUNDLE_JOBS=${JOBS:-2}
 
 prepare() {
 	local sysgemdir=$(ruby -e 'puts Gem.default_dir')
@@ -81,14 +95,6 @@ prepare() {
 	# gitlab-shell package. It also makes problems in the build phase.
 	rm config/initializers/gitlab_shell_secret_token.rb
 
-	# Remove some useless configs.
-	rm config/database.yml.env \
-		config/database.yml.mysql \
-		config/karma.config.js \
-		config/unicorn.rb.example.development \
-		config/environments/development.rb \
-		config/environments/test.rb
-
 	# Remove all locale files except en.
 	find locale -type d -mindepth 1 ! -name en -exec rm -rf {} +
 
@@ -97,24 +103,47 @@ prepare() {
 	mkdir -p vendor/gems/grpc
 	cp -r "$sysgemdir"/gems/grpc-*/* vendor/gems/grpc/
 	cp "$sysgemdir"/specifications/grpc-*.gemspec \
-			vendor/gems/grpc/grpc.gemspec
-	cp "$sysgemdir"/extensions/*/*/grpc-*/grpc/grpc_c.so \
+		vendor/gems/grpc/grpc.gemspec
+	cp "$sysgemdir"/extensions/*/*/grpc-*/grpc/*.so \
 		vendor/gems/grpc/src/ruby/lib/grpc/
 }
 
 build() {
-	local bundle_opts="--deployment --jobs=${JOBS:-2} --no-cache
-		--without exclude development kerberos metrics mysql test"
+	local bundle_without='exclude development kerberos mysql test'
+
+	cd "$builddir"/workhorse
+
+	make
 
 	cd "$builddir"
 
 	msg "Installing Ruby gems..."
-	bundle config build.nokogiri --use-system-libraries \
+	bundle config --local without "$bundle_without"
+	bundle config --local build.ffi --enable-system-libffi
+	bundle config --local build.gpgme --use-system-libraries
+	bundle config --local build.nokogiri --use-system-libraries \
 		--with-xml2-include=/usr/include/libxml2 \
 		--with-xslt-include=/usr/include/libxslt
-	bundle config build.rugged --use-system-libraries
-	bundle config build.gpgme --use-system-libraries
-	bundle $bundle_opts
+	bundle config --local build.rugged --use-system-libraries
+
+	bundle install --no-cache
+
+	# Fix https://github.com/funny-falcon/murmurhash3-ruby/pull/9
+	(
+		cd vendor/bundle/ruby/*/extensions/*/*/murmurhash3-*
+		mkdir -p murmurhash3
+		mv native.so murmurhash3/
+	)
+
+	# Replace bundled CA bundle with symlink.
+	(
+		cd vendor/bundle/ruby/*/gems/aws-sdk-core-*/
+		rm ca-bundle.crt
+		ln -s /etc/ssl/certs/ca-certificates.crt ca-bundle.crt
+	)
+
+	# Remove faulty RPATH.
+	chrpath -d vendor/bundle/ruby/*/extensions/*/*/ruby-magic-*/magic/magic.so
 
 	# Patch installed gem gitlab-markup to use python3.
 	# Option "-S" causes that Python cannot find docutils module.
@@ -129,16 +158,16 @@ build() {
 	msg "Installing npm modules..."
 	yarn install --production --frozen-lockfile
 
-
 	# Since we have moved assets gems into a group, they are not implicitly
 	# loaded by default. This will be reverted after compiling assets.
-	sed -i.bak '/Bundler.require(:default, Rails.env/s/)/, :assets)/' \
+	sed -i.bak '/Bundler.require(\*Rails.groups/s/)/, :assets)/' \
 		config/application.rb
 
 	# assets:precompile and gettext:compile bootstraps the app,
 	# so they needs configs.
 	cp config/gitlab.yml.example config/gitlab.yml
 	cp config/database.yml.postgresql config/database.yml
+	cp config/secrets.yml.example config/secrets.yml
 
 	# The configured path is not readable for the user building
 	# the package, so we must remove it; GitLab will use the default path.
@@ -147,34 +176,35 @@ build() {
 	(
 		export NODE_ENV=production
 		export RAILS_ENV=production
-		export SECRET_KEY_BASE="top-secret"
 		export SKIP_STORAGE_VALIDATION=true
 		export USE_DB=false
 		export NO_SOURCEMAPS=true
-
-		msg "Compiling assets (this will take few minutes)..."
-		bundle exec rake gitlab:assets:compile
+		export NODE_OPTIONS="--max_old_space_size=3584"
 
 		msg "Compiling GetText PO files..."
 		bundle exec rake gettext:compile
+
+		msg "Compiling assets (this will take few minutes)..."
+		bundle exec rake gitlab:assets:compile
 	)
 
 	# Revert changes.
 	mv config/application.rb.bak config/application.rb
 
 	msg "Cleaning assets gems..."
-	bundle $bundle_opts assets --clean
+	bundle config --local without 'exclude development kerberos mysql test assets'
+	bundle clean
 
 	# Create executables in bin/*.
 	# See also https://github.com/bundler/bundler/issues/6149.
-	bundle binstubs --force bundler mail_room sidekiq unicorn
+	bundle binstubs --force bundler gitlab-mail_room puma sidekiq
 
 	# Cleanup
 	rm config/database.yml config/gitlab.yml config/secrets.yml
 }
 
 package() {
-	local destdir="${pkgdir}$_prefix"
+	local destdir="$pkgdir/$_prefix"
 	local datadir="$pkgdir/var/lib/gitlab"
 	local file dest
 
@@ -191,11 +221,21 @@ package() {
 	install -d -m700 -o git -g git \
 		"$datadir"/artifacts \
 		"$datadir"/builds \
+		"$datadir"/ci_secure_files \
+		"$datadir"/dependency_proxy \
+		"$datadir"/encrypted_settings \
+		"$datadir"/external-diffs \
 		"$datadir"/lfs-objects \
-		"$datadir"/registry \
+		"$datadir"/packages \
+		"$datadir"/pages \
+		"$datadir"/terraform_state \
 		"$datadir"/uploads \
+		"$pkgdir"/var/tmp/gitlab \
 		"$pkgdir"/var/tmp/gitlab/downloads \
 		"$pkgdir"/var/tmp/gitlab/backups
+
+	install -d -m0750 -o git -g www-data \
+		"$datadir"/pages
 
 	install -d -m02770 -o git -g git \
 		"$datadir"/repositories
@@ -204,34 +244,38 @@ package() {
 	# Note: *VERSION files and doc directory are required (Help in GitLab
 	# menu refers to the doc directory).
 	cp -rl .bundle config.ru Gemfile* INSTALLATION_TYPE Rakefile *VERSION \
-		app db doc fixtures config lib locale public vendor \
+		app db doc fixtures config lib locale metrics_server public sidekiq_cluster vendor \
 		"$destdir"/
 
-	install -m755 -t "$destdir"/bin \
-		bin/bundle bin/mail_room bin/rails bin/rake \
-		bin/sidekiq bin/unicorn_rails
-
+	install -m755 -t "$destdir"/bin/ \
+		bin/bundle \
+		bin/mail_room \
+		bin/metrics-server \
+		bin/rails \
+		bin/rake \
+		bin/sidekiq \
+		bin/sidekiq-cluster \
+		bin/sidekiqmon \
+		bin/puma
 
 	cd "$destdir"
 
 	# Not needed in runtime since we have already compiled all assets.
-	rm -R app/assets vendor/assets
-	rm config/initializers/gettext_rails_i18n_patch.rb
-
-	# Remove assets not needed for production.
+	rm -r app/assets
+	rm -r vendor/assets
 	find public/assets -name '*.vue' -delete
 	find public/assets -type d | xargs rmdir --ignore-fail-on-non-empty
+	# These load gems in the assets group.
+	rm config/initializers/gettext_rails_i18n_patch.rb
+	rm config/initializers/sprockets.rb
 
-	rm -r lib/support db/fixtures/development
+	# Remove more stuff not neeeded in production.
+	rm -r lib/support
+	rm -r db/fixtures/development
 	find lib/tasks -maxdepth 1 -type f ! -name cache.rake ! -name setup.rake -delete
 	find lib/tasks/gitlab \( -name 'generate_docs.*' \
 	                      -o -name 'shell.*' \
 	                      -o -name 'test.*' \) -delete
-
-	# Remove docs for features we've disabled and some Google product placement.
-	rm -Rf doc/ci/autodeploy/ \
-		doc/integration/google.md \
-		doc/topics/autodevops/
 
 
 	cd "$destdir"/vendor/bundle/ruby/*/
@@ -250,10 +294,10 @@ package() {
 		-type f -delete
 
 	# Remove bundled libgit2 sources.
-	rm -R gems/rugged-*/vendor/libgit2
+	rm -r gems/rugged-*/vendor/libgit2
 
 	# Remove assets, they are already compiled.
-	rm -R gems/gemojione-*/assets
+	rm -r gems/tanuki_emoji-*/app/assets
 
 	# Remove sources and binaries of native extensions (they are installed
 	# in extensions directory).
@@ -261,44 +305,45 @@ package() {
 	find gems/ -name '*.so' -delete
 
 	# Remove build logs and cache.
-	rm -Rf build_info/ cache/
+	rm -rf build_info/ cache/
 	find extensions/ \( -name gem_make.out -o -name mkmf.log \) -delete
 
 
 	cd "$destdir"
 
-	mv config/unicorn.rb.example config/unicorn.rb
-
-	# Just to unify for the next loop...
-	mv config/sidekiq_queues.yml config/sidekiq_queues.yml.orig
-
 	# Install and symlink config files.
-	for file in database.yml.postgresql \
+	for file in cable.yml.example \
+			database.yml.postgresql \
 			gitlab.yml.example \
+			puma.rb.example \
 			resque.yml.example \
 			sidekiq.yml.example \
-			sidekiq_queues.yml.orig \
-			initializers/rack_attack.rb.example \
-			initializers/smtp_settings.rb.sample; do
+			initializers/smtp_settings.rb.sample
+	do
 		dest="$(basename "${file%.*}")"
 		install -m640 -g git -D config/$file "$pkgdir"/etc/gitlab/$dest
-		ln -sf /etc/gitlab/$dest "$pkgdir"$_prefix/config/${file%.*}
+		ln -sf /etc/gitlab/$dest "$pkgdir"/$_prefix/config/${file%.*}
 	done
 
 	# This file will be generated by the post-install script, just prepare symlink.
 	ln -sf /etc/gitlab/secrets.yml config/secrets.yml
+	# These shouldn't be necessary, they are all configurable, but OmniBus
+	# creates them too, so just to be sure...
+	ln -sf /etc/gitlab/gitlab_kas_secret .gitlab_kas_secret
+	ln -sf /etc/gitlab/gitlab_pages_secret .gitlab_pages_secret
+	ln -sf /etc/gitlab/gitlab_shell_secret .gitlab_shell_secret
+	ln -sf /etc/gitlab/gitlab_workhorse_secret .gitlab_workhorse_secret
+
+	# Some paths are hard-coded in GitLab, so we must make symlinks. :(
+	ln -sf /var/lib/gitlab/uploads public/uploads
+	ln -sf /var/log/gitlab log
+	ln -sf /var/tmp/gitlab tmp
 
 	cat > "$datadir"/.profile <<-EOF
 		export RAILS_ENV=production
 		export NODE_ENV=production
 		export EXECJS_RUNTIME=Disabled
 	EOF
-
-	# Some paths are hard-coded in GitLab, so we must make symlinks. :(
-	ln -sf /var/lib/gitlab/uploads public/uploads
-	ln -sf /var/log/gitlab log
-	ln -sf /var/tmp/gitlab tmp
-	ln -sf /var/tmp/gitlab "$datadir"/tmp
 
 	# Install wrapper scripts to /usr/bin.
 	local name; for name in rake rails; do
@@ -307,7 +352,15 @@ package() {
 		install -m755 -D "$builddir"/gitlab-$name "$pkgdir"/usr/bin/gitlab-$name
 	done
 
-	for file in $_pkgname $_pkgname.rails $_pkgname.sidekiq $_pkgname.mailroom; do
+
+	cd "$builddir"/workhorse
+
+	# Install workhorse.
+	make install DESTDIR="$pkgdir" PREFIX=/usr
+	install -m644 config.toml.example "$pkgdir"/etc/gitlab/workhorse.toml
+
+
+	for file in $_pkgname $_pkgname.rails $_pkgname.sidekiq $_pkgname.mailroom $_pkgname.workhorse; do
 		install -m755 -D "$srcdir"/$file.initd "$pkgdir"/etc/init.d/$file
 	done
 
@@ -320,17 +373,19 @@ package() {
 
 assets() {
 	depends=""
-	local destdir="${subpkgdir}$_prefix"
 
-	install -dm755 "$destdir"/public
-	mv "${pkgdir}$_prefix"/public/assets "$destdir"/public/
+	amove $_prefix/public/assets
 }
 
-sha512sums="c30e0b28493ad2b6b8f2cea2bc7ee26140f470428f7d9149cc606aabc90ee48601116d2e8fb33efa89ec55f81aca5069ca2a4b0c7e366229312ab419dc7c3719  gitlabhq-v11.8.10_p2.tar.gz
+sha512sums="
+573dcf404f0dbb486f5f1a9ff8713f21752bd72d9429690b25ca9c4c572c628a219635d2dd212b9518a5d3176b931c08cb04a64e788da5edc542ae60d1fa300b  gitlabhq-a7e7b8bc4c65c75a9ce1bf17ca6e499493526624.tar.gz
+80e27697772c4529720f2ec65d314641cd5f437070d0fefd3c521852ff6dad8c9127534e379a5c0bcee4bbae8d5a373d131bf91a58606d02c89104e34a88baac  libgit-1.4-compat.patch
 55b0667d3969113ffd6860652ee8bdb9a534c25f413f33b2739e922c886988e7cea72c1c00c7eecf29fcff3682b1324156365605ffc6aae45d1e0ccddf96288b  gitlab.initd
-478759565c27d7e300e69715ed069ca6689fc0f33781a99e4ca9f52a49763e3a46d6a1ca7fa61879b200156543e534f652deec1367c31a52154db6f0f8ecb779  gitlab.mailroom.initd
-7ff3ac8ea0b759d313057ef5a792ea29ad2472d2ad9597f54e83702737f25fe4b1e2780760bda04fc19ce8cf8674fb708ba32663a9b31ebba8e22b07a6cd3e4d  gitlab.rails.initd
-caa4f70a8dea1edba98e376fa71f8d8ebf9cb9bdcfc5d94009d36bc0e7a004b56dbef93d647bbcad6a16c282f99eaf4911c369e270b6b2f9c29a158119b05c85  gitlab.sidekiq.initd
-2b771e23326c5e4f590ea1ba5e12bd44d3d6d6515edf8a79cf2722fb7d3968e60887c4b085a474100ac7562f645bff06b8a085755acd4ce533c5837392e749f2  gitlab.confd
+1f451b67a5d5e58650b0fe862a2b65cfb8bff5502b37d94ae90619c1ff9affbecf24428303a2849bebce5f94bef37078f0e5710e344bbab616134e910938384a  gitlab.mailroom.initd
+b6a6d9ba20557e61efa24f2d5a489873fefbb981f7d4465794a857b2971263c08ec29cc001c372522cdc0d48245e59751307c9f44f6ef4d87bf2e3ec5c23fb1c  gitlab.rails.initd
+5d803253152e1f8e6602554fe136513417c9f20c654d1226cff374884f89e739dd4138677313f26dcb479a4a098bbdd93aaabb9c3544f463b7cd4b06f14ae0fc  gitlab.sidekiq.initd
+85c4e257a030832bd70ad1e257ae7cb568b31e01201fc845abac02d00f02492ca694be1fa2bf743dd8c8623e6a79d36adee3f4de02040134c11158a6001c064b  gitlab.workhorse.initd
+8b3702bea201c9eddefb9d7695a211bfdecbeae5d4986ed8e4f68e33cb21a60f2580a3c5161465d5600d51915941688cf133030b4a54642e9b3c00558ee81bfe  gitlab.confd
 9eb31f31e13cc8d3fe14732a78cbd87f895ef209fe2275e70873736736fc95e6166b60b2f921a99e2284b495467084e1eeb722cb6df7419c9f6f5575abe19a56  gitlab.logrotate
-a944c3886388ba1574bf8c96b6de4d9f24ef4a83f553c31a224e17a3b01f2a5c65b60c59b7ed7ca4b25670c60ea8dd41b96a8a623d909d2bb09bdf2520ed7f23  bin-wrapper.in"
+a944c3886388ba1574bf8c96b6de4d9f24ef4a83f553c31a224e17a3b01f2a5c65b60c59b7ed7ca4b25670c60ea8dd41b96a8a623d909d2bb09bdf2520ed7f23  bin-wrapper.in
+"

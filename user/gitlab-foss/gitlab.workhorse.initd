@@ -1,0 +1,75 @@
+#!/sbin/openrc-run
+
+extra_started_commands="reopen"
+
+name="GitLab Workhorse"
+description="A reverse proxy for GitLab."
+description_reopen="Reopen log files"
+
+: ${gitlab_base:="/usr/lib/bundles/gitlab"}
+: ${workhorse_logfile:="/var/log/gitlab/workhorse.log"}
+: ${workhorse_access_log:="no"}
+
+command="/usr/bin/gitlab-workhorse"
+# Note: The rest of the options is set in start_pre().
+command_args="
+	-authBackend=http://${puma_listen_tcp:="127.0.0.1:8080"}
+	-config=${workhorse_config:="/etc/gitlab/workhorse.toml"}
+	-documentRoot=${gitlab_public_dir:="$gitlab_base/public"}
+	-listenAddr=${workhorse_listen:="/run/gitlab/workhorse.socket"}
+	-listenUmask=${workhorse_listen_umask:="000"}
+	-logFile=$workhorse_logfile
+	-secretPath=${workhorse_secret_path:="/etc/gitlab/gitlab_workhorse_secret"}
+	"
+command_background="yes"
+command_user="git"
+directory="$gitlab_base"
+pidfile="/run/gitlab/workhorse.pid"
+
+depend() {
+	use net
+}
+
+start_pre() {
+	local listen_net="tcp"
+	[ "${workhorse_listen:0:1}" = '/' ] && listen_net="unix"
+
+	command_args="$command_args
+		-listenNetwork=$listen_net
+		$(optif -apiCiLongPollingDuration "$workhorse_ci_long_polling_duration")
+		$(optif -apiLimit "$workhorse_api_limit")
+		$(optif -apiQueueDuration "$workhorse_api_queue_duration")
+		$(optif -apiQueueLimit "$workhorse_api_queue_limit")
+		$(optif -authSocket "$puma_listen_unix")
+		$(optif -logFormat "$workhorse_log_format")
+		$(optif -prometheusListenAddr "$workhorse_prometheus_listen_addr")
+		$(optif -proxyHeadersTimeout "$workhorse_proxy_header_timeout")"
+	# FIXME: not implemented
+	#yesno "$workhorse_access_log" || command_args="$command_args -disableAccessLog"
+
+	start_stop_daemon_args="$start_stop_daemon_args
+		$(optif '--env GITLAB_WORKHORSE_SENTRY_DSN' "$workhorse_sentry_dns")"
+	supervise_daemon_args="$supervise_daemon_args
+		$(optif '--env GITLAB_WORKHORSE_SENTRY_DSN' "$workhorse_sentry_dns")"
+
+	checkpath -d -m 755 -o $command_user -q "${pidfile%/*}" || return 1
+	if [ "$listen_net" = "unix" ]; then
+		checkpath -d -m 755 -o $command_user -q "${workhorse_listen%/*}" || return 1
+	fi
+	checkpath -f -m 640 -o $command_user "$workhorse_logfile"
+}
+
+reopen() {
+	ebegin "Telling $name to reopen log files"
+
+	if [ "$supervisor" ]; then
+		$supervisor "$RC_SVCNAME" --signal HUP
+	else
+		start-stop-daemon --pidfile "$pidfile" --signal HUP
+	fi
+	eend $?
+}
+
+optif() {
+	test -n "$2" && printf '%s/n' "$1=$2" || true
+}

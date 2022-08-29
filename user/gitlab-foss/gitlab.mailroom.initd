@@ -13,16 +13,18 @@ description="GitLab service for processing incoming mails."
 command="$gitlab_base/bin/mail_room"
 command_args="-c $mailroom_config"
 command_background="yes"
+command_user="git"
 
-user="git"
+directory="$gitlab_base"
+error_log="$mailroom_logfile"
+output_log="$mailroom_logfile"
+
 supervise_daemon_args="
-	--chdir $gitlab_base
-	--user $user
-	--stdout $mailroom_logfile
-	--stderr $mailroom_logfile
 	--env RAILS_ENV=production
+	--env TZ=:/etc/localtime
 	--env MAIL_ROOM_GITLAB_CONFIG_FILE=$gitlab_config
 	"
+start_stop_daemon_args="--interpreted $supervise_daemon_args"
 pidfile="/run/gitlab/mail_room.pid"
 
 required_files="$mailroom_config $gitlab_config"
@@ -33,6 +35,6 @@ depend() {
 }
 
 start_pre() {
-	checkpath -d -m 755 -o $user "$(dirname "$pidfile")"
-	checkpath -f -m 640 -o $user "$mailroom_logfile"
+	checkpath -d -m 755 -o $command_user -q "${pidfile%/*}" || return 1
+	checkpath -f -m 640 -o $command_user "$mailroom_logfile"
 }
