@@ -1,11 +1,11 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
-pkgname=gitlab-ce
-_pkgname=${pkgname%-ce}
+pkgname=gitlab-foss
+_pkgname=${pkgname%-foss}
 pkgver=11.8.10_p2
 pkgrel=2
 pkgdesc="A version control for your server"
-url="https://gitlab.com/gitlab-org/gitlab-ce"
+url="https://gitlab.com/gitlab-org/gitlab-foss"
 arch=""  # FIXME
 license="MIT"
 # ruby-irb is needed only for Rails console (gitlab-rails console)

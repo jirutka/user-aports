@@ -13,7 +13,7 @@ if ! id git 2>/dev/null 1>&2; then
 	echo '* Creating user git' 1>&2
 
 	adduser -DHS -G git -h "$git_dir" -s /bin/sh  \
-		-g "added by apk for gitlab-ce" git
+		-g "added by apk for gitlab-foss" git
 	passwd -u git 1>/dev/null  # unlock
 fi
 
