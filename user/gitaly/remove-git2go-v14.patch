@@ -1,0 +1,7 @@
+This is an old version, gitaly-git2go-v15 is currently used.
+
+--- a/Makefile
++++ b/Makefile
+@@ -250 +250 @@
+-GITALY_EXECUTABLES        = $(addprefix ${BUILD_DIR}/bin/,$(notdir $(shell find ${SOURCE_DIR}/cmd -mindepth 1 -maxdepth 1 -type d -print)) gitaly-git2go-v14)
++GITALY_EXECUTABLES        = $(addprefix ${BUILD_DIR}/bin/,$(notdir $(shell find ${SOURCE_DIR}/cmd -mindepth 1 -maxdepth 1 -type d -print)))

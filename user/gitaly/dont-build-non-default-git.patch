@@ -1,0 +1,18 @@
+--- a/Makefile
++++ b/Makefile
+@@ -332,7 +332,6 @@
+ .PHONY: build-bundled-git
+ ## Build bundled Git binaries.
+-build-bundled-git: build-bundled-git-v2.35.1.gl1
+ build-bundled-git: build-bundled-git-v2.37.1.gl1
+ build-bundled-git-v2.35.1.gl1: $(patsubst %,${BUILD_DIR}/bin/gitaly-%-v2.35.1.gl1,${GIT_EXECUTABLES})
+ build-bundled-git-v2.37.1.gl1: $(patsubst %,${BUILD_DIR}/bin/gitaly-%-v2.37.1.gl1,${GIT_EXECUTABLES})
+ 
+@@ -340,7 +339,6 @@
+ ## Install bundled Git binaries. The target directory can be modified by
+ ## setting PREFIX and DESTDIR.
+-install-bundled-git: install-bundled-git-v2.35.1.gl1
+ install-bundled-git: install-bundled-git-v2.37.1.gl1
+ install-bundled-git-v2.35.1.gl1: $(patsubst %,${INSTALL_DEST_DIR}/gitaly-%-v2.35.1.gl1,${GIT_EXECUTABLES})
+ install-bundled-git-v2.37.1.gl1: $(patsubst %,${INSTALL_DEST_DIR}/gitaly-%-v2.37.1.gl1,${GIT_EXECUTABLES})
+ 

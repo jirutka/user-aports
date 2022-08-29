@@ -1,0 +1,5 @@
+--- a/ruby/Gemfile.lock
++++ b/ruby/Gemfile.lock
+@@ -196 +196 @@
+-    rugged (1.2.0)
++    rugged (1.4.4)

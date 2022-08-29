@@ -9,14 +9,15 @@ description="A Git RPC service for handling all the git calls made by GitLab"
 command="/usr/bin/gitaly"
 command_args="$gitaly_config"
 command_background="yes"
+command_user="git"
 
-user="git"
-start_stop_daemon_args="
-	--user $user
-	--stdout $gitaly_logfile
-	--stderr $gitaly_logfile
-	--env TZ=:/etc/localtime"
-pidfile="/run/$RC_SVCNAME.pid"
+output_log="$gitaly_logfile"
+error_log="$gitaly_logfile"
+pidfile="/run/gitaly.pid"
+supervise_daemon_args="--env TZ=:/etc/localtime"
+start_stop_daemon_args="$supervise_daemon_args"
+
+rc_ulimit="-n 15000"
 
 required_files="$gitaly_config"
 
@@ -26,8 +27,13 @@ depend() {
 
 start_pre() {
 	local socket_path=$(sed -En "s/^\s*socket_path\s*=\s*[\"']([^\"']+)[\"']/\1/p" "$gitaly_config")
+	local runtime_dir=$(sed -En "s/^\s*runtime_dir\s*=\s*[\"']([^\"']+)[\"']/\1/p" "$gitaly_config")
 
-	[ -z "$socket_path" ] \
-		|| checkpath -d -m 750 -o $user "${socket_path%/*}"
-	checkpath -f -m 640 -o $user "$gitaly_logfile"
+	if [ "$socket_path" ]; then
+		checkpath -q -d -m 755 -o $command_user "${socket_path%/*}" || return 1
+	fi
+	if [ "$runtime_dir" ]; then
+		checkpath -q -d -m 750 -o $command_user "$runtime_dir" || return 1
+	fi
+	checkpath -f -m 640 -o $command_user "$gitaly_logfile"
 }

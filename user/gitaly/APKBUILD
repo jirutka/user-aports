@@ -1,31 +1,61 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitaly
-pkgver=1.20.1
+pkgver=15.2.3
 pkgrel=0
 pkgdesc="A Git RPC service for handling all the git calls made by GitLab"
 url="https://gitlab.com/gitlab-org/gitaly/"
-arch=""  # FIXME
-license="MIT"
-pkgusers="git"
-depends="git>=2.9.0 ruby ruby-bigdecimal ruby-bundler ruby-io-console ruby-json"
+arch="all"
+# GPL-2.0-or-later: bundled git
+# GPL-2.0-only WITH GCC-exception-2.0: bundled libgit2
+license="MIT AND GPL-2.0-or-later AND GPL-2.0-only WITH GCC-exception-2.0"
+# NOTE: gitaly preferes bundled git built with their patches,
+#  that's why there's no git in depends.
+depends="
+	ruby2.7
+	ruby2.7-bigdecimal
+	ruby2.7-bundler
+	ruby2.7-io-console
+	ruby2.7-json
+	"
 makedepends="
-	go>=1.9
+	bash
+	cmake
+	go
 	icu-dev
-	libgit2-dev=~0.27
+	libffi-dev
+	libgit2-dev=~1.4
+	libssh2-dev
 	libxml2-dev
 	libxslt-dev
-	ruby-dev
-	ruby-grpc=~1.15.0
+	pcre2-dev
+	ruby2.7-dev
+	ruby2.7-grpc=~1.42.0
 	zlib-dev
 	"
+subpackages="
+	$pkgname-backup
+	$pkgname-blackbox
+	$pkgname-praefect
+	"
+# FIXME: Makefile clones libgit2 and git repositories.
 source="https://gitlab.com/gitlab-org/$pkgname/-/archive/v$pkgver/$pkgname-v$pkgver.tar.gz
 	gemfile-use-local-grpc.patch
+	dont-install-packed-executables.patch
+	dont-build-non-default-git.patch
+	remove-git2go-v14.patch
+	libgit-1.4-compat.patch
 	config.patch
-	gitlab-shell-fix-paths.patch
-	$pkgname.initd"
+	$pkgname.initd
+	"
 builddir="$srcdir/$pkgname-v$pkgver"
 options="!check"
+
+export BUNDLE_DEPLOYMENT=true
+export BUNDLE_FORCE_RUBY_PLATFORM=true
+export BUNDLE_FROZEN=true
+export BUNDLE_JOBS=${JOBS:-2}
+export BUNDLE_WITHOUT="development test"
 
 prepare() {
 	local sysgemdir=$(ruby -e 'puts Gem.default_dir')
@@ -38,32 +68,77 @@ prepare() {
 	cp -r "$sysgemdir"/gems/grpc-*/* ruby/vendor/grpc/
 	cp "$sysgemdir"/specifications/grpc-*.gemspec \
 		ruby/vendor/grpc/grpc.gemspec
-	cp "$sysgemdir"/extensions/*/*/grpc-*/grpc/grpc_c.so \
+	cp "$sysgemdir"/extensions/*/*/grpc-*/grpc/*.so \
 		ruby/vendor/grpc/src/ruby/lib/grpc/
 }
 
 build() {
 	cd "$builddir"/ruby
-	bundle config build.nokogiri --use-system-libraries \
+
+	bundle config --local build.ffi --enable-system-libffi
+	bundle config --local build.nokogiri --use-system-libraries \
 		--with-xml2-include=/usr/include/libxml2 \
 		--with-xslt-include=/usr/include/libxslt
-	bundle config build.rugged --use-system-libraries
+	bundle config --local build.rugged --use-system-libraries
+	# https://github.com/protocolbuffers/protobuf/issues/2335#issuecomment-579913357
+	bundle config --local build.google-protobuf --with-cflags=-D__va_copy=va_copy
+
+	bundle install --no-cache
+
+	touch '.ruby-bundle'  # prevent 'make install' below from running 'bundle install' again
 
 	cd "$builddir"
-	make VERSION=$pkgver \
-		BUNDLE_FLAGS="--deployment --jobs=${JOBS:-2} --no-cache --without development test"
+
+	# NOTE: This builds and links statically libgit2 with bundled deps.
+	cat > config.mak <<-EOF
+		PREFIX = /usr
+		GITALY_VERSION = "$pkgver"
+		# build without tracing libs, see
+		# https://gitlab.com/gitlab-org/labkit/-/merge_requests/2
+		SERVER_BUILD_TAGS = ""
+
+		WITH_BUNDLED_GIT = 1
+		# Copied from Makefile
+		GIT_BUILD_OPTIONS += NO_PERL=YesPlease
+		GIT_BUILD_OPTIONS += NO_EXPAT=YesPlease
+		GIT_BUILD_OPTIONS += NO_TCLTK=YesPlease
+		GIT_BUILD_OPTIONS += NO_GETTEXT=YesPlease
+		GIT_BUILD_OPTIONS += NO_REGEX=YesPlease
+		GIT_BUILD_OPTIONS += NO_PYTHON=YesPlease
+		# Copied from main/git/APKBUILD
+		GIT_BUILD_OPTIONS += USE_LIBPCRE2=YesPlease
+		GIT_BUILD_OTPIONS += NO_REGEX=YesPlease
+		GIT_BUILD_OTPIONS += NO_SYS_POLL_H=1
+		GIT_BUILD_OPTIONS += ICONV_OMITS_BOM=Yes
+	EOF
+
+	make
 }
 
 package() {
-	local rubydir="$pkgdir/usr/lib/bundles/$pkgname-ruby"
+	local rubydir="$pkgdir/usr/lib/bundles/gitaly-ruby"
 
 	## Go part
 
-	cd "$builddir"
+	make install DESTDIR="$pkgdir"
 
-	make install VERSION=$pkgver DESTDIR="$pkgdir" PREFIX=/usr
+	# Not very useful for us.
+	rm "$pkgdir"/usr/bin/gitaly-debug
+	rm "$pkgdir"/usr/bin/gitaly-wrapper
+
+	# bundled git
+	mkdir -p "$pkgdir"/usr/libexec/$pkgname
+	mv "$pkgdir"/usr/bin/gitaly-git-* "$pkgdir"/usr/libexec/$pkgname/
+	(
+		cd "$pkgdir"/usr/libexec/$pkgname
+		ln -s gitaly-git-v[0-9]* git
+	)
+
 	install -m644 -D config.toml.example "$pkgdir"/etc/gitlab/gitaly.toml
-	install -m755 -D "$srcdir"/$pkgname.initd "$pkgdir"/etc/init.d/gitlab.gitaly
+	install -m644 -D config.praefect.toml.example "$pkgdir"/etc/gitlab/praefect.toml
+	install -m644 -D cmd/gitaly-blackbox/config.toml.example "$pkgdir"/etc/gitlab/gitaly-blackbox.toml
+
+	install -m755 -D "$srcdir"/gitaly.initd "$pkgdir"/etc/init.d/gitlab.gitaly
 
 	## Ruby part
 
@@ -76,20 +151,24 @@ package() {
 	cd "$rubydir"/vendor/bundle/ruby/*/gems
 
 	# Remove tests, docs and other unnecessary files.
-	rm -Rf */spec \
+	rm -Rf */benchmark \
+		*/spec \
 		*/test \
 		*/tests \
+		*/appveyor.yml \
 		*/*.md \
 		*/*.rdoc \
 		*/*.txt \
 		*/CHANGELOG* \
+		*/CHANGES* \
 		*/CONTRIBUT* \
 		*/*LICENSE* \
 		*/Rakefile \
 		*/README*
 
-	# Remove bundled libgit2 sources.
+	# Remove bundled libgit2 and pg_query sources.
 	rm -R rugged-*/vendor/libgit2
+	rm -R pg_query-*/ext
 
 	# Remove assets, they are not used in gitaly-ruby.
 	rm -R gemojione-*/assets
@@ -106,8 +185,38 @@ package() {
 		-o -name mkmf.log -delete
 }
 
-sha512sums="b8c7a86802eaf76ceb5041ed3644c095e908846f3f92d2959a09293539d2c171eefa4a7a5cdd81cd8661a56e69de2b743c66f424378cd562b92f71ef6b4de3b3  gitaly-v1.20.1.tar.gz
-cf63339bacc65cf2f242f8eea1d156b90d82a64ccb6b6335e19e316fc81ba9619c583615a7a954e080401882faef506e0caec37587b5be3abb94609f2cf1775d  gemfile-use-local-grpc.patch
-e8f308a68586f2aed4357826d39415c049c4be9aea0df06e95cf9e91960bbec1ca28df34a2a6aa1052e792fd71c35863e17b28e41849c907ce66ace24b3c7560  config.patch
-0fe11b0f74fa64ab1660be42aa035a3c9b33e1530e41c6d48d9aa2987ee6449eeac165422eb2d16ebe9cfd866561636e04839b14a8a744d454ab519780bd3c12  gitlab-shell-fix-paths.patch
-cf84f4fb7dccddecb54ab6fef169529e7841815f5ebdb829ff2fe0c6b3d663a8be5a06ab8c3a78bb5536410f96224afd212fa43c6302e891dfcb1c06fd5444c5  gitaly.initd"
+backup() {
+	pkgdesc="Utility used by the backup Rake task to create/restore repository backups from Gitaly"
+	depends=""
+
+	amove usr/bin/gitaly-backup
+}
+
+# TODO: Add init script.
+blackbox() {
+	pkgdesc="Prometheus exporter that measures GitLab server performance by performing a Git HTTP clone"
+	depends=""
+
+	amove etc/gitlab/gitaly-blackbox.toml
+	amove usr/bin/gitaly-blackbox
+}
+
+# TODO: Add init script.
+praefect() {
+	pkgdesc="A reverse-proxy for Gitaly to manage a cluster of Gitaly nodes for HA"
+	depends=""
+
+	amove etc/gitlab/praefect.toml
+	amove usr/bin/praefect
+}
+
+sha512sums="
+5347545eab9c99f78aa682eec2c277573f218bacef5477b9eca93fe1ebce0f47b37044254af6749de76439e6ad92e90b68cfc475250cd189057c49f1770fc6a2  gitaly-v15.2.3.tar.gz
+d55f4bffca5a1031a8c6170fcdc51c5e40f5e3f236c0aca0841bbda3cb6628be13c0c641e1ff00cb77eab99e31ecd1242b87a940ff86bed9c615db559a05330a  gemfile-use-local-grpc.patch
+1f9ab85d3d846e408185808d79a9b233b9976e830bc92a906f10233f62c740e6e94ffb14b617ae048a27f704a2e325db6cb043d71831543af1a4b08bf3ad87fc  dont-install-packed-executables.patch
+5c83361ada2c4121909dcd9efd22f49bda5d809ad42aaa9e6d53c7966f1699060b2fb4ac50ddee4b071379e761b9ae2793929c6e89143ebc68adde0deda93830  dont-build-non-default-git.patch
+6844c0d1fc737520e4829ce5ead31d2147a1fbc498f4aa719efa61b33ed0671545ac1e5d8d37a95ac6576354a0ae46a92322c087f85e1d74a53efe9e74da5bde  remove-git2go-v14.patch
+7bf25645b1f236fabbbac472bc169d73fa7edb14a85d9adac4613d9ddad413f21fe7ec9779d4276971171da574e5d487c49367badd0939e7606476b16a56efeb  libgit-1.4-compat.patch
+a022f0821e0a9cfab3f1ec71fe592a45ecd189cc702920a391fa8ab4b8fc190254d6891d5227a5a44377516f74134eaa16d22e1d79903f7828ebee08b2b6e6df  config.patch
+c32105d921be16eaf559cf21d6840bc346cd92b5e37974cedecdb5a2d2ca1eb5e8fbb144f5fc8a1289bf9415102b313cf2d61ee510c80f08ab33a799f5ac7122  gitaly.initd
+"

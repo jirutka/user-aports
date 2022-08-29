@@ -1,18 +1,60 @@
 --- a/config.toml.example
 +++ b/config.toml.example
-@@ -1,9 +1,9 @@
- # Example Gitaly configuration file
+@@ -2,15 +2,15 @@
+ # Documentation lives at https://docs.gitlab.com/ee/administration/gitaly/ and
+ # https://docs.gitlab.com/ee//administration/gitaly/reference
  
 -socket_path = "/home/git/gitlab/tmp/sockets/private/gitaly.socket"
 +socket_path = "/run/gitlab/gitaly.socket"
  
  # The directory where Gitaly's executables are stored
--bin_dir = "/home/git/gitaly"
-+bin_dir = "/usr/bin"
+-bin_dir = "/home/git/gitaly/_build/bin"
++bin_dir = "/usr/libexec/gitaly"
+ 
+-# # Optional: The directory where Gitaly can create all files required to
+-# # properly operate at runtime. If not set, Gitaly will create a directory in
+-# # the global temporary directory. This directory must exist.
+-# runtime_dir = "/home/git/gitaly/run"
++# Optional: The directory where Gitaly can create all files required to
++# properly operate at runtime. If not set, Gitaly will create a directory in
++# the global temporary directory. This directory must exist.
++runtime_dir = "/run/gitaly"
  
  # # Optional: listen on a TCP socket. This is insecure (no authentication)
  # listen_addr = "localhost:9999"
 @@ -22,7 +22,7 @@
+ # # Optional: configure where the Gitaly creates the sockets for internal connections. If unset, Gitaly will create a randomly
+ # # named temp directory each time it boots.
+ # # Non Gitaly clients should never connect to these sockets.
+-# internal_socket_dir = "/home/git/gitlab/tmp/sockets/private/internal"
++internal_socket_dir = "/run/gitaly/internal"
+ 
+ # # Optional: authenticate Gitaly requests using a shared secret
+ # [auth]
+@@ -30,14 +30,16 @@
+ # transitioning = false # Set `transitioning` to true to temporarily allow unauthenticated while rolling out authentication.
+ 
+ # [tls]
+-# certificate_path = '/home/git/cert.cert'
+-# key_path = '/home/git/key.pem'
++# certificate_path = '/etc/gitlab/ssl/gitaly.crt'
++# key_path = '/etc/gitlab/ssl/gitaly.key'
+ 
+-# # Git settings
+-# [git]
+-# bin_path = "/usr/bin/git"
++# Git settings
++[git]
++# Use git bundled with Gitaly.
++use_bundled_binaries = true
++bin_path = "/usr/libexec/gitaly/git"
+ # catfile_cache_size = 100
+-#
++
+ # # Set this setting to `true` to start ignoring gitconfig files installed in
+ # # the system. This includes both system-level (e.g. '/etc/gitconffig') and
+ # # global-level (e.g. `$HOME/.gitconfig`) files. This setting will become the
+@@ -51,7 +53,7 @@
  
  [[storage]]
  name = "default"
@@ -21,27 +63,32 @@
  
  # # You can optionally configure more storages for this Gitaly instance to serve up
  #
-@@ -31,13 +31,13 @@
- # path = "/mnt/other_storage/repositories"
+@@ -61,15 +63,15 @@
  #
  
--# # You can optionally configure Gitaly to output JSON-formatted log messages to stdout
+ # # You can optionally configure Gitaly to output JSON-formatted log messages to stdout
 -# [logging]
-+# You can optionally configure Gitaly to output JSON-formatted log messages to stdout
-+[logging]
- # format = "json"
+-# # The directory where Gitaly stores extra log files
+-dir = "/home/git/gitlab/log"
+-# format = "json"
 -# # Optional: Set log level to only log entries with that severity or above
 -# # One of, in order: debug, info, warn, errror, fatal, panic
 -# # Defaults to "info"
 -# level = "warn"
+-#
++[logging]
++# The directory where Gitaly stores extra log files
++dir = "/var/log/gitlab"
++format = "text"
 +# Optional: Set log level to only log entries with that severity or above
 +# One of, in order: debug, info, warn, errror, fatal, panic
 +# Defaults to "info"
 +level = "warn"
- #
++
  # # Additionally exceptions from the Go server can be reported to Sentry
  # sentry_dsn = "https://<key>:<secret>@sentry.io/<project>"
-@@ -50,7 +50,7 @@
+ # # Exceptions from gitaly-ruby can also be reported to Sentry
+@@ -81,7 +83,7 @@
  
  [gitaly-ruby]
  # The directory where gitaly-ruby is installed
@@ -50,12 +97,23 @@
  
  # # Gitaly-ruby resident set size (RSS) that triggers a memory restart (bytes)
  # max_rss = 200000000
-@@ -66,7 +66,7 @@
+@@ -101,14 +103,14 @@
  
  [gitlab-shell]
  # The directory where gitlab-shell is installed
 -dir = "/home/git/gitlab-shell"
-+dir = "/usr/share/gitlab-shell"
++dir = "/usr/lib/gitlab-shell"
  
- # # You can adjust the concurrency of each RPC endpoint
- # [[concurrency]]
+-[hooks]
+-custom_hooks_dir = "/home/git/custom_hooks"
++# [hooks]
++# custom_hooks_dir = "/etc/gitlab/custom_hooks"
+ 
+ [gitlab]
+-secret_file = "/home/git/gitlab-shell/.gitlab_shell_secret"
+-url = "http+unix://%2Fhome%2Fgit%2Fgitlab%2Ftmp%2Fsockets%2Fgitlab-workhorse.socket"
++secret_file = "/etc/gitlab/gitlab_shell_secret"
++url = "http+unix://%2Frun%2Fgitlab%2Fworkhorse.socket"
+ # Only needed if a UNIX socket is used in `url` and GitLab is configured to
+ # use a relative path (e.g. /gitlab).
+ # relative_url_root = '/'
