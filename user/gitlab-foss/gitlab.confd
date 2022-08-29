@@ -1,26 +1,11 @@
 # Configuration file for /etc/init.d/gitlab and
-# /etc/init.d/gitlab.{workhorse,sidekiq,pages,mailroom}
+# /etc/init.d/gitlab.{mailroom,rails,sidekiq,workhorse}
 
-# Base directory of the GitLab app.
-#gitlab_base="/usr/lib/bundles/gitlab"
-
-# Path for the GitLab document root (public).
-#gitlab_public_dir="$gitlab_base/public"
-
-# Path to the gitlab.yml config file.
-#gitlab_config="/etc/gitlab/gitlab.yml"
 
 # Path to the base directory for the Prometheus metrics used by Puma and
 # Sidekiq.
 #metrics_dir=/dev/shm/gitlab
 
-
-#
-# GitLab Rails (Puma server)
-#
-
-# Path to the Puma configuration file.
-#puma_config="/etc/gitlab/puma.rb"
 
 # How many Puma worker processes to create (0 to disable cluster mode).
 #puma_workers=3
@@ -31,31 +16,10 @@
 # Absolute path of unix socket for Puma server to listen on.
 #puma_listen_unix="/run/gitlab/gitlab.socket"
 
-# Path to the file to redirect stdout from Puma server to.
-#puma_stdout_file="/var/log/gitlab/puma_stdout.log"
-
-# Path to the file to redirect stderr from Puma server to.
-#puma_stderr_file="/var/log/gitlab/puma_stderr.log"
-
 # Action Cable uses a separate thread pool per Puma worker. This configures
 # number of threads in the pool.
 #action_cable_worker_pool_size=4
 
-
-#
-# Gitaly
-#
-
-# Path to the Gitaly config file.
-#gitaly_config="/etc/gitlab/gitaly.toml"
-
-# Path to the Gitaly log file.
-#gitaly_logfile="/var/log/gitlab/gitaly.log"
-
-
-#
-# GitLab Workhorse
-#
 
 # IP address and port, or absolute path of the unix socket, where should
 # Workhorse listen on for connections from a web server.
@@ -76,9 +40,6 @@
 # Long polling duration for job requesting for runners (default 0s - disabled)
 #workhorse_ci_long_polling_duration=
 
-# File that holds Workhorse configuration.
-#workhorse_config=/etc/gitlab/workhorse.toml
-
 # Log format to use: text, json, structured, none. Defaults to "text".
 #workhorse_log_format=
 
@@ -88,13 +49,6 @@
 # Sentry DSN for Workhorse.
 #workhorse_sentry_dsn=
 
-# Path to the Workhorse log file.
-#workhorse_logfile="/var/log/gitlab/workhorse.log"
-
-
-#
-# Sidekiq
-#
 
 # Specify how many processes to create using sidekiq-cluster and which queue
 # they should handle. Each whitespace-separated item equates to one additional
@@ -126,55 +80,6 @@
 # of the Sidekiq process exceeds this limit, a delayed shutdown is triggered.
 #sidekiq_memkiller_max_rss=2000
 
-# Path to the Sidekiq log file.
-#sidekiq_logfile="/var/log/gitlab/sidekiq.log"
-
-
-#
-# GitLab Pages
-#
-
-# Enable GitLab Pages? This option is ignored if /etc/init.d/gitlab.pages
-# does not exist.
-#pages_enabled="yes"
-
-# The domain to serve static pages (required).
-pages_domain=
-
-# The address(es) to listen on for HTTP requests for Pages.
-#pages_listen_http=
-
-# The address(es) to listen on for HTTPS requests for Pages.
-#pages_listen_https=
-
-# The address(es) to listen on for proxy requests for Pages.
-pages_listen_proxy="0.0.0.0:8081"
-
-# Enable HTTP2 support for Pages (default true).
-#pages_use_http2="true"
-
-# Serve the pages under HTTP (default true).
-#pages_redirect_http="true"
-
-# The default path to file certificate to serve static pages.
-#pages_root_cert=
-
-# The default path to file certificate to serve static pages.
-#pages_root_key=
-
-# Path to the directory where pages are stored.
-#pages_root=/var/lib/gitlab/pages
-
-# Path to the Pages log file.
-#pages_logfile="/var/log/gitlab/pages.log"
-
-
-#
-# GitLab Mailroom
-#
 
 # Enable mail_room to handle incoming mails?
 #mailroom_enabled="no"
-
-# Path to the mail_room log file.
-#mailroom_logfile="/var/log/gitlab/mail_room.log"
