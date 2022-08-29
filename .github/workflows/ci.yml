@@ -6,7 +6,7 @@ env:
   # Keep in sync with jobs.build.container.image!
   BRANCH: v3.16
   REPOS_DIR: /home/ci/repos
-  BUILD_REPOS: backports user bundles
+  BUILD_REPOS: backports user
 
 jobs:
   build:

@@ -26,21 +26,15 @@ All the repositories are also available over link:rsync://repo.jirutka.cz/alpine
 Aports from the official Alpine repositories backported from edge to {gh-branch}.
 
 
-=== Bundles
-
-* {repos-uri}/{gh-branch}/bundles
-
-Bundle is an aport with (some) bundled dependencies.
-It’s something that Alpine devs really don’t like, but it’s very convenient footnote:[Creating and maintaining gazillion distro-specific packages for Python modules, Rubygems, …, installing them globally and resolving version conflicts is nothing but totally insane…] for packaging applications with _a lot_ dependencies that are already managed by some language-specific package manager (e.g. pip, bundler, …).
-
-All bundles are installed in `/usr/lib/bundles/<pkgname>`.
-
-
 === User
 
 * {repos-uri}/{gh-branch}/user
 
-My aports that are not available in the official Alpine repository, typically some specific dependencies for _bundles_.
+My aports that are not available in the official Alpine repository.
+
+Some aports in this repository are “bundles” – an aport with (some) bundled dependencies.
+It’s something that Alpine devs really don’t like, but it’s very convenient footnote:[Creating and maintaining gazillion distro-specific packages for Python modules, Rubygems, …, installing them globally and resolving version conflicts is nothing but totally insane…] for packaging applications with _a lot_ dependencies that are already managed by some language-specific package manager (e.g. pip, bundler, …).
+All bundles are installed in `/usr/lib/bundles/<pkgname>`.
 
 
 == How to use
