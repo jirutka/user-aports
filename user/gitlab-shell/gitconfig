@@ -1,21 +1,17 @@
-[core]
-autocrlf = input
-
-[gc]
-auto = 0
-
-[pack]
-threads = 2
-
-[receive]
-fsckObjects = true
-
-[repack]
-writeBitmaps = true
+# Based on files/gitlab-cookbooks/gitlab/templates/default/gitconfig.erb
+# in omnibus-gitlab.
 
 [user]
 name = GitLab
+email = gitlab@local.host
 
-[transfer]
-hideRefs = ^refs/tmp/
-hideRefs = ^refs/keep-around/
+[core]
+# Needed for the web editor.
+autocrlf = input
+alternateRefsCommand="exit 0 #"
+# This option is unnecessary on journaled file systems and it's not recognized
+# by git >= 2.36.
+# fsyncObjectFiles = true
+
+[gc]
+auto = 0

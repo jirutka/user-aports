@@ -1,0 +1,11 @@
+--- a/support/gitlab_config.rb
++++ b/support/gitlab_config.rb
+@@ -4,7 +4,7 @@ class GitlabConfig
+   attr_reader :config
+ 
+   def initialize
+-    @config = YAML.load_file(File.join(ROOT_PATH, 'config.yml'))
++    @config = YAML.load_file(ENV.fetch('GITLAB_SHELL_CONFIG', '/etc/gitlab/gitlab-shell.yml'))
+   end
+ 
+   def home

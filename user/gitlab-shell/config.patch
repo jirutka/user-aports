@@ -1,0 +1,93 @@
+--- a/config.yml.example
++++ b/config.yml.example
+@@ -13,7 +13,7 @@
+ # only listen on a Unix domain socket. For Unix domain sockets use
+ # "http+unix://<urlquoted-path-to-socket>", e.g.
+ # "http+unix://%2Fpath%2Fto%2Fsocket"
+-gitlab_url: "http+unix://%2Fhome%2Fgit%2Fgitlab%2Ftmp%2Fsockets%2Fgitlab-workhorse.socket"
++gitlab_url: "http+unix://%2Frun%2Fgitlab%2Fworkhorse.socket"
+ 
+ # When a http+unix:// is used in gitlab_url, this is the relative URL root to GitLab.
+ # Not used if gitlab_url is http:// or https://.
+@@ -29,15 +29,15 @@
+ #
+ 
+ # File used as authorized_keys for gitlab user
+-auth_file: "/home/git/.ssh/authorized_keys"
++auth_file: "/var/lib/gitlab/.ssh/authorized_keys"
+ 
+ # SSL certificate dir where custom certificates can be placed
+ # https://golang.org/pkg/crypto/x509/
+-# ssl_cert_dir: /opt/gitlab/embedded/ssl/certs/
++# ssl_cert_dir: /etc/gitlab/ssl/certs/
+ 
+ # File that contains the secret key for verifying access to GitLab.
+ # Default is .gitlab_shell_secret in the gitlab-shell directory.
+-# secret_file: "/home/git/gitlab-shell/.gitlab_shell_secret"
++secret_file: "/etc/gitlab/gitlab_shell_secret"
+ #
+ # The secret field supersedes the secret_file, and if set that
+ # file will not be read.
+@@ -45,13 +45,13 @@
+ 
+ # Log file.
+ # Default is gitlab-shell.log in the root directory.
+-# log_file: "/home/git/gitlab-shell/gitlab-shell.log"
++log_file: "/var/log/gitlab/gitlab-shell.log"
+ 
+ # Log level. INFO by default
+-log_level: INFO
++log_level: WARN
+ 
+ # Log format. 'json' by default, can be changed to 'text' if needed
+-# log_format: json
++log_format: text
+ 
+ # Audit usernames.
+ # Set to true to see real usernames in the logs instead of key ids, which is easier to follow, but
+@@ -61,45 +61,3 @@
+ # Distributed Tracing. GitLab-Shell has distributed tracing instrumentation.
+ # For more details, visit https://docs.gitlab.com/ee/development/distributed_tracing.html
+ # gitlab_tracing: opentracing://driver
+-
+-# This section configures the built-in SSH server. Ignored when running on OpenSSH.
+-sshd:
+-  # Address which the SSH server listens on. Defaults to [::]:22.
+-  listen: "[::]:22"
+-  # Set to true if gitlab-sshd is being fronted by a load balancer that implements
+-  # the PROXY protocol.
+-  proxy_protocol: false
+-  # Proxy protocol policy ("use", "require", "reject", "ignore"), "use" is the default value
+-  # Values: https://github.com/pires/go-proxyproto/blob/195fedcfbfc1be163f3a0d507fac1709e9d81fed/policy.go#L20
+-  proxy_policy: "use"
+-  # Address which the server listens on HTTP for monitoring/health checks. Defaults to localhost:9122.
+-  web_listen: "localhost:9122"
+-  # Maximum number of concurrent sessions allowed on a single SSH connection. Defaults to 10.
+-  concurrent_sessions_limit: 10
+-  # Sets an interval after which server will send keepalive message to a client. Defaults to 15s.
+-  client_alive_interval: 15
+-  # The server waits for this time for the ongoing connections to complete before shutting down. Defaults to 10s.
+-  grace_period: 10
+-  # The server disconnects after this time if the user has not successfully logged in. Defaults to 60s.
+-  login_grace_time: 60
+-  # A short timeout to decide to abort the connection if the protocol header is not seen within it. Defaults to 500ms
+-  proxy_header_timeout: 500ms
+-  # The endpoint that returns 200 OK if the server is ready to receive incoming connections; otherwise, it returns 503 Service Unavailable. Defaults to "/start".
+-  readiness_probe: "/start"
+-  # The endpoint that returns 200 OK if the server is alive. Defaults to "/health".
+-  liveness_probe: "/health"
+-  # Specifies the available message authentication code algorithms that are used for protecting data integrity
+-  macs: [hmac-sha2-256-etm@openssh.com, hmac-sha2-512-etm@openssh.com, hmac-sha2-256, hmac-sha2-512, hmac-sha1]
+-  # Specifies the available Key Exchange algorithms
+-  kex_algorithms: [curve25519-sha256, curve25519-sha256@libssh.org, ecdh-sha2-nistp256, ecdh-sha2-nistp384, ecdh-sha2-nistp521, diffie-hellman-group14-sha256, diffie-hellman-group14-sha1]
+-  # Specified the ciphers allowed
+-  ciphers: [aes128-gcm@openssh.com, chacha20-poly1305@openssh.com, aes256-gcm@openssh.com, aes128-ctr, aes192-ctr,aes256-ctr]
+-  # SSH host key files.
+-  host_key_files:
+-    - /run/secrets/ssh-hostkeys/ssh_host_rsa_key
+-    - /run/secrets/ssh-hostkeys/ssh_host_ecdsa_key
+-    - /run/secrets/ssh-hostkeys/ssh_host_ed25519_key
+-  host_key_certs:
+-    - /run/secrets/ssh-hostkeys/ssh_host_rsa_key-cert.pub
+-    - /run/secrets/ssh-hostkeys/ssh_host_ecdsa_key-cert.pub
+-    - /run/secrets/ssh-hostkeys/ssh_host_ed25519_key-cert.pub
