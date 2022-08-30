@@ -3,7 +3,7 @@
 # Maintainer: Rasmus Thomsen <oss@cogitri.dev>
 pkgname=gitlab-runner
 pkgver=15.3.0
-pkgrel=1
+pkgrel=2
 # first 8 chars of the git hash of the release, see
 # https://gitlab.com/gitlab-org/gitlab-runner/-/tags
 # PLEASE update this, since they're used to determine what version of
@@ -64,6 +64,6 @@ helper() {
 
 sha512sums="
 8eabe9a4fd04e46d4bf306dc202664e29f5cb12cba5d73820888957d694711702e026f79a84e1d5f5237cb3d1e7efed8e035129814dcc6354e708ee98e98cbe9  gitlab-runner-v15.3.0.tar.gz
-3fca01086e2937280c7ea8dbcca754fab6cb9a9ad548c5a9dbc9f15a46a5dfdb79192dc1680fde823ffb21aabe8d5526cc82dee6585a8d440a646474d62f6c09  gitlab-runner.initd
+d326c10c2ec7c6a2daf06072820ef799bb8465ccc6d3cf52890874e7bafb4b7692ff83b9a197d208d2fc8fad235dcd9709bafeddce296c9e274be8b23b411899  gitlab-runner.initd
 c3510822b4d77dcb58e9023ff26ba2038dc8348a2cf3ee78ad16886eda92f3085fe62dc0e1f59d221f51f6989a127a2778115a51abcb4eeb52a33f9771310979  gitlab-runner.confd
 "
