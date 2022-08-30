@@ -127,6 +127,8 @@ build() {
 		--with-xslt-include=/usr/include/libxslt
 	bundle config --local build.ruby-magic --enable-system-libraries
 	bundle config --local build.rugged --use-system-libraries
+	# https://github.com/protocolbuffers/protobuf/issues/2335#issuecomment-579913357
+	bundle config --local build.google-protobuf --with-cflags=-D__va_copy=va_copy
 
 	bundle install --no-cache
 
