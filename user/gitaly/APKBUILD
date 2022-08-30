@@ -2,16 +2,14 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitaly
 pkgver=15.2.3
-pkgrel=0
+pkgrel=1
 pkgdesc="A Git RPC service for handling all the git calls made by GitLab"
 url="https://gitlab.com/gitlab-org/gitaly/"
 arch="all"
-# GPL-2.0-or-later: bundled git
 # GPL-2.0-only WITH GCC-exception-2.0: bundled libgit2
-license="MIT AND GPL-2.0-or-later AND GPL-2.0-only WITH GCC-exception-2.0"
-# NOTE: gitaly preferes bundled git built with their patches,
-#  that's why there's no git in depends.
+license="MIT AND GPL-2.0-only WITH GCC-exception-2.0"
 depends="
+	git>=2.33
 	ruby2.7
 	ruby2.7-bigdecimal
 	ruby2.7-bundler
@@ -28,7 +26,6 @@ makedepends="
 	libssh2-dev
 	libxml2-dev
 	libxslt-dev
-	pcre2-dev
 	ruby2.7-dev
 	ruby2.7-grpc=~1.42.0
 	zlib-dev
@@ -42,7 +39,6 @@ subpackages="
 source="https://gitlab.com/gitlab-org/$pkgname/-/archive/v$pkgver/$pkgname-v$pkgver.tar.gz
 	gemfile-use-local-grpc.patch
 	dont-install-packed-executables.patch
-	dont-build-non-default-git.patch
 	remove-git2go-v14.patch
 	libgit-1.4-compat.patch
 	config.patch
@@ -96,20 +92,6 @@ build() {
 		# build without tracing libs, see
 		# https://gitlab.com/gitlab-org/labkit/-/merge_requests/2
 		SERVER_BUILD_TAGS = ""
-
-		WITH_BUNDLED_GIT = 1
-		# Copied from Makefile
-		GIT_BUILD_OPTIONS += NO_PERL=YesPlease
-		GIT_BUILD_OPTIONS += NO_EXPAT=YesPlease
-		GIT_BUILD_OPTIONS += NO_TCLTK=YesPlease
-		GIT_BUILD_OPTIONS += NO_GETTEXT=YesPlease
-		GIT_BUILD_OPTIONS += NO_REGEX=YesPlease
-		GIT_BUILD_OPTIONS += NO_PYTHON=YesPlease
-		# Copied from main/git/APKBUILD
-		GIT_BUILD_OPTIONS += USE_LIBPCRE2=YesPlease
-		GIT_BUILD_OTPIONS += NO_REGEX=YesPlease
-		GIT_BUILD_OTPIONS += NO_SYS_POLL_H=1
-		GIT_BUILD_OPTIONS += ICONV_OMITS_BOM=Yes
 	EOF
 
 	make
@@ -125,14 +107,6 @@ package() {
 	# Not very useful for us.
 	rm "$pkgdir"/usr/bin/gitaly-debug
 	rm "$pkgdir"/usr/bin/gitaly-wrapper
-
-	# bundled git
-	mkdir -p "$pkgdir"/usr/libexec/$pkgname
-	mv "$pkgdir"/usr/bin/gitaly-git-* "$pkgdir"/usr/libexec/$pkgname/
-	(
-		cd "$pkgdir"/usr/libexec/$pkgname
-		ln -s gitaly-git-v[0-9]* git
-	)
 
 	install -m644 -D config.toml.example "$pkgdir"/etc/gitlab/gitaly.toml
 	install -m644 -D config.praefect.toml.example "$pkgdir"/etc/gitlab/praefect.toml
@@ -214,9 +188,8 @@ sha512sums="
 5347545eab9c99f78aa682eec2c277573f218bacef5477b9eca93fe1ebce0f47b37044254af6749de76439e6ad92e90b68cfc475250cd189057c49f1770fc6a2  gitaly-v15.2.3.tar.gz
 d55f4bffca5a1031a8c6170fcdc51c5e40f5e3f236c0aca0841bbda3cb6628be13c0c641e1ff00cb77eab99e31ecd1242b87a940ff86bed9c615db559a05330a  gemfile-use-local-grpc.patch
 1f9ab85d3d846e408185808d79a9b233b9976e830bc92a906f10233f62c740e6e94ffb14b617ae048a27f704a2e325db6cb043d71831543af1a4b08bf3ad87fc  dont-install-packed-executables.patch
-5c83361ada2c4121909dcd9efd22f49bda5d809ad42aaa9e6d53c7966f1699060b2fb4ac50ddee4b071379e761b9ae2793929c6e89143ebc68adde0deda93830  dont-build-non-default-git.patch
 6844c0d1fc737520e4829ce5ead31d2147a1fbc498f4aa719efa61b33ed0671545ac1e5d8d37a95ac6576354a0ae46a92322c087f85e1d74a53efe9e74da5bde  remove-git2go-v14.patch
 7bf25645b1f236fabbbac472bc169d73fa7edb14a85d9adac4613d9ddad413f21fe7ec9779d4276971171da574e5d487c49367badd0939e7606476b16a56efeb  libgit-1.4-compat.patch
-a022f0821e0a9cfab3f1ec71fe592a45ecd189cc702920a391fa8ab4b8fc190254d6891d5227a5a44377516f74134eaa16d22e1d79903f7828ebee08b2b6e6df  config.patch
+8779e34b2a468a74c590ee29155e7b197eabcd323157b1e27208fa2f3100b31e1fd1ff80d7067198e66cfb1be506caedeecbfeb4e9f32aa5b8422455e1718e1a  config.patch
 c32105d921be16eaf559cf21d6840bc346cd92b5e37974cedecdb5a2d2ca1eb5e8fbb144f5fc8a1289bf9415102b313cf2d61ee510c80f08ab33a799f5ac7122  gitaly.initd
 "

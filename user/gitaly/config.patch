@@ -9,7 +9,7 @@
  
  # The directory where Gitaly's executables are stored
 -bin_dir = "/home/git/gitaly/_build/bin"
-+bin_dir = "/usr/libexec/gitaly"
++bin_dir = "/usr/bin"
  
 -# # Optional: The directory where Gitaly can create all files required to
 -# # properly operate at runtime. If not set, Gitaly will create a directory in
@@ -31,7 +31,7 @@
  
  # # Optional: authenticate Gitaly requests using a shared secret
  # [auth]
-@@ -30,14 +30,16 @@
+@@ -30,14 +30,14 @@
  # transitioning = false # Set `transitioning` to true to temporarily allow unauthenticated while rolling out authentication.
  
  # [tls]
@@ -45,16 +45,14 @@
 -# bin_path = "/usr/bin/git"
 +# Git settings
 +[git]
-+# Use git bundled with Gitaly.
-+use_bundled_binaries = true
-+bin_path = "/usr/libexec/gitaly/git"
++bin_path = "/usr/bin/git"
  # catfile_cache_size = 100
 -#
 +
  # # Set this setting to `true` to start ignoring gitconfig files installed in
  # # the system. This includes both system-level (e.g. '/etc/gitconffig') and
  # # global-level (e.g. `$HOME/.gitconfig`) files. This setting will become the
-@@ -51,7 +53,7 @@
+@@ -51,7 +51,7 @@
  
  [[storage]]
  name = "default"
@@ -63,7 +61,7 @@
  
  # # You can optionally configure more storages for this Gitaly instance to serve up
  #
-@@ -61,15 +63,15 @@
+@@ -61,15 +61,15 @@
  #
  
  # # You can optionally configure Gitaly to output JSON-formatted log messages to stdout
@@ -88,7 +86,7 @@
  # # Additionally exceptions from the Go server can be reported to Sentry
  # sentry_dsn = "https://<key>:<secret>@sentry.io/<project>"
  # # Exceptions from gitaly-ruby can also be reported to Sentry
-@@ -81,7 +83,7 @@
+@@ -81,7 +81,7 @@
  
  [gitaly-ruby]
  # The directory where gitaly-ruby is installed
@@ -97,7 +95,7 @@
  
  # # Gitaly-ruby resident set size (RSS) that triggers a memory restart (bytes)
  # max_rss = 200000000
-@@ -101,14 +103,14 @@
+@@ -101,14 +101,14 @@
  
  [gitlab-shell]
  # The directory where gitlab-shell is installed
