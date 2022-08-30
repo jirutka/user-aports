@@ -6,9 +6,6 @@
 # Path to the working directory (--working-directory).
 #datadir="/var/lib/gitlab-runner"
 
-# Log level: debug, info, warn, error, fatal, or panic (--log-level).
-#log_level=
-
 # Whether to log to system service logger. If disabled, stderr will be
 # redirected to $error_log file.
 log_syslog=yes

@@ -19,7 +19,6 @@ command_args="run
 	--config $cfgfile
 	--working-directory $datadir
 	--service $RC_SVCNAME
-	${log_level:+"--log-level $log_level"}
 	${command_args:-$GITLAB_RUNNER_OPTS}
 	"
 command_background="yes"
