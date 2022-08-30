@@ -4,7 +4,7 @@ pkgname=gitlab-foss
 _pkgname=${pkgname%-foss}
 pkgver=15.2.2_p1
 _gitrev=a7e7b8bc4c65c75a9ce1bf17ca6e499493526624
-pkgrel=0
+pkgrel=1
 pkgdesc="A version control for your server"
 url="https://gitlab.com/gitlab-org/gitlab-foss"
 arch="x86_64"
@@ -38,6 +38,7 @@ depends="
 	"
 makedepends="
 	cmd:chrpath
+	file-dev
 	go
 	gpgme-dev
 	icu-dev
@@ -124,6 +125,7 @@ build() {
 	bundle config --local build.nokogiri --use-system-libraries \
 		--with-xml2-include=/usr/include/libxml2 \
 		--with-xslt-include=/usr/include/libxslt
+	bundle config --local build.ruby-magic --enable-system-libraries
 	bundle config --local build.rugged --use-system-libraries
 
 	bundle install --no-cache
