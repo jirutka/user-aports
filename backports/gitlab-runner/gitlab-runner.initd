@@ -24,6 +24,7 @@ command_args="run
 command_background="yes"
 directory="$datadir"
 
+# CLICOLOR=0 - disable colors (ANSI sequences) in the log output
 start_stop_daemon_args="
 	--env CLICOLOR=0
 	--wait $start_wait
