@@ -1,9 +1,0 @@
---- a/helpers/formatter/runner_text_formatter.go
-+++ b/helpers/formatter/runner_text_formatter.go
-@@ -72,5 +72,5 @@
- }
- 
- func SetRunnerFormatter() {
--	logrus.SetFormatter(&RunnerTextFormatter{})
-+	logrus.SetFormatter(&RunnerTextFormatter{ DisableColors: true })
- }
