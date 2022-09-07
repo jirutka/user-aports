@@ -1,8 +1,8 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitaly
-pkgver=15.2.3
-pkgrel=1
+pkgver=15.3.3
+pkgrel=0
 pkgdesc="A Git RPC service for handling all the git calls made by GitLab"
 url="https://gitlab.com/gitlab-org/gitaly/"
 arch="all"
@@ -38,8 +38,6 @@ subpackages="
 # FIXME: Makefile clones libgit2 and git repositories.
 source="https://gitlab.com/gitlab-org/$pkgname/-/archive/v$pkgver/$pkgname-v$pkgver.tar.gz
 	gemfile-use-local-grpc.patch
-	dont-install-packed-executables.patch
-	remove-git2go-v14.patch
 	libgit-1.4-compat.patch
 	config.patch
 	$pkgname.initd
@@ -185,10 +183,8 @@ praefect() {
 }
 
 sha512sums="
-5347545eab9c99f78aa682eec2c277573f218bacef5477b9eca93fe1ebce0f47b37044254af6749de76439e6ad92e90b68cfc475250cd189057c49f1770fc6a2  gitaly-v15.2.3.tar.gz
-d55f4bffca5a1031a8c6170fcdc51c5e40f5e3f236c0aca0841bbda3cb6628be13c0c641e1ff00cb77eab99e31ecd1242b87a940ff86bed9c615db559a05330a  gemfile-use-local-grpc.patch
-1f9ab85d3d846e408185808d79a9b233b9976e830bc92a906f10233f62c740e6e94ffb14b617ae048a27f704a2e325db6cb043d71831543af1a4b08bf3ad87fc  dont-install-packed-executables.patch
-6844c0d1fc737520e4829ce5ead31d2147a1fbc498f4aa719efa61b33ed0671545ac1e5d8d37a95ac6576354a0ae46a92322c087f85e1d74a53efe9e74da5bde  remove-git2go-v14.patch
+a3d4f929014df6f3e7034f493be9b27dcc1e820e42198582171a43c7ddf1bc9087329f13878f139a7d6dc1e6a92a76dabf26214409abe839d8f9508429f91ba0  gitaly-v15.3.3.tar.gz
+ebcb7296696b9c2b47b7770a37ae13663cb0343659d482ef45717ef5548ede69eedee707763c6dfd73c60ef303e03fbe5502967783c59c00475a1a6d0c5ee128  gemfile-use-local-grpc.patch
 7bf25645b1f236fabbbac472bc169d73fa7edb14a85d9adac4613d9ddad413f21fe7ec9779d4276971171da574e5d487c49367badd0939e7606476b16a56efeb  libgit-1.4-compat.patch
 8779e34b2a468a74c590ee29155e7b197eabcd323157b1e27208fa2f3100b31e1fd1ff80d7067198e66cfb1be506caedeecbfeb4e9f32aa5b8422455e1718e1a  config.patch
 c32105d921be16eaf559cf21d6840bc346cd92b5e37974cedecdb5a2d2ca1eb5e8fbb144f5fc8a1289bf9415102b313cf2d61ee510c80f08ab33a799f5ac7122  gitaly.initd
