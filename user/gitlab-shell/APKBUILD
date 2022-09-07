@@ -1,7 +1,7 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitlab-shell
-pkgver=14.9.0
+pkgver=14.10.0
 pkgrel=0
 pkgdesc="GitLab Shell handles git SSH sessions for GitLab"
 url="https://gitlab.com/gitlab-org/gitlab-shell"
@@ -59,7 +59,7 @@ package() {
 }
 
 sha512sums="
-36295a77156a3ca607d6b0664dc0e2ede2873cb644fdfe5188357f0f3e16ca255973d7a7f663db550676c1690acc242e99fb798d9e4c9c8145daf4029ce2a403  gitlab-shell-v14.9.0.tar.gz
+4062d2f31d5bcbff653a44564aabff61dfcad4f0257c0ce5c131287864faaffcc37f86eb54d22b9e02b93f7149912c42f097f6b615b3dd479bdce3ba08af35da  gitlab-shell-v14.10.0.tar.gz
 22a6e87a317bbffa063717ca5f06f08e05da90c3ea18744049abfc29b3109a34d90d366b46b381cfbf3817e410daf8d0bc51a592b51a81b7f4a9381d20e347d8  config.patch
 499b3a46ea94a33a23b01f6a7509d74f5a6781b930619b3b8ae42bdeae8a052cc636578744d7992b4ae4f9b9f72b11ee3d3c0f5e50986fa3f7e35b979b08aada  change-config-path.patch
 c53da7f145593693392d9fa880ad5a1909bfc7504fd1c93d94a468c3e0f5cc80f712f41ee1dc8bf38105b410c1165658f208bd88a70c4674104c78af33d8d09c  gitconfig
