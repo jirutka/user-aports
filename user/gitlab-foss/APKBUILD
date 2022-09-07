@@ -4,7 +4,7 @@ pkgname=gitlab-foss
 _pkgname=${pkgname%-foss}
 pkgver=15.2.2_p1
 _gitrev=a7e7b8bc4c65c75a9ce1bf17ca6e499493526624
-pkgrel=1
+pkgrel=2
 pkgdesc="A version control for your server"
 url="https://gitlab.com/gitlab-org/gitlab-foss"
 arch="x86_64"
@@ -248,7 +248,7 @@ package() {
 	# Note: *VERSION files and doc directory are required (Help in GitLab
 	# menu refers to the doc directory).
 	cp -rl .bundle config.ru Gemfile* INSTALLATION_TYPE Rakefile *VERSION \
-		app db doc fixtures config lib locale metrics_server public sidekiq_cluster vendor \
+		app data db doc fixtures config lib locale metrics_server public sidekiq_cluster vendor \
 		"$destdir"/
 
 	install -m755 -t "$destdir"/bin/ \
