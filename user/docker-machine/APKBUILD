@@ -3,13 +3,15 @@
 pkgname=docker-machine
 pkgver=0.16.2.18
 _pkgver="v${pkgver%.*}-gitlab.${pkgver##*.}"
-pkgrel=0
+pkgrel=1
 pkgdesc="Machine management for a shit-centric world"
 url="https://gitlab.com/gitlab-org/ci-cd/docker-machine"
 arch="all"
 license="Apache-2.0"
 makedepends="go"
-source="https://gitlab.com/gitlab-org/ci-cd/docker-machine/-/archive/$_pkgver/docker-machine-$_pkgver.tar.gz"
+source="https://gitlab.com/gitlab-org/ci-cd/docker-machine/-/archive/$_pkgver/docker-machine-$_pkgver.tar.gz
+	0001-Add-provisioner-for-Alpine-Linux.patch
+	"
 builddir="$srcdir/src/github.com/docker/machine"
 options="chmod-clean"
 
@@ -38,4 +40,5 @@ package() {
 
 sha512sums="
 d9ea274347a56fd607766c5976222de6bf085611a92f86b91a4ba3b97552fd7322d8904addc0bb2cc22f4e9c91cfdd380ea51073aa6a1601a80220e4f235c952  docker-machine-v0.16.2-gitlab.18.tar.gz
+06cfd1887509c9ccfe26634bcf426611f1b7d79ff2e7d12795915fdbfefc031a73788f2b4359072e7869afb2938ae94adc648768d74b976376962f98ddadbdf1  0001-Add-provisioner-for-Alpine-Linux.patch
 "

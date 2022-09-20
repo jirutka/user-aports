@@ -1,0 +1,190 @@
+From b69f48ab4bae26a78ad1975e36b97a5584f4ada5 Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Tue, 20 Sep 2022 18:02:42 +0200
+Subject: [PATCH] Add provisioner for Alpine Linux
+
+---
+ libmachine/provision/alpine.go | 171 +++++++++++++++++++++++++++++++++
+ 1 file changed, 171 insertions(+)
+ create mode 100644 libmachine/provision/alpine.go
+
+diff --git a/libmachine/provision/alpine.go b/libmachine/provision/alpine.go
+new file mode 100644
+index 00000000..6b8a5570
+--- /dev/null
++++ b/libmachine/provision/alpine.go
+@@ -0,0 +1,171 @@
++package provision
++
++import (
++	"fmt"
++
++	"github.com/docker/machine/libmachine/auth"
++	"github.com/docker/machine/libmachine/drivers"
++	"github.com/docker/machine/libmachine/engine"
++	"github.com/docker/machine/libmachine/log"
++	"github.com/docker/machine/libmachine/mcnutils"
++	"github.com/docker/machine/libmachine/provision/pkgaction"
++	"github.com/docker/machine/libmachine/provision/serviceaction"
++	"github.com/docker/machine/libmachine/swarm"
++)
++
++func init() {
++	Register("Alpine", &RegisteredProvisioner{
++		New: NewAlpineProvisioner,
++	})
++}
++
++func NewAlpineProvisioner(d drivers.Driver) Provisioner {
++	return &AlpineProvisioner{
++		GenericProvisioner{
++			SSHCommander:      GenericSSHCommander{Driver: d},
++			DockerOptionsDir:  "/etc/docker",
++			DaemonOptionsFile: "/etc/conf.d/docker",
++			OsReleaseID:       "alpine",
++			Packages: []string{
++				"curl",
++			},
++			Driver: d,
++		},
++	}
++}
++
++type AlpineProvisioner struct {
++	GenericProvisioner
++}
++
++func (provisioner *AlpineProvisioner) String() string {
++	return "alpine"
++}
++
++func (provisioner *AlpineProvisioner) CompatibleWithHost() bool {
++	return provisioner.OsReleaseInfo.ID == provisioner.OsReleaseID || provisioner.OsReleaseInfo.IDLike == provisioner.OsReleaseID
++}
++
++func (provisioner *AlpineProvisioner) Package(name string, action pkgaction.PackageAction) error {
++	var packageAction string
++
++	switch action {
++	case pkgaction.Install:
++		packageAction = "add"
++	case pkgaction.Purge:
++		packageAction = "del --purge"
++	case pkgaction.Remove:
++		packageAction = "del"
++	case pkgaction.Upgrade:
++		packageAction = "add --upgrade --latest"
++	}
++
++	command := fmt.Sprintf("doas apk --quiet --no-progress %s %s", packageAction, name)
++
++	log.Debugf("package: action=%s name=%s", action.String(), name)
++
++	if _, err := provisioner.SSHCommand(command); err != nil {
++		return err
++	}
++
++	return nil
++}
++
++func (provisioner *AlpineProvisioner) dockerDaemonResponding() bool {
++	log.Debug("checking docker daemon")
++
++	if out, err := provisioner.SSHCommand("doas docker version"); err != nil {
++		log.Warnf("Error getting SSH command to check if the daemon is up: %s", err)
++		log.Debugf("'doas docker version' output:\n%s", out)
++		return false
++	}
++
++	// The daemon is up if the command worked.  Carry on.
++	return true
++}
++
++func (provisioner *AlpineProvisioner) Service(name string, action serviceaction.ServiceAction) error {	
++	var command string
++
++	switch action {
++	case serviceaction.Start, serviceaction.Restart, serviceaction.Stop:
++		command = fmt.Sprintf("doas rc-service %s %s", name, action.String())
++	case serviceaction.DaemonReload:
++		command = fmt.Sprintf("doas rc-service restart %s", name)
++	case serviceaction.Enable:
++		command = fmt.Sprintf("doas rc-update add %s default", name)
++	case serviceaction.Disable:
++		command = fmt.Sprintf("doas rc-update del %s default", name)
++	}
++	
++	if _, err := provisioner.SSHCommand(command); err != nil {
++		return err
++	}
++
++	return nil
++}
++
++func (provisioner *AlpineProvisioner) Provision(swarmOptions swarm.Options, authOptions auth.Options, engineOptions engine.Options) error {
++	provisioner.SwarmOptions = swarmOptions
++	provisioner.AuthOptions = authOptions
++	provisioner.EngineOptions = engineOptions
++	swarmOptions.Env = engineOptions.Env
++
++	storageDriver, err := decideStorageDriver(provisioner, "overlay2", engineOptions.StorageDriver)
++	if err != nil {
++		return err
++	}
++	provisioner.EngineOptions.StorageDriver = storageDriver
++
++	// HACK: since Alpine does not come with doas or sudo by default we install
++	log.Debug("Installing doas")
++	if _, err := provisioner.SSHCommand("if ! type doas; then apk add doas; fi"); err != nil {
++		return err
++	}
++
++	log.Debug("Setting hostname")
++	if err := provisioner.SetHostname(provisioner.Driver.GetMachineName()); err != nil {
++		return err
++	}
++
++	log.Debug("Installing base packages")
++	for _, pkg := range provisioner.Packages {
++		if err := provisioner.Package(pkg, pkgaction.Install); err != nil {
++			return err
++		}
++	}
++
++	log.Debug("Installing docker")
++	if err := provisioner.Package("docker", pkgaction.Install); err != nil {
++		return err
++	}
++
++	log.Debug("Starting docker service")
++	if err := provisioner.Service("docker", serviceaction.Start); err != nil {
++		return err
++	}
++
++	log.Debug("Waiting for docker daemon")
++	if err := mcnutils.WaitFor(provisioner.dockerDaemonResponding); err != nil {
++		return err
++	}
++
++	provisioner.AuthOptions = setRemoteAuthOptions(provisioner)
++
++	log.Debug("Configuring auth")
++	if err := ConfigureAuth(provisioner); err != nil {
++		return err
++	}
++
++	log.Debug("Configuring swarm")
++	if err := configureSwarm(provisioner, swarmOptions, provisioner.AuthOptions); err != nil {
++		return err
++	}
++
++	log.Debug("Enabling docker service")
++	if err := provisioner.Service("docker", serviceaction.Enable); err != nil {
++		return err
++	}
++
++	return nil
++}
+-- 
+2.37.1
+
