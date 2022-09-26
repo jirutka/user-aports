@@ -1,0 +1,69 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=xh
+pkgver=0.16.1
+pkgrel=2
+pkgdesc="Yet another HTTPie clone"
+url="https://github.com/ducaale/xh"
+# riscv64: blocked by rust/cargo
+# s390x: fails to build terminal_size crate
+arch="all !riscv64 !s390x"
+license="MIT"
+makedepends="
+	cargo
+	oniguruma-dev
+	openssl-dev
+	"
+subpackages="
+	$pkgname-doc
+	$pkgname-bash-completion
+	$pkgname-fish-completion
+	$pkgname-zsh-completion
+	"
+source="https://github.com/ducaale/xh/archive/v$pkgver/xh-$pkgver.tar.gz
+	native-tls-only.patch
+	strip-regex-features.patch
+	"
+
+export CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1
+export CARGO_PROFILE_RELEASE_LTO="true"
+export CARGO_PROFILE_RELEASE_OPT_LEVEL="s"
+export CARGO_PROFILE_RELEASE_PANIC="abort"
+
+# Link with system-provided oniguruma library (instead building from source
+# and bundling).
+export RUSTONIG_DYNAMIC_LIBONIG=1
+
+_cargo_opts="--frozen --no-default-features --features native-tls"
+
+prepare() {
+	default_prepare
+
+	cargo fetch --locked
+}
+
+build() {
+	cargo build $_cargo_opts --release
+}
+
+check() {
+	cargo test $_cargo_opts
+}
+
+package() {
+	install -D -m755 target/release/$pkgname -t "$pkgdir"/usr/bin/
+
+	ln -s xh "$pkgdir"/usr/bin/xhs
+
+	install -Dm 644 doc/xh.1 "$pkgdir"/usr/share/man/man1/xh.1
+
+	install -Dm 644 completions/xh.bash "$pkgdir"/usr/share/bash-completion/completions/xh
+	install -Dm 644 completions/xh.fish "$pkgdir"/usr/share/fish/completions/xh.fish
+	install -Dm 644 completions/_xh "$pkgdir"/usr/share/zsh/site-functions/_xh
+}
+
+sha512sums="
+d3514f2436d0371a19a9db8225ed49524b5642a9cd4c643b682b431c1a87a7c1d0413b342e5f242e24638d8ef8694bee3fa1d04d2674ba5ac37b4498b790ff31  xh-0.16.1.tar.gz
+fd493b0bf6e8778b81b331d5d1d578fbb3c12647751dc362fd7c52f608572db118a78cd11043fce9cce6118bf2e22bfb28f32f601db97236ac4273e8d894c671  native-tls-only.patch
+5c329ee6ea5a7cb8d67d75f6694a4cc11f8c273ae474dee949ebfe7eda3ae177306ebfb1b48fa0ca6b565c62f6d43a8036d4553cc79ca9ba59de2a7e7fce2303  strip-regex-features.patch
+"
