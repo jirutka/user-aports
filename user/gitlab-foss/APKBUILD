@@ -2,8 +2,8 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=gitlab-foss
 _pkgname=${pkgname%-foss}
-pkgver=15.3.3_p1
-_gitrev=01e1958e73582c0bf1c2020c6f1fe97662a891e4
+pkgver=15.3.4_p1
+_gitrev=f756db9918ea6fc623aecc23b06a137e6291916f
 pkgrel=0
 pkgdesc="A version control for your server"
 url="https://gitlab.com/gitlab-org/gitlab-foss"
@@ -382,7 +382,7 @@ assets() {
 }
 
 sha512sums="
-83d31cdc0170517a72847aefd89c9189c600e5e35528eccf274a1ce59366730bdf90f0265bc5486d0e5bb9440961632d82aac11d7749aaa37d7557ae95f1649a  gitlabhq-01e1958e73582c0bf1c2020c6f1fe97662a891e4.tar.gz
+de5f4c2502764ab36de1f6b085c49e868b0fcd5b4d90a71e3d702fde914a89392d4c9ed7080bae99dc7c233d6be94b8792837cf955bcd9d38735104297a63d23  gitlabhq-f756db9918ea6fc623aecc23b06a137e6291916f.tar.gz
 80e27697772c4529720f2ec65d314641cd5f437070d0fefd3c521852ff6dad8c9127534e379a5c0bcee4bbae8d5a373d131bf91a58606d02c89104e34a88baac  libgit-1.4-compat.patch
 55b0667d3969113ffd6860652ee8bdb9a534c25f413f33b2739e922c886988e7cea72c1c00c7eecf29fcff3682b1324156365605ffc6aae45d1e0ccddf96288b  gitlab.initd
 1f451b67a5d5e58650b0fe862a2b65cfb8bff5502b37d94ae90619c1ff9affbecf24428303a2849bebce5f94bef37078f0e5710e344bbab616134e910938384a  gitlab.mailroom.initd
