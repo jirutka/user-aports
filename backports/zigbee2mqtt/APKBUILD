@@ -3,7 +3,7 @@
 pkgname=zigbee2mqtt
 pkgver=1.28.2_git20221105
 _gitrev=c2e95bdb6a84ac4c13e136fbeedac9efbc8882bb
-pkgrel=0
+pkgrel=1
 pkgdesc="Zigbee to MQTT bridge"
 url="https://www.zigbee2mqtt.io/"
 # armhf: some tests timeout and I don't care about armhf
@@ -21,7 +21,7 @@ makedepends="
 	"
 pkgusers="zigbee2mqtt"
 pkggroups="$pkgusers"
-install="$pkgname.pre-install"
+install="$pkgname.pre-install $pkgname.post-install"
 subpackages="
 	$pkgname-dbg::noarch
 	$pkgname-openrc
@@ -29,9 +29,10 @@ subpackages="
 source="https://github.com/Koenkk/zigbee2mqtt/archive/$_gitrev/$pkgname-$_gitrev.tar.gz
 	dont-build-on-start.patch
 	ungit.patch
+	full-filename-in-value-ref.patch
+	pan_id-secret.patch
 
 	configuration.yaml
-	secret.yaml
 	$pkgname.initd
 	$pkgname.confd
 	"
@@ -67,8 +68,6 @@ package() {
 
 	install -D -m644 -o "$pkgusers" -g "$pkggroups" "$srcdir"/configuration.yaml -t etc/$pkgname/
 	ln -s /etc/$pkgname/configuration.yaml var/lib/$pkgname/configuration.yaml
-
-	install -m640 -o "$pkgusers" -g "$pkggroups" "$srcdir"/secret.yaml -t etc/$pkgname/
 	ln -s /etc/$pkgname/secret.yaml var/lib/$pkgname/secret.yaml
 
 	install -D -m755 "$srcdir"/$pkgname.initd "$pkgdir"/etc/init.d/$pkgname
@@ -76,8 +75,8 @@ package() {
 
 	cd "$destdir"
 
-	# Remove dev and optional dependencies.
-	npm prune --omit dev --omit optional
+	# Remove dev dependencies.
+	npm prune --omit dev
 
 	cd node_modules
 
@@ -103,12 +102,14 @@ package() {
 	rm -rf jszip/dist
 	rm -rf mqtt/dist
 	rm -rf pako/dist
-	(
-		cd @serialport/bindings
+	local dir; for dir in @serialport/bindings unix-dgram; do
+		cd $dir
 		rm -rf build/node_gyp_bins
 		rm -rf src
 		rm -rf build/Release/obj.target build/Release/.deps
-	)
+		strip build/Release/*.node
+		cd - >/dev/null
+	done
 }
 
 dbg() {
@@ -123,8 +124,9 @@ sha512sums="
 4c00042671259ad9b425ce8f5a7ba38f3e66f6e6e864fd0a4062cbf4f26083e5434c409bfbb26a3affbd75acc7a9a3bbb0fdccabece33ff532858cd46c1f198a  zigbee2mqtt-c2e95bdb6a84ac4c13e136fbeedac9efbc8882bb.tar.gz
 a3c55be73d033bb8345a1042839876be95e449d5e2cbd7168e224b983129657077c7ee5653f35c2d06528c7056af3a1fc47b82d4e8866afd39dcf99c2dc00de6  dont-build-on-start.patch
 dcb9c4cacdc3799d008ffc68868d83f64941bb5a00b555103868f1236e3a395c68d486fcaa6d7174422ec065994bf925a7aeed9537e07fe32e5093076eafcaba  ungit.patch
-19500fab15afc91d8dc2d55139b97ab650ed108ae2557edbd8ac1a6f59454ef427975da80c130d390c46b77a83930a4a2c8988c5227336cb5a34970b95305734  configuration.yaml
-3cff0986457ca424edaf0c412987ffe3c755221c425a084c2d97178b30cf9122d9b5204014c520d3b64c620395a44baca388b248c71d1660696a26faa9d86764  secret.yaml
-9ec388c11a0d51ba3fb19a4d2d73c65d02b349c626ec7979334cbbd878b6ac542d5663241b7b4d710bf7a3f51142bb6783e002c74a71e33accce6241ead94b9d  zigbee2mqtt.initd
-1661d3b82afcef588333427f340d51fd9a1e3812a05008371b68336421f2638068f2cc0b1bd0179204a01602cbed3586cc3c1a9990c2f321f02403a61c5197f1  zigbee2mqtt.confd
+5c1416cb4caedf15751fe9a87fbc1def449fd645095262fb8fb8cad4d9141321bb85d009305f4f858c9cb7d78206d4485342c6f8831bb7a137721b6a93dda23b  full-filename-in-value-ref.patch
+59fcca6de0d0fcdec8c3bc4f6f3f39d1b6a0bedb90dbbbae5ab6853f65cdd72efde9060265c673a963e6c7db98b762acc690e44320df99ef27c7a5dcaff407e3  pan_id-secret.patch
+24a1e1a5626fbc2602b6fa3d2164b5e2fbf956425ec0dc39b8eb5bed68141ef35f57e5b97a26303bada4648fb7f265329e452a199aad2ff536a7a8c8f62b87f0  configuration.yaml
+24f9e1bd6f6a25bd3b4a74930b79349dfe7772e8a056a8d16e461ecdfb8ad637e0169a8e4386b8113aa133e9973e4d53f755ead6e87ee7743c26f15f1ceee7e9  zigbee2mqtt.initd
+aa1b1de7f2df5d335d57cade1ee625efe7d337e1afef84308be4b8626224af20ad6805882065c90c240a311abed550d4a8be01baa52750ac81d3c888554a26e9  zigbee2mqtt.confd
 "
