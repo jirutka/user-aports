@@ -8,7 +8,7 @@ pkgdesc="Oracle Instant Client"
 url="https://www.oracle.com/database/technologies/instant-client.html"
 arch="x86_64"
 license="Proprietary"
-makedepends="gcompat libaio libexecinfo libnsl libtirpc-dev patchelf"
+makedepends="gcompat libaio libnsl libtirpc-dev patchelf"
 install="$pkgname.pre-install"
 subpackages="$pkgname-dev $pkgname-java $pkgname-mysql $pkgname-oci $pkgname-sqlplus"
 source="https://download.oracle.com/otn_software/linux/instantclient/$_verurl/instantclient-basiclite-linux.x64-${pkgver}.zip
@@ -40,7 +40,6 @@ prepare() {
 	patchelf --add-needed libgcompat.so.0 libclntsh.so
 	patchelf --add-needed liboracompat.so.0 libclntsh.so
 	patchelf --add-needed libtirpc-nokrb.so.3 libclntsh.so
-	patchelf --add-needed libexecinfo.so.1 libnnz*.so
 
 	patchelf --set-rpath /usr/lib/$pkgname $bins
 }
