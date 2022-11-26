@@ -1,8 +1,0 @@
-#!/bin/sh
-
-pkgname="docker-distribution-pruner"
-
-cat >&2 <<EOF
-* If you want to run $pkgname periodically, you can do:
-*   ln -s /usr/share/$pkgname/wrapper-script /etc/periodic/weekly/$pkgname
-EOF

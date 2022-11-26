@@ -1,5 +1,0 @@
-/var/log/docker-distribution-pruner.log {
-	compress
-	copytruncate
-	missingok
-}
