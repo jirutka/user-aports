@@ -1,5 +1,0 @@
-/var/log/minio.log {
-	copytruncate
-	delaycompress
-	missingok
-}
