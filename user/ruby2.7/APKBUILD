@@ -56,7 +56,7 @@ _abiver="${pkgver%.*}.0"
 pkgrel=0
 pkgdesc="An object-oriented language for quick and easy programming"
 url="https://www.ruby-lang.org/"
-arch="all"
+#arch="all"  # XXX: temporarily disabled
 license="Ruby AND BSD-2-Clause AND MIT"
 depends="ca-certificates !ruby"
 depends_dev="$pkgname=$pkgver-r$pkgrel gmp-dev libucontext-dev"

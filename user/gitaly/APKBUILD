@@ -5,7 +5,7 @@ pkgver=15.3.3
 pkgrel=0
 pkgdesc="A Git RPC service for handling all the git calls made by GitLab"
 url="https://gitlab.com/gitlab-org/gitaly/"
-arch="all"
+#arch="all"  # XXX: temporarily disabled
 # GPL-2.0-only WITH GCC-exception-2.0: bundled libgit2
 license="MIT AND GPL-2.0-only WITH GCC-exception-2.0"
 depends="

@@ -7,7 +7,7 @@ _gitrev=f756db9918ea6fc623aecc23b06a137e6291916f
 pkgrel=0
 pkgdesc="A version control for your server"
 url="https://gitlab.com/gitlab-org/gitlab-foss"
-arch="x86_64"
+#arch="x86_64"  # XXX: temporarily disabled
 license="MIT"
 # ruby-irb is needed only for Rails console (gitlab-rails console)
 depends="
