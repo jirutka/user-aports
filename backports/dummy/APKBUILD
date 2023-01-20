@@ -1,0 +1,14 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=dummy
+pkgver=0
+pkgrel=0
+pkgdesc="A dummy aport to ensure that this repository is never empty"
+url="https://github.com/jirutka/user-aports"
+arch="noarch"
+license="MIT"
+source=""
+
+package() {
+	mkdir -p "$pkgdir"
+}
