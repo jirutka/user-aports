@@ -1,32 +1,47 @@
+# Contributor: Antoni Aloy <aaloytorrens@gmail.com>
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Antoni Aloy <aaloytorrens@gmail.com>
 pkgname=solaar
-pkgver=1.1.4
-pkgrel=4
+pkgver=1.1.6
+pkgrel=0
 pkgdesc="Linux device manager for a wide range of Logitech devices"
 url="https://pwr-solaar.github.io/Solaar/"
 arch="noarch"
 license="GPL-2.0-or-later"
-makedepends="py3-setuptools"
 depends="
-	gtk+3.0
-	libnotify
 	py3-dbus
 	py3-evdev
-	py3-gobject3
+	py3-hid-parser
 	py3-psutil
 	py3-udev
 	py3-xlib
 	py3-yaml
-"
-subpackages="$pkgname-doc"
-install="$pkgname.pre-install"
-source="$pkgname-$pkgver.tar.gz::https://github.com/pwr-Solaar/Solaar/archive/$pkgver.tar.gz
-	$pkgname.rules
+	"
+_depends_gui="
+	gtk+3.0
+	hicolor-icon-theme
+	libnotify
+	py3-gobject3
+	"
+makedepends="
+	$_depends_gui
+	gettext
+	py3-setuptools
+	"
+install="$pkgname.pre-install $pkgname.post-install"
+subpackages="$pkgname-lang $pkgname-gui"
+source="https://github.com/pwr-Solaar/Solaar/archive/$pkgver/$pkgname-$pkgver.tar.gz
+	make-hid-parser-optional.patch
+	udev-rules.patch
+	solaar-gui.patch
+	dont-require-gtk-in-cli.patch
 	"
 builddir="$srcdir/Solaar-$pkgver"
 
 build() {
 	python3 setup.py build
+
+	./tools/po-compile.sh
 }
 
 check() {
@@ -35,19 +50,21 @@ check() {
 
 package() {
 	python3 setup.py install --root="$pkgdir"
+}
 
-	# udev
-	install -Dm644 "$srcdir"/"$pkgname".rules \
-	"$pkgdir"/lib/udev/rules.d/42-logitech-unify-permissions.rules
+gui() {
+	pkgdesc="$pkgdesc (Gtk GUI)"
+	depends="$_depends_gui"
+	install_if="$pkgname=$pkgver-r$pkgrel gtk+3.0"
 
-	# docs
-	install -Dm644 "$builddir"/ChangeLog.md \
-	"$pkgdir"/usr/share/doc/solaar/ChangeLog.md
-	install -Dm644 "$builddir"/README.md \
-	"$pkgdir"/usr/share/doc/solaar/README.md
+	amove usr/lib/python3*/site-packages/solaar/ui
+	amove usr/share
 }
 
 sha512sums="
-c87dd0395524297aff9eaa03ab666e5db45cb9ad81352d0485bababde82dd911ba55d126fd22be3e31a88900b48ae3f1e037b631d59c72c709e465c9ee4b6ee3  solaar-1.1.4.tar.gz
-7f86932c463acf4368022134bf7ad16693ba40a1e65bf52379a28cedd870279afba5df90b9d99f6a24f420492f3068277bb6fca999df13c99936974f93a17424  solaar.rules
+a1f17a93fb960170496851e86a461fef863dff1e86dbc1acc54083804495e1dbbb962c6eab8459e36af2822c2b06b2fe060f070dee8a1837b72059c8dbeb46db  solaar-1.1.6.tar.gz
+3c0c957e4178931e85dea0485c670e68a46c76dc6f46d4a066204140ddeff39ba06bb4a4896c58e1cd726bca98e5984b5246465fefaaecff1182a2bd92593432  make-hid-parser-optional.patch
+582359564412adbb5b091e6af68bb0d301fabe3e2d1ff8e231fcfa12581e7aeb00e01f1134b3b587073ffd83129afd118094ef479c3118e6b63f8a8f2851233d  udev-rules.patch
+4aedd8ca49c8dec25ac649ef0c00a75da4e56235fa030141c5191df11f7ae71a2d17f3f129f0f86c0b61a2670bd58f0cf512f2cae0bdef50bec9cfb8efeaf2dd  solaar-gui.patch
+855f4d70e1920a07a8e772ac187a990e1f161de58d8d0ddbd78f62ad061b75960d57e7a5daa1b59e572f87820819e564704cc391d768fa396e3dd5a3665fbbb8  dont-require-gtk-in-cli.patch
 "
