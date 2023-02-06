@@ -1,0 +1,53 @@
+# Maintainer: Antoni Aloy <aaloytorrens@gmail.com>
+pkgname=solaar
+pkgver=1.1.4
+pkgrel=4
+pkgdesc="Linux device manager for a wide range of Logitech devices"
+url="https://pwr-solaar.github.io/Solaar/"
+arch="noarch"
+license="GPL-2.0-or-later"
+makedepends="py3-setuptools"
+depends="
+	gtk+3.0
+	libnotify
+	py3-dbus
+	py3-evdev
+	py3-gobject3
+	py3-psutil
+	py3-udev
+	py3-xlib
+	py3-yaml
+"
+subpackages="$pkgname-doc"
+install="$pkgname.pre-install"
+source="$pkgname-$pkgver.tar.gz::https://github.com/pwr-Solaar/Solaar/archive/$pkgver.tar.gz
+	$pkgname.rules
+	"
+builddir="$srcdir/Solaar-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py check
+}
+
+package() {
+	python3 setup.py install --root="$pkgdir"
+
+	# udev
+	install -Dm644 "$srcdir"/"$pkgname".rules \
+	"$pkgdir"/lib/udev/rules.d/42-logitech-unify-permissions.rules
+
+	# docs
+	install -Dm644 "$builddir"/ChangeLog.md \
+	"$pkgdir"/usr/share/doc/solaar/ChangeLog.md
+	install -Dm644 "$builddir"/README.md \
+	"$pkgdir"/usr/share/doc/solaar/README.md
+}
+
+sha512sums="
+c87dd0395524297aff9eaa03ab666e5db45cb9ad81352d0485bababde82dd911ba55d126fd22be3e31a88900b48ae3f1e037b631d59c72c709e465c9ee4b6ee3  solaar-1.1.4.tar.gz
+7f86932c463acf4368022134bf7ad16693ba40a1e65bf52379a28cedd870279afba5df90b9d99f6a24f420492f3068277bb6fca999df13c99936974f93a17424  solaar.rules
+"
