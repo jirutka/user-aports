@@ -1,0 +1,30 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=virt-init
+pkgver=0.2.0
+pkgrel=0
+pkgdesc="Configure system after deploying on a virtualization platform"
+url="https://github.com/jirutka/virt-init"
+arch="noarch"
+license="MIT"
+subpackages="$pkgname-vmware"
+source="https://github.com/jirutka/virt-init/archive/v$pkgver/$pkgname-$pkgver.tar.gz"
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+vmware() {
+	pkgdesc="$pkgname (vmware-ovf)"
+	depends="$pkgname=$pkgver-r$pkgrel open-vm-tools"
+
+	amove usr/share/virt-init/platforms/vmware*
+}
+
+sha512sums="
+8e8699686c875c1c4a82350720702465c4fd9dd2506cfb0ce282b1f9eb7cea15aa57eeaab43ec069ce68330604fb01b243a2cbb27f5b247a336367b6af4ca21d  virt-init-0.2.0.tar.gz
+"
