@@ -13,7 +13,7 @@ new file mode 100644
 index 00000000..6b8a5570
 --- /dev/null
 +++ b/libmachine/provision/alpine.go
-@@ -0,0 +1,171 @@
+@@ -0,0 +1,173 @@
 +package provision
 +
 +import (
@@ -166,7 +166,9 @@ index 00000000..6b8a5570
 +		return err
 +	}
 +
-+	provisioner.AuthOptions = setRemoteAuthOptions(provisioner)
++	if err := setupRemoteAuthOptions(provisioner); err != nil {
++		return err
++	}
 +
 +	log.Debug("Configuring auth")
 +	if err := ConfigureAuth(provisioner); err != nil {

@@ -1,9 +1,9 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=docker-machine
-pkgver=0.16.2.18
+pkgver=0.16.2.19
 _pkgver="v${pkgver%.*}-gitlab.${pkgver##*.}"
-pkgrel=1
+pkgrel=0
 pkgdesc="Machine management for a shit-centric world"
 url="https://gitlab.com/gitlab-org/ci-cd/docker-machine"
 arch="all"
@@ -39,6 +39,6 @@ package() {
 }
 
 sha512sums="
-d9ea274347a56fd607766c5976222de6bf085611a92f86b91a4ba3b97552fd7322d8904addc0bb2cc22f4e9c91cfdd380ea51073aa6a1601a80220e4f235c952  docker-machine-v0.16.2-gitlab.18.tar.gz
-06cfd1887509c9ccfe26634bcf426611f1b7d79ff2e7d12795915fdbfefc031a73788f2b4359072e7869afb2938ae94adc648768d74b976376962f98ddadbdf1  0001-Add-provisioner-for-Alpine-Linux.patch
+57cae4452b2373b635048b204d2eb56e0aa668744e81544a77070fa6448ed43360c2fe91abbdb2dd022717132b59bfd8e6b2aa7ff8613eaacc1d71881098a9c0  docker-machine-v0.16.2-gitlab.19.tar.gz
+e20ff612fe93d35251f37e702bc5b572ea9a413a980c42228a26f411e408858dffadd4340a04e32430753b83ce618a546cf4abe6835727fbb7fa9bf1c4375bc4  0001-Add-provisioner-for-Alpine-Linux.patch
 "
