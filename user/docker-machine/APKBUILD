@@ -11,6 +11,7 @@ license="Apache-2.0"
 makedepends="go"
 source="https://gitlab.com/gitlab-org/ci-cd/docker-machine/-/archive/$_pkgver/docker-machine-$_pkgver.tar.gz
 	0001-Add-provisioner-for-Alpine-Linux.patch
+	0002-vmwarevsphere2.patch
 	"
 builddir="$srcdir/src/github.com/docker/machine"
 
@@ -44,4 +45,5 @@ package() {
 sha512sums="
 57cae4452b2373b635048b204d2eb56e0aa668744e81544a77070fa6448ed43360c2fe91abbdb2dd022717132b59bfd8e6b2aa7ff8613eaacc1d71881098a9c0  docker-machine-v0.16.2-gitlab.19.tar.gz
 e20ff612fe93d35251f37e702bc5b572ea9a413a980c42228a26f411e408858dffadd4340a04e32430753b83ce618a546cf4abe6835727fbb7fa9bf1c4375bc4  0001-Add-provisioner-for-Alpine-Linux.patch
+23cf0edaaa8148bd5fdff2f4ac7961126d760da8043b5fac3257f4e5329b4927de18f299a152fd3e2abd58e1b64cafcbaceef0a550b74afa18d1e4f06aca6bae  0002-vmwarevsphere2.patch
 "
