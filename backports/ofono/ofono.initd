@@ -1,0 +1,13 @@
+#!/sbin/openrc-run
+
+name="oFono"
+description="oFono mobile telephony daemon"
+
+command="/usr/sbin/ofonod"
+command_args="-n $command_args"
+command_background="yes"
+pidfile="/run/$RC_SVCNAME.pid"
+
+depend() {
+	need dbus
+}
