@@ -6,7 +6,7 @@ _verminor=${pkgver#*.}; _verminor=${_verminor%%.*}
 pkgrel=0
 pkgdesc="Oracle Instant Client"
 url="https://www.oracle.com/database/technologies/instant-client.html"
-arch="x86_64"
+#arch="x86_64"  # FIXME: fails to build
 license="Proprietary"
 makedepends="gcompat libaio libnsl libtirpc-dev patchelf"
 install="$pkgname.pre-install"
