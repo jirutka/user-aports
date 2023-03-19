@@ -31,7 +31,7 @@ jobs:
         run: apk add alpine-sdk lua-aports sshfs
 
       - name: Checkout aports repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 10
 
