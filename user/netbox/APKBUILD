@@ -1,0 +1,182 @@
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=netbox
+pkgver=3.4.6
+pkgrel=0
+pkgdesc="The premiere source of truth powering network automation"
+url="https://netbox.io"
+arch="noarch"
+license="Apache-2.0"
+# The approach is to install all python dependencies with native extensions from
+# Alpine packages and the rest from PyPI.
+depends="
+	py3-cffi
+	py3-charset-normalizer
+	py3-cryptography
+	py3-markupsafe
+	py3-pillow~=9
+	py3-psycopg2~=2
+	py3-regex
+	py3-ruamel.yaml.clib
+	py3-tzdata
+	python3
+	uwsgi-http
+	uwsgi-python3
+	uwsgi-syslog
+	"
+pkgusers="netbox"
+pkggroups="netbox"
+install="
+	$pkgname.pre-install
+	$pkgname.post-install
+	$pkgname.post-upgrade
+	"
+subpackages="$pkgname-openrc"
+source="https://github.com/netbox-community/netbox/archive/v$pkgver/$pkgname-$pkgver.tar.gz
+	configuration-defaults.patch
+	settings.patch
+	$pkgname.initd
+	$pkgname.confd
+	netbox-housekeeping.daily
+	netbox-manage
+	uwsgi.ini
+	"
+options="!check"
+
+_appdir="usr/lib/$pkgname"
+
+prepare() {
+	default_prepare
+
+	# Relax version requirements for modules we don't install into venv,
+	# but use system-provided.
+	# We use uWSGI instead of gunicorn.
+	sed -Ei -e 's/^Pillow[>=]=9\..*/Pillow>=9/' \
+		-e 's/^psycopg2-binary[>=]=2\..*/psycopg2>=2/' \
+		-e 's/^tzdata==.*/tzdata/' \
+		-e '/^gunicorn\b/d' \
+		requirements.txt
+
+	sed -i '/extras\.tests\.dummy_plugin/d' netbox/netbox/configuration_testing.py
+
+	mv netbox/manage.py netbox/netbox-manage
+}
+
+build() {
+	# Create virtualenv.
+	python3 -m venv --system-site-packages .
+
+	# Install dependencies.
+	bin/python3 -m pip install \
+		--disable-pip-version-check \
+		--isolated \
+		--no-cache-dir \
+		--no-compile \
+		--no-input \
+		--require-virtualenv \
+		--verbose \
+		-r requirements.txt
+
+
+	## Clean-up
+
+	# Remove some useless files.
+	find lib -type d -name tests -exec rm -Rfv '{}' +
+	find lib \( \
+		-name 'test_*.py' -o \
+		-name 'test_*.pyc' -o \
+		-name 'README*' -o \
+		-name 'LICENSE*' \) -delete
+	rm bin/activate* bin/Activate*
+	rm netbox/generate_secret_key.py
+	rm -rfv netbox/*/tests
+	rm -rf include lib64 share
+
+	# Remove non-English locales.
+	find lib/python*/site-packages/django/conf/locale \
+		lib/python*/site-packages/django/contrib/*/locale \
+		-type d ! -name en -mindepth 1 -maxdepth 1 -exec rm -rf '{}' \;
+
+
+	## Compile static assets
+
+	mv netbox/netbox/configuration_testing.py netbox/netbox/configuration.py
+
+	bin/python3 bin/mkdocs build
+	PATH="$PWD/bin:$PATH" netbox/netbox-manage collectstatic --noinput --clear
+
+	rm netbox/netbox/configuration.py
+
+
+	## Finalize
+
+	# Remove build-time dependencies.
+	bin/python3 -m pip uninstall --disable-pip-version-check -y \
+		mkdocs \
+		mkdocs-material \
+		mkdocstrings \
+		pip
+
+	# .map files are not needed for production.
+	find netbox/static -name '*.map' -delete
+	# EOT and TTF fonts are needed only for ancient browsers.
+	find netbox/static \( -name '*.eot' -o -name '*.ttf' \) -delete
+
+	# Compress assets bigger than 16 kiB.
+	find netbox/static -size +16k \
+		\( -name '*.css' -o -name '*.js' -o -name '*.svg' \) \
+		-exec gzip -k9 {} \;
+
+	# Source static assets are not needed anymore.
+	rm -rf netbox/project-static
+	rm -rf lib/python*/site-packages/*/static
+	rm -rf lib/python*/site-packages/django/contrib/static
+	rm -rf lib/python*/site-packages/django/contrib/*/static
+	rm -rf lib/python*/site-packages/material/.icons
+
+	# Fix absolute paths e.g. in shebang to the correct destination.
+	find ./bin -type f -exec sed -i "s|$builddir|/$_appdir|g" {} \;
+
+	# Regenerate .pyc files with correct paths.
+	bin/python3 -m compileall -f -q -d "/$_appdir"/lib lib
+}
+
+package() {
+	mkdir -p "$pkgdir/$_appdir"
+	cp -r bin \
+		lib \
+		netbox \
+		pyvenv.cfg \
+		requirements.txt \
+		"$pkgdir/$_appdir"/
+
+	install -D -m644 "$srcdir"/uwsgi.ini -t "$pkgdir"/etc/$pkgname/
+	install -D -m640 -o root -g netbox netbox/netbox/configuration_example.py \
+		"$pkgdir"/etc/$pkgname/configuration.py
+
+	cd "$pkgdir"
+
+	ln -s /etc/$pkgname/configuration.py $_appdir/netbox/netbox/configuration.py
+	ln -s /etc/$pkgname/secret_key $_appdir/netbox/netbox/secret_key
+
+	install -D -m755 "$srcdir"/netbox-manage -t usr/bin/
+
+	install -D -m755 "$srcdir"/$pkgname.initd etc/init.d/$pkgname
+	install -D -m644 "$srcdir"/$pkgname.confd etc/conf.d/$pkgname
+	install -D -m755 "$srcdir"/netbox-housekeeping.daily etc/periodic/daily/netbox-housekeeping
+
+	install -d -m750 -o netbox -g netbox \
+		var/lib/$pkgname/media \
+		var/lib/$pkgname/reports \
+		var/lib/$pkgname/scripts
+}
+
+sha512sums="
+33db8f7f6f616924ce223dce6dff7c01bf81267df995dfd4696a7248a012c6c74d7358bc8347fb408b61b63f47f11c2fd3b03ed6048c7bba54a5e3833c303a2b  netbox-3.4.6.tar.gz
+006729937870014c53d5fd9859d1511a0be4ce098c742004568d76e916cc96300ae7b409e6f98cb7e32b39f20f3b560a6d3c746916e1d73e3680f5b308525cc5  configuration-defaults.patch
+43c96b6840c23cb96040c86bbc4eb152e482999f4a27a7e26d5f95690780d565cc9daab0ed054093feeb8936ae63357ae2de4d714c469fb860fb50531501d99c  settings.patch
+a7f83af491e09147bb9471bd4e819d692d59615724abd9461084784fe378c1648fe17d8c8e07a1631b48deb934e15af1be140f9a3bc1185e530e4c2b73a17453  netbox.initd
+45a525cf9f6ec9f9d79699a917fd7390eb200b18ffb634ac4b9e6219e318716f10b21f0abc666c44a342b4bc2dc85fbf3c14d46470dbf1d09ae413668b6696b8  netbox.confd
+a346248aa0e7d36e70e31b7f6e0183f85d784fbc5e97b49e12127812db63444a0a642df0888d65ec7c4f11fdc552195badd9e545cbe5afad9968c572ca82fa6d  netbox-housekeeping.daily
+f2f2219aee45ad1bee17af103861872b8e532afa6456342d0e27800e1aab4a3a33a65956135c6882c09baae6eb63cf00cfec3735cd848fc77d3e7676d8a3effe  netbox-manage
+7de1817fea22ed4c957c62243c393dc1248c60d3b48cf2bde3ab997581403d663e2c9d8aee0d49177ea9ccc4551ffe141eba15a5babf50e7f53d996cdd23e482  uwsgi.ini
+"

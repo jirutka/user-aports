@@ -1,0 +1,20 @@
+--- a/netbox/netbox/settings.py
++++ b/netbox/netbox/settings.py
+@@ -38,7 +38,7 @@
+         f"NetBox requires Python 3.8 or later. (Currently installed: Python {platform.python_version()})"
+     )
+ 
+-DEFAULT_SENTRY_DSN = 'https://198cf560b29d4054ab8e583a1d10ea58@o1242133.ingest.sentry.io/6396485'
++DEFAULT_SENTRY_DSN = ''  # XXX-Patched: removed vendor's Sentry DSN
+ 
+ #
+ # Configuration import
+@@ -418,7 +418,7 @@
+     os.path.join(BASE_DIR, 'project-static', 'img'),
+     os.path.join(BASE_DIR, 'project-static', 'js'),
+     ('docs', os.path.join(BASE_DIR, 'project-static', 'docs')),  # Prefix with /docs
+-)
++    ) if os.path.exists(os.path.join(BASE_DIR, 'project-static')) else ()  # XXX-Patched: added condition
+ 
+ # Media
+ MEDIA_URL = '/{}media/'.format(BASE_PATH)

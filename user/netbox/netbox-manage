@@ -1,0 +1,14 @@
+#!/bin/sh
+set -eu
+
+export VIRTUAL_ENV='/usr/lib/netbox'
+export PATH="$VIRTUAL_ENV/bin:$PATH"
+
+NETBOX_USER="${NETBOX_USER:-netbox}"
+COMMAND="$VIRTUAL_ENV/netbox/netbox-manage"
+
+if [ "$(id -un)" != "$NETBOX_USER" ]; then
+	exec su "$NETBOX_USER" -s /bin/sh -c '"$0" "$@"' -- $COMMAND "$@"
+else
+	exec $COMMAND "$@"
+fi

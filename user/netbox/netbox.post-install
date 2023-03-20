@@ -1,0 +1,39 @@
+#!/bin/sh
+set -u
+
+SECRET_KEY='/etc/netbox/secret_key'
+
+gen_random() {
+	python3 <<-EOF
+		import random, string
+		chars = string.ascii_letters + string.digits
+		print("".join(random.SystemRandom().choice(chars) for _ in range(64)))
+	EOF
+}
+
+if ! [ -f "$SECRET_KEY" ]; then
+	echo "* Generating random secret_key..." >&2
+	gen_random | install -m640 -o root -g netbox /dev/stdin "$SECRET_KEY"
+fi
+
+if [ "${0##*.}" = 'post-upgrade' ]; then
+	cat >&2 <<-EOF
+	*
+	* To finish NetBox upgrade, run:
+	*
+	*   rc-service netbox migrate_restart
+	*
+	EOF
+else
+	cat >&2 <<-EOF
+	*
+	* 1. Adjust settings in /etc/netbox/configuration.py.
+	* 2. Run the following commands:
+	*     netbox-manage migrate
+	*     netbox-manage createsuperuser
+	* 3. Make sure that cron is enabled!
+	*
+	EOF
+fi
+
+exit 0

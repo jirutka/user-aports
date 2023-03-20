@@ -1,0 +1,50 @@
+--- a/netbox/netbox/configuration_example.py
++++ b/netbox/netbox/configuration_example.py
+@@ -4,6 +4,8 @@
+ #                       #
+ #########################
+ 
++import os
++
+ # This is a list of valid fully-qualified domain names (FQDNs) for the NetBox server. NetBox will not permit write
+ # access to the server via any other hostnames. The first FQDN in the list will be treated as the preferred name.
+ #
+@@ -63,7 +65,7 @@
+ # For optimal security, SECRET_KEY should be at least 50 characters in length and contain a mix of letters, numbers, and
+ # symbols. NetBox will not run without this defined. For more information, see
+ # https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-SECRET_KEY
+-SECRET_KEY = ''
++SECRET_KEY = open(os.path.join(os.path.dirname(__file__), 'secret_key')).read()
+ 
+ 
+ #########################
+@@ -172,7 +174,7 @@
+ 
+ # The file path where uploaded media such as image attachments are stored. A trailing slash is not needed. Note that
+ # the default value of this setting is derived from the installed location.
+-# MEDIA_ROOT = '/opt/netbox/netbox/media'
++MEDIA_ROOT = '/var/lib/netbox/media'
+ 
+ # Expose Prometheus monitoring metrics at the HTTP endpoint '/metrics'
+ METRICS_ENABLED = False
+@@ -202,16 +204,14 @@
+ RELEASE_CHECK_URL = None
+ # RELEASE_CHECK_URL = 'https://api.github.com/repos/netbox-community/netbox/releases'
+ 
+-# The file path where custom reports will be stored. A trailing slash is not needed. Note that the default value of
+-# this setting is derived from the installed location.
+-# REPORTS_ROOT = '/opt/netbox/netbox/reports'
++# The file path where custom reports will be stored. A trailing slash is not needed.
++REPORTS_ROOT = '/var/lib/netbox/reports'
+ 
+ # Maximum execution time for background tasks, in seconds.
+ RQ_DEFAULT_TIMEOUT = 300
+ 
+-# The file path where custom scripts will be stored. A trailing slash is not needed. Note that the default value of
+-# this setting is derived from the installed location.
+-# SCRIPTS_ROOT = '/opt/netbox/netbox/scripts'
++# The file path where custom scripts will be stored.
++SCRIPTS_ROOT = '/var/lib/netbox/scripts'
+ 
+ # The name to use for the session cookie.
+ SESSION_COOKIE_NAME = 'sessionid'

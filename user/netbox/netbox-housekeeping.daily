@@ -1,0 +1,2 @@
+#!/bin/sh
+/usr/bin/netbox-manage housekeeping --skip-checks --verbosity 0

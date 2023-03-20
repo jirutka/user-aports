@@ -1,0 +1,70 @@
+#!/sbin/openrc-run
+
+name="NetBox"
+
+extra_commands="migrate migrate_restart"
+extra_started_commands="reload"
+description_migrate="If there are pending database migrations, apply them, reindex search index, clear sessions and clear cache"
+description_migrate_restart="Run migrate and then restart"
+description_reload="Gracefully reload all the workers and the master process"
+
+: ${uwsgi_ini:="/etc/netbox/uwsgi.ini"}
+: ${listen_on:="0.0.0.0:8080"}
+: ${basedir:="/usr/lib/netbox"}
+: ${error_logger="logger -t $RC_SVCNAME -p daemon.info >/dev/null 2>&1"}
+: ${command_user:="netbox"}
+: ${retry="INT/30/KILL/5"}
+: ${wait:=500}  # milliseconds
+
+command="/usr/sbin/uwsgi"
+command_args="
+	--die-on-term
+	--set-ph basedir=$basedir
+	--set-ph listen_on=$listen_on
+	--ini $uwsgi_ini
+	$command_args
+	"
+command_background="yes"
+pidfile="/run/$RC_SVCNAME.pid"
+
+start_stop_daemon_args="--wait $wait"
+supervise_daemon_args=" $supervise_daemon_args"
+
+required_files="$uwsgi_ini"
+
+depend() {
+	need localmount
+	want postgresql redis
+	use net
+}
+
+reload() {
+	ebegin "Reloading $name"
+
+	if [ "$supervisor" ]; then
+		$supervisor "$RC_SVCNAME" --signal HUP
+	else
+		start-stop-daemon --signal HUP --pidfile "$pidfile"
+	fi
+	eend $?
+}
+
+migrate() {
+	ebegin "Running $name migrations and post-upgrade tasks"
+
+	export NETBOX_USER="${command_user%%:*}"
+
+	if netbox-manage migrate --check -v 0; then
+		einfo "No migrations to apply"
+	else
+		netbox-manage migrate \
+			&& netbox-manage reindex --lazy \
+			&& netbox-manage clearsessions \
+			&& netbox-manage clearcache
+	fi
+	eend $?
+}
+
+migrate_restart() {
+	migrate && exec rc-service "$RC_SVCNAME" restart
+}

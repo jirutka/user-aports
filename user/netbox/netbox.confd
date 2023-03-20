@@ -1,0 +1,17 @@
+# Configuration for /etc/init.d/netbox
+
+# Path to the uWSGI configuration file.
+#uwsgi_ini="/etc/netbox/uwsgi.ini"
+
+# The IP address and port to listen on.
+#listen_on="0.0.0.0:8080"
+
+# The user (and group) to run uWSGI as.
+#command_user="netbox"
+
+# Log messages from uWSGI are redirected to syslog.
+# Set to empty string to disable.
+#error_logger="logger -t $RC_SVCNAME -p daemon.info >/dev/null 2>&1"
+
+# Additional options to pass to uWSGI daemon.
+#command_args=
