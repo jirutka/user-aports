@@ -14,11 +14,46 @@
  # symbols. NetBox will not run without this defined. For more information, see
  # https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-SECRET_KEY
 -SECRET_KEY = ''
-+SECRET_KEY = open(os.path.join(os.path.dirname(__file__), 'secret_key')).read()
++SECRET_KEY = open(os.path.join(os.path.dirname(__file__), 'secret_key.txt')).read()
  
  
  #########################
-@@ -172,7 +174,7 @@
+@@ -153,7 +155,33 @@
+ 
+ # Enable custom logging. Please see the Django documentation for detailed guidance on configuring custom logs:
+ #   https://docs.djangoproject.com/en/stable/topics/logging/
+-LOGGING = {}
++LOGGING = {
++    'version': 1,
++    'disable_existing_loggers': False,
++    'formatters': {
++        'normal': {
++            'format': '%(asctime)s %(name)s %(levelname)s: %(message)s'
++        },
++    },
++    'handlers': {
++        'file': {
++            'level': 'INFO',
++            'class': 'logging.handlers.WatchedFileHandler',
++            'filename': '/var/log/netbox/netbox.log',
++            'formatter': 'normal',
++        },
++    },
++    'loggers': {
++        'django': {
++            'handlers': ['file'],
++            'level': 'INFO',
++        },
++        'netbox': {
++            'handlers': ['file'],
++            'level': 'INFO',
++        },
++    },
++}
+ 
+ # Automatically reset the lifetime of a valid session upon each authenticated request. Enables users to remain
+ # authenticated to NetBox indefinitely.
+@@ -172,7 +200,7 @@
  
  # The file path where uploaded media such as image attachments are stored. A trailing slash is not needed. Note that
  # the default value of this setting is derived from the installed location.
@@ -27,7 +62,7 @@
  
  # Expose Prometheus monitoring metrics at the HTTP endpoint '/metrics'
  METRICS_ENABLED = False
-@@ -202,16 +204,14 @@
+@@ -202,16 +230,14 @@
  RELEASE_CHECK_URL = None
  # RELEASE_CHECK_URL = 'https://api.github.com/repos/netbox-community/netbox/releases'
  
@@ -35,7 +70,7 @@
 -# this setting is derived from the installed location.
 -# REPORTS_ROOT = '/opt/netbox/netbox/reports'
 +# The file path where custom reports will be stored. A trailing slash is not needed.
-+REPORTS_ROOT = '/var/lib/netbox/reports'
++REPORTS_ROOT = '/etc/netbox/reports'
  
  # Maximum execution time for background tasks, in seconds.
  RQ_DEFAULT_TIMEOUT = 300
@@ -44,7 +79,7 @@
 -# this setting is derived from the installed location.
 -# SCRIPTS_ROOT = '/opt/netbox/netbox/scripts'
 +# The file path where custom scripts will be stored.
-+SCRIPTS_ROOT = '/var/lib/netbox/scripts'
++SCRIPTS_ROOT = '/etc/netbox/scripts'
  
  # The name to use for the session cookie.
  SESSION_COOKIE_NAME = 'sessionid'

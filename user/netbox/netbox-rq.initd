@@ -1,0 +1,22 @@
+#!/sbin/openrc-run
+
+name="NetBox-RQ"
+description="NetBox Request Queue Worker"
+
+: ${queues:="high default low"}
+: ${error_logger="logger -t $RC_SVCNAME -p daemon.info >/dev/null 2>&1"}
+: ${command_user:="netbox"}
+: ${retry="INT/30/KILL/5"}
+
+command="/usr/bin/netbox-manage"
+command_args="rqworker $command_args $queues"
+command_background="yes"
+pidfile="/run/$RC_SVCNAME.pid"
+
+export NETBOX_USER="${command_user%%:*}"
+
+depend() {
+	need localmount
+	want redis
+	use net
+}

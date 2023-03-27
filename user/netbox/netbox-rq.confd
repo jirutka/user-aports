@@ -1,0 +1,14 @@
+# Configuration for /etc/init.d/netbox-rq
+
+# Space-separated list of queues to work on. 
+#queues="high default low"
+
+# Log messages from the worker are redirected to syslog.
+# Set to empty string to disable.
+#error_logger="logger -t $RC_SVCNAME -p daemon.info >/dev/null 2>&1"
+
+# Additional options to pass to `netbox-manage rqworker`.
+#command_args=
+
+# Comment out to run without process supervisor.
+supervisor="supervise-daemon"

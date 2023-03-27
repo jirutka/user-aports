@@ -1,7 +1,7 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=netbox
 pkgver=3.4.6
-pkgrel=0
+pkgrel=1
 pkgdesc="The premiere source of truth powering network automation"
 url="https://netbox.io"
 arch="noarch"
@@ -36,6 +36,9 @@ source="https://github.com/netbox-community/netbox/archive/v$pkgver/$pkgname-$pk
 	settings.patch
 	$pkgname.initd
 	$pkgname.confd
+	$pkgname-rq.initd
+	$pkgname-rq.confd
+	$pkgname.logrotated
 	netbox-housekeeping.daily
 	netbox-manage
 	uwsgi.ini
@@ -155,28 +158,39 @@ package() {
 
 	cd "$pkgdir"
 
+	install -d -m755 \
+		etc/$pkgname/reports \
+		etc/$pkgname/scripts
+
 	ln -s /etc/$pkgname/configuration.py $_appdir/netbox/netbox/configuration.py
-	ln -s /etc/$pkgname/secret_key $_appdir/netbox/netbox/secret_key
+	ln -s /etc/$pkgname/secret_key.txt $_appdir/netbox/netbox/secret_key.txt
 
 	install -D -m755 "$srcdir"/netbox-manage -t usr/bin/
 
 	install -D -m755 "$srcdir"/$pkgname.initd etc/init.d/$pkgname
 	install -D -m644 "$srcdir"/$pkgname.confd etc/conf.d/$pkgname
+
+	install -D -m755 "$srcdir"/$pkgname-rq.initd etc/init.d/$pkgname-rq
+	install -D -m644 "$srcdir"/$pkgname-rq.confd etc/conf.d/$pkgname-rq
+
+	install -D -m644 "$srcdir"/$pkgname.logrotated etc/logrotate.d/$pkgname
 	install -D -m755 "$srcdir"/netbox-housekeeping.daily etc/periodic/daily/netbox-housekeeping
 
 	install -d -m750 -o netbox -g netbox \
 		var/lib/$pkgname/media \
-		var/lib/$pkgname/reports \
-		var/lib/$pkgname/scripts
+		var/log/$pkgname
 }
 
 sha512sums="
 33db8f7f6f616924ce223dce6dff7c01bf81267df995dfd4696a7248a012c6c74d7358bc8347fb408b61b63f47f11c2fd3b03ed6048c7bba54a5e3833c303a2b  netbox-3.4.6.tar.gz
-006729937870014c53d5fd9859d1511a0be4ce098c742004568d76e916cc96300ae7b409e6f98cb7e32b39f20f3b560a6d3c746916e1d73e3680f5b308525cc5  configuration-defaults.patch
+3a11052eaa9a6f298fe262cbab11acc815515de705836d65964aa99f6ca81ace7bb4c409c527508d481bdaae40fc736156021a7774cb3fcb577c9a038a48ef00  configuration-defaults.patch
 43c96b6840c23cb96040c86bbc4eb152e482999f4a27a7e26d5f95690780d565cc9daab0ed054093feeb8936ae63357ae2de4d714c469fb860fb50531501d99c  settings.patch
-a7f83af491e09147bb9471bd4e819d692d59615724abd9461084784fe378c1648fe17d8c8e07a1631b48deb934e15af1be140f9a3bc1185e530e4c2b73a17453  netbox.initd
-45a525cf9f6ec9f9d79699a917fd7390eb200b18ffb634ac4b9e6219e318716f10b21f0abc666c44a342b4bc2dc85fbf3c14d46470dbf1d09ae413668b6696b8  netbox.confd
+cd72eedab164a632499389ac7d46b6a4a36bb53dce6b8333d1e96e7bea93902bc0ec34b349a496207a9e847520e0e42f791bea21af3b4385a636045acb10e780  netbox.initd
+f724709c0f6253631381db950912245e4918faac7da64eeb0139810e4f50cfb81d7c58d5351c57c51b7feed5402593b2fa0ec32024dea83a356bba83564fa239  netbox.confd
+5bb73cd349a357d2f6ac96f2543272e4398d82dd37bc6e62abfcdd4cb2915d9176e770d78bb3b0b9f1238e99037e519ad677ebea929ea3c8f6d05e62c0ae26ef  netbox-rq.initd
+ba2a7e967f3b9751d65801e3d91e9891aae0c7363926bb7806455fabf2c4db287feabd8d3b708faf23122bf4424de83b1eaf743fca6755a213c07bbb4be3ae4c  netbox-rq.confd
+1c37d881156618f9e914dbc36b0bbd91898347f207d0719622711259c6487d1a206b460143e91abed6a422912d0f7d36b8ab7f9ce9eb2cc72efa7029c7fec3c5  netbox.logrotated
 a346248aa0e7d36e70e31b7f6e0183f85d784fbc5e97b49e12127812db63444a0a642df0888d65ec7c4f11fdc552195badd9e545cbe5afad9968c572ca82fa6d  netbox-housekeeping.daily
 f2f2219aee45ad1bee17af103861872b8e532afa6456342d0e27800e1aab4a3a33a65956135c6882c09baae6eb63cf00cfec3735cd848fc77d3e7676d8a3effe  netbox-manage
-7de1817fea22ed4c957c62243c393dc1248c60d3b48cf2bde3ab997581403d663e2c9d8aee0d49177ea9ccc4551ffe141eba15a5babf50e7f53d996cdd23e482  uwsgi.ini
+dd6b2f393251052473a78683cf68faa2cd5ada61d352d7bd7d36c52cd767b635da17d0fd7e7521775a816b56252775f94d7500acb78d24dfa483462d9d51c5df  uwsgi.ini
 "

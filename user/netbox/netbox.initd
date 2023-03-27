@@ -34,7 +34,7 @@ required_files="$uwsgi_ini"
 
 depend() {
 	need localmount
-	want postgresql redis
+	want netbox-rq postgresql redis
 	use net
 }
 

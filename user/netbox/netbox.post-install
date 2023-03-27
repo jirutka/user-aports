@@ -1,7 +1,7 @@
 #!/bin/sh
 set -u
 
-SECRET_KEY='/etc/netbox/secret_key'
+SECRET_KEY='/etc/netbox/secret_key.txt'
 
 gen_random() {
 	python3 <<-EOF
