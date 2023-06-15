@@ -2,7 +2,7 @@
 :source-language: sh
 :repo-name: user-aports
 :gh-name: jirutka/{repo-name}
-:gh-branch: v3.17
+:gh-branch: v3.18
 :key-file: jakub@jirutka.cz-56d0d9fd.rsa.pub
 :repos-uri: https://repo.jirutka.cz/alpine
 
