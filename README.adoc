@@ -1,8 +1,9 @@
 = My aports
 :source-language: sh
 :repo-name: user-aports
+:repo-branch: v3.18
 :gh-name: jirutka/{repo-name}
-:gh-branch: edge
+:gh-branch: master
 :key-file: change-me@example.org-56d0d9fd.rsa.pub
 :repos-uri: http://alpine.example.org/packages
 
@@ -12,6 +13,10 @@ endif::env-github[]
 
 This repository contains aports that are not merged in the official https://alpinelinux.org[Alpine Linux] repository yet or don’t adhere to Alpine polices (e.g. bundles).
 Packages are automatically built on https://github.com/{gh-name}/actions[GitHub Actions] for x86_64 architecture and synchronized with a remote server using SSHFS (SSH Filesystem).
+
+The *master branch* targets Alpine Linux *{repo-branch}*.
+Aports for older Alpine https://alpinelinux.org/releases/[release branches] are in the same named branches in this repository, e.g. v3.15.
+Alpine Edge (aka unstable, development branch) is not supported.
 
 
 == Repositories
@@ -120,7 +125,7 @@ server {
 
 . Create repository for your aports on GitHub. Let’s assume that it’s named `{repo-name}`.
 
-. Clone branch `template` of this repository, change remote to your own repository and create branch `edge`:
+. Clone branch `template` of this repository, change remote to your own repository and create branch `master`:
 +
 [source, subs="attributes"]
 ----
@@ -128,7 +133,7 @@ git clone --branch template https://github.com/{gh-name}.git {repo-name}
 cd {repo-name}
 git remote remove origin
 git remote add origin git@github.com:YOUR-USERNAME/{repo-name}.git
-git checkout -b edge
+git checkout -b master
 ----
 
 . Generate SSH deploy key:
@@ -166,7 +171,7 @@ rm .keys/deploy-key ".keys/$KEY_NAME"
 
 . Adjust `BRANCH`, `BUILD_REPOS` and repositories (step “Configure repositories”) in link:.github/workflows/ci.yml[].
 
-. Change variables `:repo-name:`, `:gh-name:`, `:repos-uri:`, and `:key-file:` on the top of file link:README.adoc[].
+. Change variables `:repo-name:`, `:repo-branch:`, `:gh-name:`, `:repos-uri:`, and `:key-file:` on the top of file link:README.adoc[].
 
 . Commit changes and push to GitHub.
 
