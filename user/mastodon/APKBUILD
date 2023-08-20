@@ -2,12 +2,14 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=mastodon
 pkgver=4.1.6
-pkgrel=1
+pkgrel=2
 pkgdesc="Free open-source social network server based on ActivityPub"
 url="https://joinmastodon.org"
 arch="all"
 license="AGPL-3.0-or-later"
+# Note: ffmpeg is huge, but required (https://github.com/mastodon/mastodon/discussions/21800)
 depends="
+	ffmpeg
 	file
 	imagemagick
 	nodejs
