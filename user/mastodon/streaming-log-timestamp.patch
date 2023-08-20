@@ -1,0 +1,13 @@
+--- a/streaming/index.js
++++ b/streaming/index.js
+@@ -23,6 +23,10 @@
+
+ log.level = process.env.LOG_LEVEL || 'verbose';
+
++Object.defineProperty(log, 'heading', {
++  get: () => new Date().toISOString()
++})
++
+ /**
+  * @param {string} dbUrl
+  * @return {Object.<string, any>}

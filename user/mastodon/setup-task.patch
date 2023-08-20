@@ -1,0 +1,47 @@
+--- a/lib/tasks/mastodon.rake
++++ b/lib/tasks/mastodon.rake
+@@ -41,7 +41,7 @@
+
+       prompt.say "\n"
+
+-      using_docker        = prompt.yes?('Are you using Docker to run Mastodon?')
++      using_docker        = false  # XXX-Patched: hard-coded to false
+       db_connection_works = false
+
+       prompt.say "\n"
+@@ -49,7 +49,7 @@
+       loop do
+         env['DB_HOST'] = prompt.ask('PostgreSQL host:') do |q|
+           q.required true
+-          q.default using_docker ? 'db' : '/var/run/postgresql'
++          q.default using_docker ? 'db' : '/run/postgresql'  # XXX-Patched: /vav/run -> /run
+           q.modify :strip
+         end
+
+@@ -61,7 +61,7 @@
+
+         env['DB_NAME'] = prompt.ask('Name of PostgreSQL database:') do |q|
+           q.required true
+-          q.default using_docker ? 'postgres' : 'mastodon_production'
++          q.default using_docker ? 'postgres' : 'mastodon'  # XXX-Patched: mastodon_production -> mastodon
+           q.modify :strip
+         end
+
+@@ -141,7 +141,7 @@
+
+       prompt.say "\n"
+
+-      if prompt.yes?('Do you want to store uploaded files on the cloud?', default: false)
++      if false  # XXX-Patched: hard-coded to false
+         case prompt.select('Provider', ['DigitalOcean Spaces', 'Amazon S3', 'Wasabi', 'Minio', 'Google Cloud Storage', 'Storj DCS'])
+         when 'DigitalOcean Spaces'
+           env['S3_ENABLED'] = 'true'
+@@ -470,7 +470,7 @@
+           end
+         end
+
+-        unless using_docker
++        if false  # XXX-Patch: hard-coded to false
+           prompt.say "\n"
+           prompt.say 'The final step is compiling CSS/JS assets.'
+           prompt.say 'This may take a while and consume a lot of RAM.'

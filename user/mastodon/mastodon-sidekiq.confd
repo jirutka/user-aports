@@ -1,0 +1,10 @@
+# Configuration for /etc/init.d/mastodon-sidekiq
+
+# How many different processes Sidekiq forks into.
+#SIDEKIQ_CONCURRENCY=5
+
+# Path to file where to redirect stdout/stderr.
+#logfile="/var/log/mastodon/sidekiq.log"
+
+# Comment out to run without process supervisor.
+supervisor=supervise-daemon

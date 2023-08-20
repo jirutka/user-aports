@@ -1,0 +1,28 @@
+# Configuration for /etc/init.d/mastodon-web
+
+# Instead of binding to an IP address like 127.0.0.1, you may bind to a Unix
+# socket.
+#SOCKET=
+
+# If you are not using Unix sockets, this defines which port the process will
+# listen on.
+#PORT=3000
+
+# If you are not using Unix sockets, this defines the IP to which the process
+# will bind.
+#BIND="127.0.0.1"
+
+# How many different processes Puma forks into.
+#WEB_CONCURRENCY=2
+
+# How many threads each Puma process maintains.
+#MAX_THREADS=5
+
+# How long Puma should wait before closing a connection.
+#PERSISTENT_TIMEOUT=20
+
+# Environment.
+#RAILS_ENV="production"
+
+# Comment out to run without process supervisor.
+supervisor=supervise-daemon

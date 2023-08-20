@@ -1,0 +1,17 @@
+/var/log/mastodon/puma.*.log {
+	missingok
+	sharedscripts
+	postrotate
+		/etc/init.d/mastodon-web --ifstarted --quiet reopen
+	endscript
+}
+
+/var/log/mastodon/sidekiq.log {
+	copytruncate
+	missingok
+}
+
+/var/log/mastodon/streaming.log {
+	copytruncate
+	missingok
+}

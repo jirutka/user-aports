@@ -1,0 +1,7 @@
+#!/bin/sh
+
+cat >&2 <<EOF
+*
+* Run rc-service mastodon-web migrate_restart
+*
+EOF

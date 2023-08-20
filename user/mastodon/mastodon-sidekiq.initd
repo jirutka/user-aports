@@ -1,0 +1,50 @@
+#!/sbin/openrc-run
+
+name="Mastodon sidekiq"
+description="Mastodon background workers"
+description_reload="Reload configuration"
+
+: ${command_user:="mastodon:mastodon"}
+: ${logfile:="/var/log/mastodon/sidekiq.log"}
+: ${RAILS_ENV:="production"}
+
+directory="/usr/lib/mastodon"
+command="$directory/bin/sidekiq"
+command_args="$command_args"
+command_background="yes"
+
+error_log="$logfile"
+output_log="$logfile"
+
+start_stop_daemon_args="
+	--interpreted
+	$start_stop_daemon_args
+	"
+# Avoid fallback to $start_stop_daemon_args when this is empty.
+supervise_daemon_args="$supervise_daemon_args"
+pidfile="/run/mastodon/sidekiq.pid"
+
+depend() {
+	need localmount
+	want postgresql redis
+	use net
+}
+
+start_pre() {
+	export TZ=":/etc/localtime"
+	export RAILS_ENV SIDEKIQ_CONCURRENCY
+
+	checkpath -d -m 755 -o "$command_user" -q "${pidfile%/*}" || return 1
+	checkpath -f -m 640 -o "$command_user" "$logfile" || return 1
+}
+
+reload() {
+	ebegin "Reloading $name"
+
+	if [ "$supervisor" ]; then
+		$supervisor "$RC_SVCNAME" --signal USR2
+	else
+		start-stop-daemon --pidfile "$pidfile" --signal USR2
+	fi
+	eend $?
+}

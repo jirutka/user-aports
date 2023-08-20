@@ -1,0 +1,98 @@
+#!/sbin/openrc-run
+
+name="Mastodon-web"
+
+extra_commands="migrate migrate_restart"
+extra_started_commands="reload reopen"
+description_migrate="Apply database and plugins migrations, if any pending"
+description_migrate_restart="Run migrate and then restart"
+description_reload="Restart workers in phases, a rolling restart (this will not reload configuration file)"
+description_reopen="Reopen log files"
+
+: ${command_user:="mastodon:mastodon"}
+: ${RAILS_ENV:="production"}
+
+directory="/usr/lib/mastodon"
+command="$directory/bin/puma"
+command_args="
+	--redirect-stdout ${stdout_file:="/var/log/mastodon/puma.stdout.log"}
+	--redirect-stderr ${stderr_file:="/var/log/mastodon/puma.stderr.log"}
+	--redirect-append
+	--state /run/mastodon/puma.state
+	${command_args-"--quiet"}
+	"
+command_background="yes"
+
+start_stop_daemon_args="
+	--interpreted
+	$start_stop_daemon_args
+	"
+# Avoid fallback to $start_stop_daemon_args when this is empty.
+supervise_daemon_args="$supervise_daemon_args"
+pidfile="/run/mastodon/puma.pid"
+
+required_files="/etc/mastodon/production.conf"
+
+depend() {
+	need localmount
+	want mastodon-sidekiq mastodon-streaming postgresql redis
+	use net
+}
+
+start_pre() {
+	export TZ=":/etc/localtime"
+	export SOCKET PORT BIND WEB_CONCURRENCY MAX_THREADS PERSISTENT_TIMEOUT RAILS_ENV
+
+	checkpath -d -m 755 -o "$command_user" -q "${pidfile%/*}" || return 1
+	checkpath -f -m 640 -o "$command_user" "$stdout_file" || return 1
+	checkpath -f -m 640 -o "$command_user" "$stderr_file" || return 1
+}
+
+reload() {
+	ebegin "Reloading $name"
+
+	if [ "$supervisor" ]; then
+		$supervisor "$RC_SVCNAME" --signal USR1
+	else
+		start-stop-daemon --pidfile "$pidfile" --signal USR1
+	fi
+	eend $?
+}
+
+reopen() {
+	ebegin "Telling $name to reopen log files"
+
+	if [ "$supervisor" ]; then
+		$supervisor "$RC_SVCNAME" --signal HUP
+	else
+		start-stop-daemon --pidfile "$pidfile" --signal HUP
+	fi
+	eend $?
+}
+
+migrate() {
+	ebegin "Running $name database migrations"
+
+	local tmpfile=$(mktemp)
+
+	export MASTODON_USER="${command_user%%:*}"
+	(
+		set -eo pipefail
+		mastodon-rake db:migrate | tee "$tmpfile"
+	) || return 1
+
+	if grep -Fw 'migrated' "$tmpfile"; then
+		mastodon-rake tmp:cache:clear || return 1
+	fi
+	rm -f "$tmpfile"
+
+	eend $?
+}
+
+migrate_restart() {
+	migrate || return 1
+
+	rc-service mastodon-sidekiq restart || return 1
+	rc-service mastodon-streaming restart || return 1
+	rc-service "$RC_SVCNAME" restart
+}

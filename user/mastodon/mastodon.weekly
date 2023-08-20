@@ -1,0 +1,4 @@
+#!/bin/sh
+
+/usr/bin/tootctl media remove
+/usr/bin/tootctl preview_cards remove

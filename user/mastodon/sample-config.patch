@@ -1,0 +1,76 @@
+--- a/.env.production.sample
++++ b/.env.production.sample
+@@ -1,20 +1,20 @@
++# Mastodon configuration file
++
+ # This is a sample configuration file. You can generate your configuration
+-# with the `rake mastodon:setup` interactive setup wizard, but to customize
++# with `mastodon-rake mastodon:setup` interactive setup wizard, but to customize
+ # your setup even further, you'll need to edit it manually. This sample does
+ # not demonstrate all available configuration options. Please look at
+ # https://docs.joinmastodon.org/admin/config/ for the full documentation.
+
+-# Note that this file accepts slightly different syntax depending on whether
+-# you are using `docker-compose` or not. In particular, if you use
+-# `docker-compose`, the value of each declared variable will be taken verbatim,
+-# including surrounding quotes.
+-# See: https://github.com/mastodon/mastodon/issues/16895
+-
+ # Federation
+ # ----------
+ # This identifies your server and cannot be changed safely later
+ # ----------
+ LOCAL_DOMAIN=example.com
++WEB_DOMAIN=example.com
++# If set to true, the frontpage of your Mastodon server will always redirect to
++# the first profile in the database and registrations will be disabled.
++SINGLE_USER_MODE=true
+
+ # Redis
+ # -----
+@@ -23,15 +23,15 @@
+
+ # PostgreSQL
+ # ----------
+-DB_HOST=/var/run/postgresql
++DB_HOST=/run/postgresql
+ DB_USER=mastodon
+-DB_NAME=mastodon_production
++DB_NAME=mastodon
+ DB_PASS=
+ DB_PORT=5432
+
+ # Elasticsearch (optional)
+ # ------------------------
+-ES_ENABLED=true
++ES_ENABLED=false
+ ES_HOST=localhost
+ ES_PORT=9200
+ # Authentication for ES (optional)
+@@ -60,14 +60,6 @@
+ SMTP_PASSWORD=
+ SMTP_FROM_ADDRESS=notifications@example.com
+
+-# File storage (optional)
+-# -----------------------
+-S3_ENABLED=true
+-S3_BUCKET=files.example.com
+-AWS_ACCESS_KEY_ID=
+-AWS_SECRET_ACCESS_KEY=
+-S3_ALIAS_HOST=files.example.com
+-
+ # IP and session retention
+ # -----------------------
+ # Make sure to modify the scheduling of ip_cleanup_scheduler in config/sidekiq.yml
+@@ -75,3 +67,11 @@
+ # -----------------------
+ IP_RETENTION_PERIOD=31556952
+ SESSION_RETENTION_PERIOD=31556952
++
++# Deployment
++# ----------
++# Where to store uploaded files.
++PAPERCLIP_ROOT_PATH=/var/lib/mastodon/public-system
++# If set to true, Mastodon will answer requests for files in its public directory.
++RAILS_SERVE_STATIC_FILES=false
++RAILS_LOG_LEVEL=warn

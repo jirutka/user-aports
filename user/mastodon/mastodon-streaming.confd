@@ -1,0 +1,22 @@
+# Configuration for /etc/init.d/mastodon-streaming
+
+# Instead of binding to an IP address like 127.0.0.1, you may bind to a Unix
+# socket.
+#SOCKET=
+
+# If you are not using Unix sockets, this defines which port the process will
+# listen on.
+#PORT=4000
+
+# If you are not using Unix sockets, this defines the IP to which the process
+# will bind.
+#BIND="127.0.0.1"
+
+# Environment.
+#NODE_ENV="production"
+
+# Path to file where to redirect stdout/stderr.
+#logfile="/var/log/mastodon/streaming.log"
+
+# Comment out to run without process supervisor.
+supervisor=supervise-daemon

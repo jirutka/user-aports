@@ -1,0 +1,261 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=mastodon
+pkgver=4.1.6
+pkgrel=0
+pkgdesc="Free open-source social network server based on ActivityPub"
+url="https://joinmastodon.org"
+arch="all"
+license="AGPL-3.0-or-later"
+depends="
+	file
+	imagemagick
+	nodejs
+	ruby
+	ruby-bundler
+	"
+makedepends="
+	icu-dev
+	jq
+	libffi-dev
+	libidn-dev
+	libpq-dev
+	libxml2-dev
+	libxslt-dev
+	openssl-dev
+	ruby-bundler
+	ruby-dev
+	yarn
+	"
+pkgusers="mastodon"
+pkggroups="mastodon"
+install="
+	$pkgname.pre-install
+	$pkgname.post-install
+	$pkgname.post-upgrade
+	"
+subpackages="$pkgname-openrc"
+source="https://github.com/mastodon/mastodon/archive/v$pkgver/mastodon-$pkgver.tar.gz
+	sample-config.patch
+	setup-task.patch
+	streaming-log-timestamp.patch
+	fix-rails-settings-yaml-aliases.patch.txt
+	bin-wrapper.in
+	$pkgname-sidekiq.initd
+	$pkgname-sidekiq.confd
+	$pkgname-streaming.initd
+	$pkgname-streaming.confd
+	$pkgname-web.initd
+	$pkgname-web.confd
+	$pkgname.logrotated
+	$pkgname.weekly
+	"
+
+export YARN_CACHE_FOLDER="$srcdir/yarn-cache"
+
+_prefix="usr/lib/$pkgname"
+
+prepare() {
+	default_prepare
+
+	# Remove ruby version requirement.
+	sed -Ei '/^ruby /d' Gemfile
+
+	# Exclude AWS and OpenStack crap.
+	sed -Ei \
+		-e "s/^gem 'aws-sdk-s3'.*/&, group: :exclude/" \
+		-e "s/^gem 'fog-openstack'.*/&, group: :exclude/" \
+		Gemfile
+
+	# https://github.com/mastodon/mastodon/pull/24702
+	sed -En "s/.*\brequire\('([^']+)'\).*/\"\1\"/p" streaming/index.js > streaming-requires.txt
+	jq --slurpfile requires streaming-requires.txt \
+		'{ dependencies: .dependencies | with_entries(select([.key] | inside($requires))) }' \
+		package.json > streaming/package.json
+
+	# Create config for Bundler.
+	mkdir -p .bundle
+	cat > .bundle/config <<-EOF
+		--
+		BUNDLE_BUILD__FFI: "--enable-system-libffi"
+		BUNDLE_BUILD__NOKOGIRI: "--use-system-libraries --with-xml2-include=/usr/include/libxml2 --with-xml2-include=/usr/include/libxml2"
+		BUNDLE_DEPLOYMENT: true
+		BUNDLE_FORCE_RUBY_PLATFORM: true
+		BUNDLE_FROZEN: true
+		BUNDLE_JOBS: ${JOBS:-2}
+		BUNDLE_WITHOUT: "test:development:exclude"
+	EOF
+}
+
+build() {
+	msg "Installing Ruby gems..."
+	bundle install --no-cache
+
+	patch -p1 < "$srcdir"/fix-rails-settings-yaml-aliases.patch.txt
+
+	msg "Installing npm modules..."
+	yarn install --production --frozen-lockfile --check-files
+	cd streaming
+	yarn install --production --offline --check-files
+	cd - >/dev/null
+
+	# (Re)generate bin/bundle, bin/puma, and bin/sidekiq.
+	bundle binstubs --force bundler puma sidekiq
+
+	msg "Precompiling assets..."
+	RAILS_ENV="production" \
+	NODE_ENV="production" \
+	NODE_OPTIONS="--openssl-legacy-provider" \
+	OTP_SECRET="precompile_placeholder" \
+	SECRET_KEY_BASE="precompile_placeholder" \
+	bin/rails assets:precompile
+}
+
+package() {
+	local destdir="$pkgdir/$_prefix"
+	local datadir="$pkgdir/var/lib/$pkgname"
+
+	# Install application files.
+	mkdir -p "$destdir"
+	cp -r .bundle \
+		app \
+		config \
+		db \
+		lib \
+		public \
+		streaming \
+		vendor \
+		config.ru \
+		Gemfile* \
+		Rakefile \
+		"$destdir"/
+
+	install -D -m755 -t "$destdir"/bin/ \
+		bin/bundle \
+		bin/puma \
+		bin/rails \
+		bin/rake \
+		bin/sidekiq \
+		bin/tootctl
+
+	install -D -m640 -o mastodon -g mastodon .env.production.sample \
+		"$pkgdir"/etc/mastodon/production.conf
+
+
+	cd "$destdir"
+
+	# Prepare directories.
+	install -d -m755 -o mastodon -g mastodon \
+		"$datadir" \
+		"$datadir"/public-system \
+		"$pkgdir"/etc/mastodon \
+		"$pkgdir"/var/log/mastodon
+	install -d -m700 -o mastodon -g mastodon \
+		"$pkgdir"/var/tmp/mastodon
+
+	# Some paths are hard-coded, so we must make symlinks. :(
+	ln -s /var/log/mastodon log
+	ln -s /var/tmp/mastodon tmp
+	ln -s /var/lib/mastodon/public-system public/system  # not necessary
+	ln -s /etc/mastodon/production.conf .env.production
+
+	cat > "$datadir"/.profile <<-EOF
+		export RAILS_ENV=production
+		export NODE_ENV=production
+	EOF
+
+	# Install wrapper scripts to /usr/bin.
+	local name; for name in mastodon-rake mastodon-rails tootctl; do
+		sed "s/__COMMAND__/${name#mastodon-}/g" "$srcdir"/bin-wrapper.in \
+			| install -m755 -D /dev/stdin "$pkgdir"/usr/bin/$name
+	done
+
+	local i; for i in sidekiq streaming web; do
+		install -m755 -D "$srcdir"/mastodon-$i.initd "$pkgdir"/etc/init.d/mastodon-$i
+		install -m644 -D "$srcdir"/mastodon-$i.confd "$pkgdir"/etc/conf.d/mastodon-$i
+	done
+	install -m644 -D "$srcdir"/$pkgname.logrotated "$pkgdir"/etc/logrotate.d/$pkgname
+	install -m755 -D "$srcdir"/$pkgname.weekly "$pkgdir"/etc/periodic/weekly/$pkgname
+
+
+	### Clean up mess
+
+	# Remove assets not needed in runtime because they were compiled and copied
+	# to public/.
+	# - emoji_map.json is used in app/validators/reaction_validator.rb
+	# - app/javascript/images is used in app/helpers/branding_helper.rb
+	rm -r app/javascript/fonts
+	rm -r app/javascript/icons
+	find app/javascript/mastodon ! -name emoji_map.json
+	rm -r app/javascript/packs
+	rm -r app/javascript/styles
+
+	cd "$destdir"/vendor/bundle/ruby/*/
+
+	# ox expects ox.so to be in ox/ subdirectory, but does not install it here.
+	#mkdir "$(echo extensions/*/*/ox-*)/ox"
+	#mv extensions/*/*/ox-*/ox.so extensions/*/*/ox-*/ox/
+
+	# Remove sources and binaries of native extensions (they are installed
+	# in extensions directory), except for llhttp-ffi and ox which is broken.
+	find gems/ -type d -name ext ! -ipath '*/llhttp-ffi-*/*' -maxdepth 2 -exec rm -frv "{}" +
+	find gems/ -name '*.so' ! -ipath '*/llhttp-ffi-*/*' ! -ipath '*/ox-*/*' -delete
+	rm -rf gems/llhttp-ffi-*/ext/llhttp gems/llhttp-ffi-*/ext/*-linux/llhttp
+
+	# Remove vendored sources for building native extensions.
+	rm -rf gems/hiredis-*/vendor/hiredis
+	rm -rf gems/nokogiri-*/gumbo-parser
+	rm -rf gems/nokogiri-*/patches
+
+	# Remove assets not needed in runtime since we have already compiled them.
+	rm -rf gems/pghero-*/app/assets
+
+	# Remove build logs and cache.
+	rm -rf build_info/
+	rm -rf cache/
+	find extensions/ \( -name gem_make.out -o -name mkmf.log \) -delete
+
+	# Remove tests, documentations and other useless files.
+	find gems/ \( -name 'doc' \
+	          -o -name 'spec' \
+	          -o -name 'test' \) \
+		-type d -maxdepth 2 -exec rm -fr "{}" +
+	find gems/ \( -name 'README*' \
+	          -o -name 'CHANGELOG*' \
+	          -o -name 'CONTRIBUT*' \
+	          -o -name '*LICENSE*' \
+	          -o -name 'Rakefile' \
+	          -o -name '.*' \) \
+		-type f -delete
+
+
+	cd "$destdir"/streaming/node_modules
+
+	# Remove source maps, TS files, docs, tests and other useless files.
+	find . \( -name '.*' \
+			-o -name '*.map' \
+			-o -name '*.md' \
+			-o -name '*.ts' \
+			-o -name 'LICENSE*' \
+			-o -name 'Makefile' \
+			-o -name 'README*' \) \
+		-type f -delete
+	rm -rf ./*/test
+}
+
+sha512sums="
+abf1673675586d701f1a7e8e732dd3265ca8f68245ea57d06d02b681c1a033b2b3c0b66e8c2f3c64a24f5cda0b1225c05603a5bb30827da1d8fbfa4d600f7b6d  mastodon-4.1.6.tar.gz
+54adbd99af14a59764cc6dbcef062d20d255c7837246df3d51e3cfd106a792c1af85b507cc9d05e43a717be3712a6efa4216aacf7889c02600cfef8d357fc14b  sample-config.patch
+0b5f15c520c1ca0e20c82cf7fe7bf07394d6fffaaa1a036e11db0ae92b78632f72391944702932dcac68e1c7ec130dad784fa1794815c73bec295e0969b8ab58  setup-task.patch
+1af2f532a413d03ffc4fb31270559e7f082f31406fcbd400348def0beb526d39f93ae38fc66375a447bd72657db007597940fb1b85a46c7fed9a89671141eb06  streaming-log-timestamp.patch
+731c6d75c38efa0782fa2d57dede7b74bb3316345fdb77d257d4a6a87f21589080564f3703a3422f841e2605e8b6108b0fa5380b8163339d2a9cbcde782472b4  fix-rails-settings-yaml-aliases.patch.txt
+6d0d2df5a40fcc9744eec14d191b0577cf7c19df5c4724304731910dd7db43c0ef12b628a36547da2ba6ccb5dd68f2ea5707bcb61e15b900f80cbee3b2968683  bin-wrapper.in
+5980c5b1cea2603e240ec8b3fe30a4b7c40eb7df9e10311407f9f8d232e5d67cced41f3bac284a9dce41a9daacf5da972c6ef13bbcbcc41bb411216c68003d64  mastodon-sidekiq.initd
+3928c6b77662857108f332abeb85c717855311318be6a797f1d99b364e80a071a236d3148b98e3bb5a6aebdcb6e8531304a2ffafcd98af3cc0afd1b884a9c610  mastodon-sidekiq.confd
+8dfd22967615e9a77a58abe4819d90e71eed532f3f55503c3c1f6159b645c9d30c75a095b579f6474901fc75463293fc1247d627d2fee7e4814261b7dc40ef7e  mastodon-streaming.initd
+777820f0e3144e7c0b46ed8023e169e569cc6cad0da87778cbe268b0290c288bd26f61126f68a98390c66d63c6751936adac158ddb504ff52f50b29eca770fbe  mastodon-streaming.confd
+7c4c04df8b7530e0dbf16ee0f3179b9695ba53b88c89527cf46152c45a961405d1ad7a4489b840f8a18f1373ccd04e04bd311f9d8e7774421f088f1ea1b09a90  mastodon-web.initd
+b0766c66b352e7ccf0db18482d8fc72f8f18d6581cc3c6b8637487562ceeb8eace0c09d170f04719d037780a9377d6e82a9ceb304e44d44c8a483f06febd8d20  mastodon-web.confd
+0bb5e6a8bd1e7bafc2e0363afc50dcf2ca85a2eb71cfdd243b3afe1fcc98aa83f09f39d9b657e98c642f60fa5b4f661388ebf2d61489d43af54a78b99f27c9ec  mastodon.logrotated
+010b3e75ece949729396be5812b4452ebfcc3aecbd1a472f45e3bc95e66b3449ca00e2cd6eb6a6b88a39271852c388f6505bacad33fcc3b2aacf89c0cb7538b5  mastodon.weekly
+"

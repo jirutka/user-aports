@@ -1,0 +1,15 @@
+#!/bin/sh
+
+MASTODON_DIR='/usr/lib/mastodon'
+MASTODON_USER="${MASTODON_USER:-"mastodon"}"
+
+export RAILS_ENV='production'
+export NODE_ENV='production'
+
+cd "$MASTODON_DIR"
+
+if [ "$(id -un)" != "$MASTODON_USER" ]; then
+	exec su -s /bin/sh "$MASTODON_USER" -c '"$0" "$@"' -- bin/__COMMAND__ "$@"
+else
+	exec bin/__COMMAND__ "$@"
+fi

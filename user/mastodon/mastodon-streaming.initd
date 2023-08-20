@@ -1,0 +1,37 @@
+#!/sbin/openrc-run
+
+name="Mastodon streaming"
+
+: ${command_user:="mastodon:mastodon"}
+: ${logfile:="/var/log/mastodon/streaming.log"}
+: ${NODE_ENV:="production"}
+
+directory="/usr/lib/mastodon"
+command="/usr/bin/node"
+command_args="./streaming $command_args"
+command_background="yes"
+
+output_log="$logfile"
+error_log="$logfile"
+
+start_stop_daemon_args="
+	--interpreted
+	$start_stop_daemon_args
+	"
+# Avoid fallback to $start_stop_daemon_args when this is empty.
+supervise_daemon_args="$supervise_daemon_args"
+pidfile="/run/mastodon/streaming.pid"
+
+required_files="/etc/mastodon/production.conf"
+
+depend() {
+	need localmount
+	want postgresql redis
+	use net
+}
+
+start_pre() {
+	export SOCKET PORT BIND NODE_ENV
+
+	checkpath -d -m 755 -o "$command_user" -q "${pidfile%/*}"
+}

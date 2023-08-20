@@ -1,0 +1,7 @@
+#!/bin/sh
+
+cat >&2 <<EOF
+*
+* Run interactive setup wizard: mastodon-rake mastodon:setup
+*
+EOF
