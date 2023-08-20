@@ -1,7 +1,7 @@
 # Configuration for /etc/init.d/mastodon-web
 
 # Instead of binding to an IP address like 127.0.0.1, you may bind to a Unix
-# socket.
+# socket. If you use this, you have to disable $healthcheck_url.
 #SOCKET=
 
 # If you are not using Unix sockets, this defines which port the process will
@@ -26,3 +26,8 @@
 
 # Comment out to run without process supervisor.
 supervisor=supervise-daemon
+
+# URL of the healthcheck endpoint that the supervise-daemon will periodically
+# check to restart Mastodon in case of a problem. To disable this check, set it
+# to an empty string.
+#healthcheck_url="http://127.0.0.1:$PORT/health"

@@ -10,6 +10,7 @@ description_reload="Restart workers in phases, a rolling restart (this will not 
 description_reopen="Reopen log files"
 
 : ${command_user:="mastodon:mastodon"}
+: ${healthcheck_url="http://127.0.0.1:${PORT:-3000}/health"}
 : ${RAILS_ENV:="production"}
 
 directory="/usr/lib/mastodon"
@@ -95,4 +96,15 @@ migrate_restart() {
 	rc-service mastodon-sidekiq restart || return 1
 	rc-service mastodon-streaming restart || return 1
 	rc-service "$RC_SVCNAME" restart
+}
+
+healthcheck() {
+	[ -n "$healthcheck_url" ] || return 0
+
+	if command -v curl >/dev/null; then
+		curl -fq --max-time 10 --head "$healthcheck_url" >/dev/null 2>&1 || return 1
+
+	elif command -v wget >/dev/null; then
+		wget -q -T 10 -O - "$healthcheck_url" >/dev/null 2>&1 || return 1
+	fi
 }

@@ -4,6 +4,7 @@ name="Mastodon streaming"
 
 : ${command_user:="mastodon:mastodon"}
 : ${logfile:="/var/log/mastodon/streaming.log"}
+: ${healthcheck_url="http://127.0.0.1:${PORT:-4000}/api/v1/streaming/health"}
 : ${NODE_ENV:="production"}
 
 directory="/usr/lib/mastodon"
@@ -34,4 +35,15 @@ start_pre() {
 	export SOCKET PORT BIND NODE_ENV
 
 	checkpath -d -m 755 -o "$command_user" -q "${pidfile%/*}"
+}
+
+healthcheck() {
+	[ -n "$healthcheck_url" ] || return 0
+
+	if command -v curl >/dev/null; then
+		curl -fq --max-time 10 --head "$healthcheck_url" >/dev/null 2>&1 || return 1
+
+	elif command -v wget >/dev/null; then
+		wget -q -T 10 -O - "$healthcheck_url" >/dev/null 2>&1 || return 1
+	fi
 }
