@@ -1,12 +1,13 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=mongodb4
 pkgver=4.4.5
-pkgrel=0
+pkgrel=1
 pkgdesc="A very crappy, not open-source, schema-free document-oriented database version 4.x"
 url="http://www.mongodb.org"
 arch="x86_64"
 # SSPL-1.0 is not an OSI approved open-source license!
 license="SSPL-1.0 AND Apache-2.0"
+depends="tzdata"
 makedepends="
 	boost-dev
 	icu-dev
