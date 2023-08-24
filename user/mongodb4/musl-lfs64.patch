@@ -1,0 +1,11 @@
+--- a/src/third_party/wiredtiger/src/os_posix/os_fs.c.orig
++++ b/src/third_party/wiredtiger/src/os_posix/os_fs.c
+@@ -536,7 +536,7 @@
+     pfh = (WT_FILE_HANDLE_POSIX *)file_handle;
+
+     /* See comment in __posix_sync(): sync cannot be retried or fail. */
+-    WT_SYSCALL(sync_file_range(pfh->fd, (off64_t)0, (off64_t)0, SYNC_FILE_RANGE_WRITE), ret);
++    WT_SYSCALL(sync_file_range(pfh->fd, (off_t)0, (off_t)0, SYNC_FILE_RANGE_WRITE), ret);
+     if (ret == 0)
+         return (0);
+

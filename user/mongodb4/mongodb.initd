@@ -1,0 +1,33 @@
+#!/sbin/openrc-run
+
+extra_started_commands="reopen"
+description_reopen="Reopen log file"
+
+name="MongoDB"
+
+: ${cfgfile:="/etc/mongod.conf"}
+: ${command_user:="mongodb:mongodb"}
+: ${retry="SIGTERM/30"}
+
+command="/usr/bin/mongod"
+command_args="--config $cfgfile $command_args"
+command_background="yes"
+pidfile="/run/$RC_SVCNAME.pid"
+
+required_files="$cfgfile"
+
+depend() {
+	use net
+	after firewall
+}
+
+reopen() {
+	ebegin "Reopening $name log file"
+
+	if [ "$supervisor" ]; then
+		$supervisor "$RC_SVCNAME" --signal USR1
+	else
+		start-stop-daemon --signal USR1 --pidfile "$pidfile"
+	fi
+	eend $?
+}

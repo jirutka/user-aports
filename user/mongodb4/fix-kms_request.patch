@@ -1,0 +1,10 @@
+--- ./src/third_party/kms-message/src/kms_request_str.h.orig
++++ ./src/third_party/kms-message/src/kms_request_str.h
+@@ -20,6 +20,7 @@
+ #include "kms_message/kms_message.h"
+ #include "kms_crypto.h"
+
++#include <sys/types.h>
+ #include <stdarg.h>
+ #include <stdbool.h>
+ #include <stdint.h>

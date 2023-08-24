@@ -1,0 +1,159 @@
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=mongodb4
+pkgver=4.4.5
+pkgrel=0
+pkgdesc="A very crappy, not open-source, schema-free document-oriented database version 4.x"
+url="http://www.mongodb.org"
+arch="x86_64"
+# SSPL-1.0 is not an OSI approved open-source license!
+license="SSPL-1.0 AND Apache-2.0"
+makedepends="
+	boost-dev
+	icu-dev
+	libbson-dev
+	libpcap-dev
+	libstemmer-dev
+	openssl-dev
+	pcre-dev
+	py3-cheetah
+	py3-psutil
+	py3-setuptools
+	py3-yaml
+	scons
+	snappy-dev
+	yaml-cpp-dev
+	zlib-dev
+	zstd-dev
+	"
+pkgusers="mongodb"
+pkggroups="mongodb"
+install="$pkgname.pre-install"
+subpackages="
+	$pkgname-shell
+	$pkgname-doc
+	$pkgname-openrc
+	"
+source="http://downloads.mongodb.org/src/mongodb-src-r$pkgver.tar.gz
+	fix-backtrace.patch
+	fix-default-stacksize.patch
+	fix-elf-native-class.patch
+	fix-kms_request.patch
+	fix-mozjs.patch
+	fix-processinfo_linux.patch
+	fix-resolv.patch
+	fix-strerror_r.patch
+	fix-wiredtiger.patch
+	fix-scons-flags.patch
+	scons-no-force-lld.patch
+	gcc11-compat.patch
+	gcc13-compat.patch
+	boost-dyn-link.patch
+	boost-1.79-compat.patch
+	boost-1.81-compat.patch
+	musl-lfs64.patch
+	icu_73.patch
+	mongodb.initd
+	mongodb.confd
+	mongodb.logrotated
+	mongod.conf
+	"
+builddir="$srcdir/mongodb-src-r$pkgver"
+options="!check"
+
+prepare() {
+	default_prepare
+
+	# Remove bundled libs that we don't wanna use.
+	cd src/third_party
+	rm -r boost-*
+	rm -r pcre-*
+	rm -r scons-*
+	rm -r snappy-*
+	rm -r yaml-cpp-*
+	rm -r zlib-*
+	cd - >/dev/null
+
+	rm -r src/mongo/installer/compass
+}
+
+build() {
+	# NOTE: it fails to build with -flto=auto
+	export CFLAGS="${CFLAGS/-Os/}"
+	export CXXFLAGS="${CXXFLAGS/-Os/}"
+	export SCONSFLAGS="$MAKEFLAGS"
+	export MONGO_GIT_HASH="0000000000000000000000000000000000000000"
+
+	# --runtime-hardening=off - needed to avoid forcing FORTIFY_SOURCE
+	# --enable-free-mon=off - disable snooping service that sends metrics to cloud
+	# --enable-http-client=off - used by free-mon
+	# --use-system-mongo-c - doesn't work :(
+	scons \
+		--opt=on \
+		--allocator=system \
+		--disable-warnings-as-errors \
+		--ssl \
+		--runtime-hardening=off \
+		--enable-free-mon=off \
+		--enable-http-client=off \
+		--use-libunwind=off \
+		--use-system-boost \
+		--use-system-icu \
+		--use-system-pcre \
+		--use-system-snappy \
+		--use-system-stemmer \
+		--use-system-yaml \
+		--use-system-zlib \
+		--use-system-zstd \
+		install-mongo install-mongod
+}
+
+package() {
+	install -Dm755 build/install/bin/mongo -t "$pkgdir"/usr/bin/
+	install -Dm755 build/install/bin/mongod -t "$pkgdir"/usr/bin/
+
+	install -Dm644 -t "$pkgdir"/usr/share/man/man1/ \
+		debian/mongo.1 \
+		debian/mongod.1
+
+	install -Dm644 "$srcdir"/mongod.conf -t "$pkgdir"/etc/
+
+	install -Dm755 "$srcdir"/mongodb.initd "$pkgdir"/etc/init.d/mongodb
+	install -Dm644 "$srcdir"/mongodb.confd "$pkgdir"/etc/conf.d/mongodb
+	install -Dm644 "$srcdir"/mongodb.logrotated "$pkgdir"/etc/logrotate.d/mongodb
+
+	install -dm750 -o mongodb -g mongodb \
+		"$pkgdir"/var/lib/mongodb \
+		"$pkgdir"/var/log/mongodb
+}
+
+shell() {
+	pkgdesc="An interactive JavaScript shell interface to MongoDB"
+
+	amove usr/bin/mongo
+}
+
+sha512sums="
+5796a151a354fb5674ab7730818ef51a0739628d4a99084deab1a14e63b036b46d47822eadfe4040b2d8758d4b38d0d4c6e612db7ecb205aca2d700367709b74  mongodb-src-r4.4.5.tar.gz
+4d75d452db6a2e175573cda398dfc0709997b0925a50ab202c806dc6ff795f54c7376bf25f2a455344e80c5bba5439bf3bee0af02c54c81039b1a68acbdffb0a  fix-backtrace.patch
+23f5b74715f41ff0998f07ad207e773b6fb06e375fe558fb812bc009e01367fbfd8a91391e2d1749d3bd4b9dc430ad3cdcd47163aadb6eb100869d3c9ef4a029  fix-default-stacksize.patch
+bb314e320825bc70a77db5a9ae07848fd1cec46edb41e8d94ce1effb0e5e0115636755a484924356c15d60f0e623c4b34197ef759accf9d156bcd2d11dbf5d61  fix-elf-native-class.patch
+35f56e082e9eacdaaa707b029cfa7e2188565171595a35f099743d0f36921b5030dc5eaa3e1e7665937bbe2797b5358aebc0f6943c5d71475518294e4c510dba  fix-kms_request.patch
+adb8f5af63ca02194b54106b658acf4543362be29f63a5ec74a7fb717cbfe3e58df3e04617420b2285c821a56b7930d52171b9d5164c2046f63d5c1a39279fed  fix-mozjs.patch
+6570ac58293501d7d15e035f1cb11b641ea7aa524aab749e91b70acb2cad44b1516028dadbca090d157156e496bd8266455e5929109bb502e830b22dabf1b518  fix-processinfo_linux.patch
+ecee715dc51c485081fd216e1bb8f54d2632519b352781ca5f0a1d715864733fecf17da6603cccf01c3cabbce135051e7931116fc418d5a315dc8f592a31350c  fix-resolv.patch
+ef2b0e0e0f46c688dd487075ebfb294caa114af0ad291a31eb30768eab50aa6c93ce9741ee0f60412375ff7ae6db04c40163252270386a12aabe7f9b375e6e0d  fix-strerror_r.patch
+ecbe6cb579b33dd4888096712f150772db06fd38219ca2a7679b1dc1ee73b0c3f5ee498af12ecd0265b5231a9fe6b7c12b2c1d606ed04caa6aa00c3ad3fe925a  fix-wiredtiger.patch
+40d1a9d9d316261da9cc6a80f9c24b7c4ef1cf2f3b5d69a6a803cdc0b021741746318d4d034f080b6cdf1a132f973ee1ec5d800f00bea7b6280793246c86a333  fix-scons-flags.patch
+20632df492da3a4c9e837592241aade61c9c95b7176cb257fb9189d5efd52541d04618f7180324e5f18dab131b9bba11317b71af6ad52317f289579de82bede8  scons-no-force-lld.patch
+fdc2510a50b72bf30eb3f96123a20e29c1427551959c277147969f7841be6fc565df3338b837f04d65b695407c2def705793c77001fe30e6ebf6b3aa2f855e2d  gcc11-compat.patch
+51bde53ec6a378f90a78dc4b98901bb101be9414292f6623d351aa34f61c6a7910a3c1782510936901e0c212238823ae1f93f1f349ca116f7f7e54a522b2baf3  gcc13-compat.patch
+244d0846371227142a93e7dbd6831ff156f3bbba540e8a60b8bac36754ff1737c3b02d2b32ffca1afd153468f14beb5ed6f11fac411811e171394580d8623fe9  boost-dyn-link.patch
+f3c2fde397f833b03ced44f8bc7e6c6aa2ed8f197ba76e200e869355764a0855bd4808af66a15cdc5f7497b0d0548b9da10b839e6881bff98ac7547febb0cbd1  boost-1.79-compat.patch
+d6dad3ee97426fb6d6636ee0ce36adaec65561303130844fd5c02a43438b4bdf76d2d6a3b4b856345fc527bdf1568103b310bbd7078c96953633fb13004718f2  boost-1.81-compat.patch
+b227134370f4fcda35ab3a494293ade0777418683efd4e19e5a87529bda40962f1c98c105a8d6a74d5bd3be8f93fca02f3e6027af93b9023c8409616a4b134c6  musl-lfs64.patch
+65ba7c0e8a3d38b4b3e761e17d496cd281fc0e17c86478daf73a402c8bb83718468fcdd4c7fa057ef7e76168af7af6f865b5fe2a0d040d9f65ae917db3f9e450  icu_73.patch
+80476693dc87407ba3d80d249cff249037805f0a5f470023571e1fbc92ab03bf89ca836916d5463435e77248a92c473c1c46f09ceb01e73a59b9e0df4275c8f6  mongodb.initd
+3f45ca287435857f91b897a5827716d670a1625bc4f19979acb46ca302b3cce102d9c187b4566ed7a0a21f377d457a5f5ba378a89d9960c8e8693e393029dc58  mongodb.confd
+c018810acc3fec71c5c29fe18335bfe2e1e56a23b6c402e99a8e970047b0489e9efc4af5ca20d083ce9aa976f0d2b857dcfe75151fb0b5b5f5f768b617c2e8df  mongodb.logrotated
+f4379551619b46a89f57adcc7d7728ecb102c5917358409b4e3a5115f678053b0a0bf866d48e5e7a832fbbedb9312afcbcdfb955fc5a1b76c45daea3d147787d  mongod.conf
+"

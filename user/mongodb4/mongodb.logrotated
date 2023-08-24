@@ -1,0 +1,6 @@
+/var/log/mongodb/mongod.log {
+	missingok
+	postrotate
+		/etc/init.d/mongodb --quiet --ifstarted reopen
+	endscript
+}

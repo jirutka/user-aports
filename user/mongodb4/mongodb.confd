@@ -1,0 +1,13 @@
+# Configuration for /etc/init.d/mongodb
+
+# Path to the configuration file.
+#cfgfile="/etc/mongod.conf"
+
+# Additional arguments to pass to mongod.
+#command_args=
+
+# User (and group) to run mongod as.
+#command_user="mongodb:mongodb"
+
+# Uncomment to run with process supervisor.
+# supervisor=supervise-daemon

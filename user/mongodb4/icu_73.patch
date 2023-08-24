@@ -1,0 +1,29 @@
+--- a/src/mongo/db/query/collation/collator_interface_icu.h
++++ b/src/mongo/db/query/collation/collator_interface_icu.h
+@@ -33,7 +33,7 @@
+
+ #include <memory>
+
+-namespace icu {
++namespace icu_73 {
+ class Collator;
+ }  // namespace icu
+
+@@ -45,7 +45,7 @@
+  */
+ class CollatorInterfaceICU final : public CollatorInterface {
+ public:
+-    CollatorInterfaceICU(CollationSpec spec, std::unique_ptr<icu::Collator> collator);
++    CollatorInterfaceICU(CollationSpec spec, std::unique_ptr<icu_73::Collator> collator);
+
+     std::unique_ptr<CollatorInterface> clone() const final;
+
+@@ -56,7 +56,7 @@
+ private:
+     // The ICU implementation of the collator to which we delegate interesting work. Const methods
+     // on the ICU collator are expected to be thread-safe.
+-    const std::unique_ptr<icu::Collator> _collator;
++    const std::unique_ptr<icu_73::Collator> _collator;
+ };
+
+ }  // namespace mongo
