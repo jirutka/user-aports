@@ -1,0 +1,344 @@
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+#
+# This is a port of Ruby 2.7 from Alpine 3.14 to the latest Alpine with
+# OpenSSL 3 for legacy applications that don't support Ruby 3+. Note that
+# Ruby 2.x is obsolete and unsupported.
+pkgname=ruby2
+_pkgname=ruby
+pkgver=2.7.7
+_abiver="${pkgver%.*}.0"
+pkgrel=0
+pkgdesc="Obsolete version of Ruby"
+url="https://www.ruby-lang.org/"
+arch="all"
+license="Ruby AND BSD-2-Clause AND MIT"
+depends="ca-certificates"
+depends_dev="
+	$pkgname=$pkgver-r$pkgrel
+	gmp-dev
+	libucontext-dev
+	!ruby-dev
+	"
+makedepends="$depends_dev
+	autoconf
+	coreutils
+	gdbm-dev
+	libffi-dev
+	linux-headers
+	openssl-dev
+	readline-dev
+	yaml-dev
+	zlib-dev
+	"
+subpackages="$pkgname-dbg $pkgname-dev
+	$pkgname-bundler::noarch
+	$pkgname-etc
+	$pkgname-fiddle
+	$pkgname-gdbm
+	$pkgname-io-console:io_console
+	$pkgname-irb::noarch
+	$pkgname-json
+	$pkgname-minitest::noarch
+	$pkgname-net-telnet:net_telnet:noarch
+	$pkgname-power_assert::noarch
+	$pkgname-rake::noarch
+	$pkgname-rdoc::noarch
+	$pkgname-sdbm
+	$pkgname-test-unit:test_unit:noarch
+	$pkgname-webrick::noarch
+	$pkgname-xmlrpc::noarch
+	$pkgname-libs
+	$pkgname-full::noarch
+	"
+_openssl_ver=3.1.0
+source="https://cache.ruby-lang.org/pub/ruby/${pkgver%.*}/ruby-$pkgver.tar.gz
+	https://github.com/ruby/openssl/archive/v$_openssl_ver/ruby-openssl-$_openssl_ver.tar.gz
+	rubygems-avoid-platform-specific-gems.patch
+	test_insns-lower-recursion-depth.patch
+	fix-get_main_stack.patch
+	digest-openssl3-compat.patch
+	"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+_gemdir="/usr/lib/ruby/gems/$_abiver"
+_rubydir="/usr/lib/ruby/$_abiver"
+_chost="${CHOST/-alpine-/-}"
+
+case "$CARCH" in
+	x86) _arch="i386";;
+	*) _arch="$CARCH";;
+esac
+
+_bundled_gems=
+for _i in $subpackages; do
+	case "$_i" in
+		*-dev | *-doc | *-libs | *-full:*) continue;;
+		*) _bundled_gems="$_bundled_gems ${_i%%:*}";;
+	esac
+done
+
+prepare() {
+	# Replace openssl extension with the recent version compatible with OpenSSL 3.
+	local ossldir="$srcdir/openssl-$_openssl_ver"
+	# Copied from tool/sync_default_gems.rb
+	rm -rf ext/openssl test/openssl
+	cp -r "$ossldir"/ext/openssl ext/
+	mkdir -p ext/openssl/lib
+	cp -r "$ossldir"/lib/openssl ext/openssl/lib/
+	cp "$ossldir"/lib/openssl.rb ext/openssl/lib/
+	cp -r "$ossldir"/test test/openssl
+	rm -f test/openssl/envutil.rb
+	cp "$ossldir"/openssl.gemspec ext/openssl/
+
+	default_prepare
+	autoconf
+
+	# v2.7.1 - Of all the bootstraptest only test_fiber fails on s390x:
+	# test_fiber.rb bootstraptest.tmp.rb:8: [BUG] vm_call_cfunc: cfp consistency error (0x000003ffb63fefb0, 0x000003ffb42f5f58)
+	case "$CARCH" in
+		s390x)
+			rm bootstraptest/test_fiber.rb ;;
+	esac
+}
+
+build() {
+	# -fomit-frame-pointer makes ruby segfault, see gentoo bug #150413
+	# In many places aliasing rules are broken; play it safe
+	# as it's risky with newer compilers to leave it as it is.
+	export CFLAGS="${CFLAGS/-Os/-O2} -fno-omit-frame-pointer -fno-strict-aliasing"
+	export CPPFLAGS="${CPPFLAGS/-Os/-O2} -fno-omit-frame-pointer -fno-strict-aliasing"
+
+	# Needed for coroutine stuff
+	export LIBS="-lucontext"
+
+	# ruby saves path to install. we want use $PATH
+	export INSTALL=install
+
+	# the configure script does not detect isnan/isinf as macros
+	export ac_cv_func_isnan=yes
+	export ac_cv_func_isinf=yes
+
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info \
+		--with-sitedir=/usr/local/lib/site_ruby \
+		--with-search-path="/usr/lib/site_ruby/\$(ruby_ver)/$_arch-linux" \
+		--enable-pthread \
+		--disable-rpath \
+		--enable-shared \
+		--with-mantype=man \
+		--disable-install-doc \
+		--program-suffix=2
+	make
+}
+
+check() {
+	make test
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+
+	install -m 644 -D COPYING "$pkgdir"/usr/share/licenses/$pkgname/COPYING
+
+	# Remove bundled CA certificates; they are provided by ca-certificates.
+	rm "$pkgdir"/$_rubydir/rubygems/ssl_certs/*/*.pem
+	rmdir "$pkgdir"/$_rubydir/rubygems/ssl_certs/* || true
+
+	rm -Rf "$pkgdir"/$_gemdir/cache/*
+
+	rm -Rf "$pkgdir"/usr/share/man
+	rm -Rf "$pkgdir"/usr/share/licenses
+
+	if [ -d "$pkgdir"/usr/local ]; then
+		local f=$(cd "$pkgdir" ; find usr/local -type f)
+		if [ -n "$f" ]; then
+			error "Found files in /usr/local:"
+			echo "$f"
+			return 1
+		fi
+		rm -r "$pkgdir"/usr/local
+	fi
+}
+
+bundler() {
+	pkgdesc="Manage an application's gem dependencies"
+	license="MIT"
+	depends="ruby2"
+
+	_mvgem bundler
+	_mv usr/bin/bundle*
+}
+
+etc() {
+	pkgdesc="Provides access to information typically stored in UNIX /etc directory"
+	license="BSD-2-Clause"
+	depends=""
+
+	_mvgem etc
+}
+
+fiddle() {
+	pkgdesc="A libffi wrapper for Ruby"
+	license="BSD-2-Clause"
+	depends=""
+
+	_mvgem fiddle
+}
+
+gdbm() {
+	pkgdesc="Ruby extension for GNU dbm"
+	license="BSD-2-Clause"
+	depends=""
+
+	_mvgem gdbm
+}
+
+io_console() {
+	pkgdesc="Ruby simple console IO library"
+	license="BSD-2-Clause"
+	depends=""
+
+	_mvgem io-console
+	_mv $_rubydir/io \
+		$_rubydir/$_chost/io/console.so
+}
+
+irb() {
+	pkgdesc="The Interactive Ruby"
+	replaces="$pkgname"
+	depends="$pkgname $pkgname-io-console"
+
+	cd "$pkgdir"
+	_mvgem irb
+	_mv usr/bin/irb*
+}
+
+json() {
+	pkgdesc="JSON implementation as a Ruby extension in C"
+	license="Ruby"
+	depends=""
+
+	_mvgem json
+}
+
+minitest() {
+	pkgdesc="Ruby suite of testing facilities"
+	license="MIT"
+	depends="$pkgname"
+
+	_mvgem minitest
+}
+
+net_telnet() {
+	pkgdesc="Telnet client functionality for Ruby"
+	depends="$pkgname-libs"
+
+	_mvgem net-telnet
+}
+
+power_assert() {
+	pkgdesc="Power Assert for Ruby"
+	depends="$pkgname-libs"
+
+	_mvgem power_assert
+}
+
+rake() {
+	pkgdesc="Ruby based make-like utility"
+	license="MIT"
+	depends="$pkgname"
+
+	_mvgem rake
+	_mv usr/bin/rake*
+}
+
+rdoc() {
+	pkgdesc="Ruby documentation tool"
+	license="Ruby"
+	depends="$pkgname $pkgname-json $pkgname-io-console"
+
+	_mvgem rdoc
+	_mv usr/bin/ri* \
+		usr/bin/rdoc*
+}
+
+sdbm() {
+	pkgdesc="A simple file-based key-value store with String keys and values for Ruby"
+	license="BSD-2-Clause"
+	depends=""
+
+	_mvgem sdbm
+}
+
+test_unit() {
+	pkgdesc="An xUnit family unit testing framework for Ruby"
+	license="Ruby PSFL"
+	depends="$pkgname $pkgname-power_assert"
+
+	_mvgem test-unit
+}
+
+webrick() {
+	pkgdesc="HTTP server toolkit for Ruby"
+	license="BSD-2-Clause"
+	depends="$pkgname $pkgname-etc"
+
+	_mvgem webrick
+}
+
+xmlrpc() {
+	pkgdesc="XMLRPC library for Ruby"
+	license="Ruby"
+	depends="$pkgname-libs"
+
+	_mvgem xmlrpc
+}
+
+libs() {
+	pkgdesc="Libraries necessary to run Ruby"
+	depends=""
+
+	mkdir -p "$subpkgdir"/usr
+	mv "$pkgdir"/usr/lib "$subpkgdir"/usr/
+}
+
+full() {
+	pkgdesc="Ruby with all bundled gems"
+	depends="ruby2 $_bundled_gems"
+
+	mkdir -p "$subpkgdir"
+}
+
+_mv() {
+	local i; for i in "$@"; do
+		mkdir -p "$subpkgdir"/${i%/*}
+		mv "$pkgdir"/$i "$subpkgdir"/${i%/*}/
+	done
+}
+
+_mvgem() {
+	cd "$pkgdir"
+	local path; for path in ./$_rubydir/$1.rb \
+			./$_rubydir/$1 \
+			./$_rubydir/$_chost/$1 \
+			./$_rubydir/$_chost/$1.so \
+			./$_gemdir/gems/$1-* \
+			./$_gemdir/specifications/$1-* \
+			./$_gemdir/specifications/default/$1-* ; do
+		[ ! -e "$pkgdir/$path" ] || _mv "$path"
+	done
+}
+
+sha512sums="
+7e6259f0e7a5687d12fded914dcb93e283e956022be40ef8fc6a27f66be14e057d8101b05c7b042b43fc24e3b5c4092d1675917a814d74b08adb63a3388baed2  ruby-2.7.7.tar.gz
+d05e33838520ce75ed4d06aedd3a563c88a1596ab05e5a54b102efee963f28e10fb41deb305aaa833a93110dcb246e87fdb6b48291180e71db6944a9f4a925b6  ruby-openssl-3.1.0.tar.gz
+a142199140fa711a64717429e9069fd2082319abaf4b129f561db374b3bc16e2a90cc4c849b5d28334505d1c71fed242aef3c44d983da3513d239dcb778673a5  rubygems-avoid-platform-specific-gems.patch
+43c1fc80f0dcb4f24d891478889808583da90dc9e0df74c3b1cf41253c13a0d416d2b7ae17e7d53ac1238340a845b088f0fe20324a79905cc6b950b3dcfa4ac6  test_insns-lower-recursion-depth.patch
+3ffc034c01110ee5531265333ca5ee8d61d08131843fe3004c5b34c88c9c1b32cb4ed89574f393177c8bd526e9c15da61ab344f93adf07b9148c561ee19e2eb5  fix-get_main_stack.patch
+07c8c1b702ff4a7f2aa1a87b85c0927f0086e1f8d55bc626102f4684e32a00bde19253f203e435376db74fc64c387dcb85698b969bb43f2b94db17c08dab57b2  digest-openssl3-compat.patch
+"
