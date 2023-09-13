@@ -2,7 +2,7 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=docker-machine-opennebula
 pkgver=6.2.0.1
-pkgrel=0
+pkgrel=1
 pkgdesc="Docker Machine Plugin for OpenNebula"
 url="https://opennebula.io"
 arch="all"
@@ -28,7 +28,7 @@ package() {
 
 sha512sums="
 bf951e2f48de5e5ba10947dd70828bc8fffa0df79fced5760c56e9f68a0552a7c25098af2a555270bd8e481547551248ad2efb55a61499f5263e84fc5262f80b  docker-machine-opennebula-6.2.0.1.tar.gz
-d59ab7875996d0460095eb44da0f724d3df13d1fea1c784bdb1fc0410d8b9a8bed6891291c96d0dd01c0a15da6e769b254962912d72975d103e1d9d78eddd40d  allow-to-specify-some-context-attrs.patch
+8b595b2b2666c31b948750d016d7b6bcad8ae9f1cd79e1dad38646c58abacf2a9cab4d1e81015e5e03a086c29392f40e3d2823c658f100aa296aae1decb87e72  allow-to-specify-some-context-attrs.patch
 0c453559348f44a489b02931599c2f6946ecf9909990f2b7fca6ffcc7a18ce69f2acc3847f55ed55bf6b08042a4c69e14a04b4d522672f70323b7aed55030930  fix-remove-when-gone.patch
 55516c824b71ce2c766c4fe63c400f6ea075267bcc41eb00c52f96839168e9135dec83afda4f12c13a4280733df67019a9560ad7fdee0293ebf1f095f53d0426  use-go-mod.patch
 "

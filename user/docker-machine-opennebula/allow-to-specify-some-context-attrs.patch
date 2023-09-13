@@ -1,17 +1,18 @@
-Allow to specify context attributes FILES_DS and INIT_SCRIPTS
+Allow to specify context attributes FILES_DS, INIT_SCRIPTS and START_SCRIPT.
 
 --- a/opennebula.go
 +++ b/opennebula.go
-@@ -44,6 +44,8 @@
+@@ -44,6 +44,9 @@
  	DisableVNC     bool
  	StartRetries   string
  	MachineId      int
 +	FilesDs        string
 +	InitScripts    string
++	StartScript    string
  }
- 
+
  const (
-@@ -235,6 +237,18 @@
+@@ -235,6 +238,24 @@
  			EnvVar: "ONE_START_RETRIES",
  			Value:  defaultStartRetries,
  		},
@@ -27,25 +28,31 @@ Allow to specify context attributes FILES_DS and INIT_SCRIPTS
 +			EnvVar:	"ONE_INIT_SCRIPTS",
 +			Value:	"",
 +		},
++		mcnflag.StringFlag{
++			Name:	"opennebula-start-script",
++			Usage:	"Text of the script executed when the machine starts up",
++			EnvVar:	"ONE_START_SCRIPT",
++			Value:	"",
++		},
  	}
  }
- 
-@@ -278,6 +292,10 @@
+
+@@ -278,6 +299,11 @@
  	// CONFIG
  	d.StartRetries = flags.String("opennebula-start-retries")
- 
+
 +	// Context
 +	d.FilesDs = flags.String("opennebula-files-ds")
 +	d.InitScripts = flags.String("opennebula-init-scripts")
++	d.StartScript = flags.String("opennebula-start-script")
 +
  	// Either TemplateName or TemplateID
  	if d.TemplateName != "" && d.TemplateID != "" {
  		return errors.New("specify only one of: --opennebula-template-name or --opennebula-template-id, not both")
-@@ -459,6 +477,14 @@
- 	template.AddCtx("DOCKER_SSH_USER", d.SSHUser)
+@@ -460,6 +486,18 @@
  	template.AddCtx("DOCKER_SSH_PUBLIC_KEY", string(pubKey))
  	template.AddB64Ctx(keys.StartScriptB64, contextScript)
-+
+
 +	if d.FilesDs != "" {
 +		template.AddCtx("FILES_DS", d.FilesDs)
 +	}
@@ -53,6 +60,11 @@ Allow to specify context attributes FILES_DS and INIT_SCRIPTS
 +	if d.InitScripts != "" {
 +		template.AddCtx("INIT_SCRIPTS", d.InitScripts)
 +	}
- 
++
++	if d.StartScript != "" {
++		template.AddCtx("START_SCRIPT", d.StartScript)
++	}
++
  	// Instantiate
  	log.Infof("Starting	 VM...")
+
