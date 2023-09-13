@@ -1,4 +1,4 @@
-Allow to specify context attributes FILES_DS, INIT_SCRIPTS and START_SCRIPT.
+Allow to specify context attributes FILES_DS, INIT_SCRIPTS and START_SCRIPT_BASE64.
 
 --- a/opennebula.go
 +++ b/opennebula.go
@@ -8,10 +8,19 @@ Allow to specify context attributes FILES_DS, INIT_SCRIPTS and START_SCRIPT.
  	MachineId      int
 +	FilesDs        string
 +	InitScripts    string
-+	StartScript    string
++	StartScriptB64 string
  }
 
  const (
+@@ -53,7 +56,7 @@
+ 	defaultMemory       = "1024"
+ 	defaultStartRetries = "600"
+ 	// This is the contextualization script that will be executed by OpenNebula
+-	contextScript = `#!/bin/sh
++	defaultStartScript  = `#!/bin/sh
+
+ if [ -f /etc/boot2docker ]; then
+ 	USERNAME=docker
 @@ -235,6 +238,24 @@
  			EnvVar: "ONE_START_RETRIES",
  			Value:  defaultStartRetries,
@@ -29,10 +38,10 @@ Allow to specify context attributes FILES_DS, INIT_SCRIPTS and START_SCRIPT.
 +			Value:	"",
 +		},
 +		mcnflag.StringFlag{
-+			Name:	"opennebula-start-script",
-+			Usage:	"Text of the script executed when the machine starts up",
-+			EnvVar:	"ONE_START_SCRIPT",
-+			Value:	"",
++			Name:	"opennebula-start-script-base64",
++			Usage:	"Text of the script executed when the machine starts up encoded in Base64 (overrides the default script)",
++			EnvVar:	"ONE_START_SCRIPT_BASE64",
++			Value:	defaultStartScript,
 +		},
  	}
  }
@@ -44,14 +53,17 @@ Allow to specify context attributes FILES_DS, INIT_SCRIPTS and START_SCRIPT.
 +	// Context
 +	d.FilesDs = flags.String("opennebula-files-ds")
 +	d.InitScripts = flags.String("opennebula-init-scripts")
-+	d.StartScript = flags.String("opennebula-start-script")
++	d.StartScriptB64 = flags.String("opennebula-start-script-base64")
 +
  	// Either TemplateName or TemplateID
  	if d.TemplateName != "" && d.TemplateID != "" {
  		return errors.New("specify only one of: --opennebula-template-name or --opennebula-template-id, not both")
-@@ -460,6 +486,18 @@
+@@ -458,8 +484,16 @@
+ 	template.AddCtx(keys.SSHPubKey, "$USER[SSH_PUBLIC_KEY]")
+ 	template.AddCtx("DOCKER_SSH_USER", d.SSHUser)
  	template.AddCtx("DOCKER_SSH_PUBLIC_KEY", string(pubKey))
- 	template.AddB64Ctx(keys.StartScriptB64, contextScript)
+-	template.AddB64Ctx(keys.StartScriptB64, contextScript)
++	template.AddB64Ctx(keys.StartScriptB64, d.StartScriptB64)
 
 +	if d.FilesDs != "" {
 +		template.AddCtx("FILES_DS", d.FilesDs)
@@ -59,10 +71,6 @@ Allow to specify context attributes FILES_DS, INIT_SCRIPTS and START_SCRIPT.
 +
 +	if d.InitScripts != "" {
 +		template.AddCtx("INIT_SCRIPTS", d.InitScripts)
-+	}
-+
-+	if d.StartScript != "" {
-+		template.AddCtx("START_SCRIPT", d.StartScript)
 +	}
 +
  	// Instantiate
