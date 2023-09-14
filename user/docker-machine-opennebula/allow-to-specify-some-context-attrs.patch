@@ -41,7 +41,7 @@ Allow to specify context attributes FILES_DS, INIT_SCRIPTS and START_SCRIPT_BASE
 +			Name:	"opennebula-start-script-base64",
 +			Usage:	"Text of the script executed when the machine starts up encoded in Base64 (overrides the default script)",
 +			EnvVar:	"ONE_START_SCRIPT_BASE64",
-+			Value:	defaultStartScript,
++			Value:	"",
 +		},
  	}
  }
@@ -58,13 +58,18 @@ Allow to specify context attributes FILES_DS, INIT_SCRIPTS and START_SCRIPT_BASE
  	// Either TemplateName or TemplateID
  	if d.TemplateName != "" && d.TemplateID != "" {
  		return errors.New("specify only one of: --opennebula-template-name or --opennebula-template-id, not both")
-@@ -458,8 +484,16 @@
+@@ -458,8 +484,21 @@
  	template.AddCtx(keys.SSHPubKey, "$USER[SSH_PUBLIC_KEY]")
  	template.AddCtx("DOCKER_SSH_USER", d.SSHUser)
  	template.AddCtx("DOCKER_SSH_PUBLIC_KEY", string(pubKey))
 -	template.AddB64Ctx(keys.StartScriptB64, contextScript)
-+	template.AddB64Ctx(keys.StartScriptB64, d.StartScriptB64)
 
++	if d.StartScriptB64 != "" {
++		template.AddCtx("START_SCRIPT_BASE64", d.StartScriptB64)
++	} else {
++		template.AddB64Ctx(keys.StartScriptB64, defaultStartScript)
++	}
++
 +	if d.FilesDs != "" {
 +		template.AddCtx("FILES_DS", d.FilesDs)
 +	}
