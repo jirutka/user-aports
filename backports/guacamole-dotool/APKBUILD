@@ -1,7 +1,8 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=guacamole-dotool
-pkgver=0.2.0
+pkgver=0.2.0_git20231103
+_gitrev=ef546927fdc8ddf059663289d0f3b15e5ef6b12a
 pkgrel=0
 pkgdesc="Guacamole CLI client for scripting"
 url="https://github.com/jirutka/guacamole-dotool"
@@ -18,7 +19,8 @@ makedepends="
 	pixman-dev
 	"
 subpackages="$pkgname-dbg"
-source="https://github.com/jirutka/guacamole-dotool/archive/v$pkgver/guacamole-dotool-$pkgver.tar.gz"
+source="https://github.com/jirutka/guacamole-dotool/archive/$_gitrev/guacamole-dotool-$_gitrev.tar.gz"
+builddir="$srcdir/$pkgname-$_gitrev"
 options="net"
 
 build() {
@@ -51,5 +53,5 @@ dbg() {
 }
 
 sha512sums="
-3d052a9ae325464a54af14f0f26c6d7e6134130df902deabdfef8f474f873ebe654f2bde660551550f1e983190be425c3ab39b7624561241d9669b6d448f7a24  guacamole-dotool-0.2.0.tar.gz
+f05356ad7ca886d8ae089dca1bfd945c00d07c0c90e034f98469344e2e88e4fddc07c95a1b031a450545aed2a172b7278c4729d394eda611fa6095afcb940168  guacamole-dotool-ef546927fdc8ddf059663289d0f3b15e5ef6b12a.tar.gz
 "
