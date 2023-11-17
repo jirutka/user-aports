@@ -21,7 +21,7 @@ Alpine Edge (aka unstable, development branch) is not supported.
 
 == Repositories
 
-All the repositories are also available over link:rsync://repo.jirutka.cz/alpine/[] and on mirror https://mirror.fit.cvut.cz/alpine-jirutka/.
+All the repositories are also available over link:rsync://repo.jirutka.cz/alpine/[].
 
 
 === Backports
