@@ -9,7 +9,19 @@
  
  #
  # Configuration import
-@@ -418,7 +418,7 @@
+@@ -295,6 +295,11 @@
+ # Email
+ #
+ 
++# XXX-Patched: added
++if EMAIL.get('BACKEND'):
++    EMAIL_BACKEND = EMAIL.get('BACKEND')
++    EMAIL_FILE_PATH = EMAIL.get('FILE_PATH')
++
+ EMAIL_HOST = EMAIL.get('SERVER')
+ EMAIL_HOST_USER = EMAIL.get('USERNAME')
+ EMAIL_HOST_PASSWORD = EMAIL.get('PASSWORD')
+@@ -418,7 +423,7 @@
      os.path.join(BASE_DIR, 'project-static', 'img'),
      os.path.join(BASE_DIR, 'project-static', 'js'),
      ('docs', os.path.join(BASE_DIR, 'project-static', 'docs')),  # Prefix with /docs

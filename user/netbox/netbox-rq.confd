@@ -1,11 +1,11 @@
 # Configuration for /etc/init.d/netbox-rq
 
-# Space-separated list of queues to work on. 
+# Space-separated list of queues to work on.
 #queues="high default low"
 
-# Log messages from the worker are redirected to syslog.
+# Path to file where to redirect log messages from the worker.
 # Set to empty string to disable.
-#error_logger="logger -t $RC_SVCNAME -p daemon.info >/dev/null 2>&1"
+#error_log="/var/log/netbox/rqworker.log"
 
 # Additional options to pass to `netbox-manage rqworker`.
 #command_args=

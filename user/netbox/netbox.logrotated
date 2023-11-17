@@ -1,3 +1,8 @@
 /var/log/netbox/netbox.log {
 	missingok
 }
+/var/log/netbox/rqworker.log {
+	copytruncate
+	missingok
+	notifempty
+}

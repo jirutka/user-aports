@@ -70,7 +70,7 @@
 -# this setting is derived from the installed location.
 -# REPORTS_ROOT = '/opt/netbox/netbox/reports'
 +# The file path where custom reports will be stored. A trailing slash is not needed.
-+REPORTS_ROOT = '/etc/netbox/reports'
++REPORTS_ROOT = '/var/lib/netbox/reports'
  
  # Maximum execution time for background tasks, in seconds.
  RQ_DEFAULT_TIMEOUT = 300
@@ -79,7 +79,7 @@
 -# this setting is derived from the installed location.
 -# SCRIPTS_ROOT = '/opt/netbox/netbox/scripts'
 +# The file path where custom scripts will be stored.
-+SCRIPTS_ROOT = '/etc/netbox/scripts'
++SCRIPTS_ROOT = '/var/lib/netbox/scripts'
  
  # The name to use for the session cookie.
  SESSION_COOKIE_NAME = 'sessionid'

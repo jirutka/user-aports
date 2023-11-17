@@ -1,6 +1,6 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=netbox
-pkgver=3.4.6
+pkgver=3.6.5
 pkgrel=1
 pkgdesc="The premiere source of truth powering network automation"
 url="https://netbox.io"
@@ -12,12 +12,15 @@ depends="
 	py3-cffi
 	py3-charset-normalizer
 	py3-cryptography
+	py3-dulwich
 	py3-markupsafe
-	py3-pillow~=9
-	py3-psycopg2~=2
+	py3-pillow>=9
+	py3-psycopg-c~=3
+	py3-psycopg-pool~=3
 	py3-regex
-	py3-ruamel.yaml.clib
+	py3-rpds-py
 	py3-tzdata
+	py3-yaml
 	python3
 	uwsgi-http
 	uwsgi-python3
@@ -53,8 +56,10 @@ prepare() {
 	# Relax version requirements for modules we don't install into venv,
 	# but use system-provided.
 	# We use uWSGI instead of gunicorn.
-	sed -Ei -e 's/^Pillow[>=]=9\..*/Pillow>=9/' \
-		-e 's/^psycopg2-binary[>=]=2\..*/psycopg2>=2/' \
+	sed -Ei -e 's/^py3-dulwich[>=]=0\..*/py3-dulwich/' \
+		-e 's/^Pillow[>=]=.*/Pillow>=9/' \
+		-e 's/^PyYAML[>=]=.*/PyYAML>=6.0/' \
+		-e 's/^(psycopg\[[^]]*\])[>=]=.*/\1>=3/' \
 		-e 's/^tzdata==.*/tzdata/' \
 		-e '/^gunicorn\b/d' \
 		requirements.txt
@@ -98,6 +103,9 @@ build() {
 	find lib/python*/site-packages/django/conf/locale \
 		lib/python*/site-packages/django/contrib/*/locale \
 		-type d ! -name en -mindepth 1 -maxdepth 1 -exec rm -rf '{}' \;
+	find lib/python*/site-packages/babel/locale-data \
+		-type f ! \( -name en.dat -or -iname en_US*.dat -o -iname en_[0-1]*.dat \) \
+		-delete
 
 
 	## Compile static assets
@@ -158,10 +166,6 @@ package() {
 
 	cd "$pkgdir"
 
-	install -d -m755 \
-		etc/$pkgname/reports \
-		etc/$pkgname/scripts
-
 	ln -s /etc/$pkgname/configuration.py $_appdir/netbox/netbox/configuration.py
 	ln -s /etc/$pkgname/secret_key.txt $_appdir/netbox/netbox/secret_key.txt
 
@@ -178,19 +182,21 @@ package() {
 
 	install -d -m750 -o netbox -g netbox \
 		var/lib/$pkgname/media \
+		var/lib/$pkgname/reports \
+		var/lib/$pkgname/scripts \
 		var/log/$pkgname
 }
 
 sha512sums="
-33db8f7f6f616924ce223dce6dff7c01bf81267df995dfd4696a7248a012c6c74d7358bc8347fb408b61b63f47f11c2fd3b03ed6048c7bba54a5e3833c303a2b  netbox-3.4.6.tar.gz
-3a11052eaa9a6f298fe262cbab11acc815515de705836d65964aa99f6ca81ace7bb4c409c527508d481bdaae40fc736156021a7774cb3fcb577c9a038a48ef00  configuration-defaults.patch
-43c96b6840c23cb96040c86bbc4eb152e482999f4a27a7e26d5f95690780d565cc9daab0ed054093feeb8936ae63357ae2de4d714c469fb860fb50531501d99c  settings.patch
+cf00b766561cb4e49b83c9d111b8c3463bd587d221e75a0e0ddc87dc383b521b0cc15bb9d685c5ee04a4d2b841a651e82b92fe4c04ea2aeedd1fe0dbf63be322  netbox-3.6.5.tar.gz
+432e3f386d012c3222a825db67bb4d298680d0ed092496cd6b7c07a499f493065c525b23185920391f6e378178c044e6bf574b331a051a2cef5fd058d3b8598b  configuration-defaults.patch
+d0e97b6b56ea36d03820637a3a91d20ca135183ad685d20a20c2a71a08cf0d5c1eae5982dd10f3b7ac2f78655394eda28aaf09ad486d8e03fe5c772d0f660d9a  settings.patch
 cd72eedab164a632499389ac7d46b6a4a36bb53dce6b8333d1e96e7bea93902bc0ec34b349a496207a9e847520e0e42f791bea21af3b4385a636045acb10e780  netbox.initd
 f724709c0f6253631381db950912245e4918faac7da64eeb0139810e4f50cfb81d7c58d5351c57c51b7feed5402593b2fa0ec32024dea83a356bba83564fa239  netbox.confd
-5bb73cd349a357d2f6ac96f2543272e4398d82dd37bc6e62abfcdd4cb2915d9176e770d78bb3b0b9f1238e99037e519ad677ebea929ea3c8f6d05e62c0ae26ef  netbox-rq.initd
-ba2a7e967f3b9751d65801e3d91e9891aae0c7363926bb7806455fabf2c4db287feabd8d3b708faf23122bf4424de83b1eaf743fca6755a213c07bbb4be3ae4c  netbox-rq.confd
-1c37d881156618f9e914dbc36b0bbd91898347f207d0719622711259c6487d1a206b460143e91abed6a422912d0f7d36b8ab7f9ce9eb2cc72efa7029c7fec3c5  netbox.logrotated
+d9a48e2768f7f3f88d5f254cc6b6aced247cbb49843bc7e6afe7d2a2a2d81c5bef9d9cf84ca4b4cf80a155cb93e5bf4978f7859b11a0f6de0b24cb85cc3d57f8  netbox-rq.initd
+4fc0694907310d260c7a2f86f70bb2fe93e0dce5f7fd734dba0af4a3339146f43691e5c4afe0e0c81a615e19ee58e68f35fc4edef109deb69a36ca5b4a53634d  netbox-rq.confd
+738f419d5b697176a1972a0ccbbb59a45a0afa053d2fdef79a5bef035ea8acb0f0bd79a378f1eaf477fe85fb5e46348693b2712aa85a7afe7b84e336730ae36f  netbox.logrotated
 a346248aa0e7d36e70e31b7f6e0183f85d784fbc5e97b49e12127812db63444a0a642df0888d65ec7c4f11fdc552195badd9e545cbe5afad9968c572ca82fa6d  netbox-housekeeping.daily
 f2f2219aee45ad1bee17af103861872b8e532afa6456342d0e27800e1aab4a3a33a65956135c6882c09baae6eb63cf00cfec3735cd848fc77d3e7676d8a3effe  netbox-manage
-dd6b2f393251052473a78683cf68faa2cd5ada61d352d7bd7d36c52cd767b635da17d0fd7e7521775a816b56252775f94d7500acb78d24dfa483462d9d51c5df  uwsgi.ini
+313df7bfa8e85e54ce2e9e55e16b7b313d03ab5e7347516b663c103454ea9718301ac02ae764c995c0b40ed9d93b5f391a6981236971e2695d96ca1eafb96d41  uwsgi.ini
 "

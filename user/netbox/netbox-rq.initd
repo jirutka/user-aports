@@ -4,7 +4,8 @@ name="NetBox-RQ"
 description="NetBox Request Queue Worker"
 
 : ${queues:="high default low"}
-: ${error_logger="logger -t $RC_SVCNAME -p daemon.info >/dev/null 2>&1"}
+# Note: {error,output}_logger doesn't work with supervise-daemon!
+: ${error_log="/var/log/netbox/rqworker.log"}
 : ${command_user:="netbox"}
 : ${retry="INT/30/KILL/5"}
 
