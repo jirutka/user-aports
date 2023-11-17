@@ -4,7 +4,7 @@
 :repo-branch: v3.18
 :gh-name: jirutka/{repo-name}
 :gh-branch: master
-:key-file: jakub@jirutka.cz-56d0d9fd.rsa.pub
+:key-file: jakub@jirutka.cz-655775c4.rsa.pub
 :repos-uri: https://repo.jirutka.cz/alpine
 
 ifdef::env-github[]

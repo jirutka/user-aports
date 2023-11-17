@@ -7,6 +7,7 @@ env:
   BRANCH: v3.18
   REPOS_DIR: /home/ci/repos
   BUILD_REPOS: backports user
+  PACKAGER_KEYNAME: jakub@jirutka.cz-655775c4.rsa
 
 jobs:
   build:
@@ -70,7 +71,7 @@ jobs:
           cp $REPOS_DIR/keys/* /etc/apk/keys/
 
           mkdir -p .abuild
-          echo "PACKAGER_PRIVKEY=$(ls $REPOS_DIR/.secret/*.rsa | head -n1)" > .abuild/abuild.conf
+          echo "PACKAGER_PRIVKEY=$REPOS_DIR/.secret/$PACKAGER_KEYNAME" > .abuild/abuild.conf
         working-directory: /home/ci
 
       - name: Build packages
