@@ -2,7 +2,7 @@
 # Maintainer: Francesco Colista <fcolista@alpinelinux.org>
 pkgname=dmg2img
 pkgver=1.6.7
-pkgrel=1
+pkgrel=2
 pkgdesc="A CLI tool to uncompress Apple's compressed DMG files to the HFS+ IMG format"
 url="http://vu1tur.eu.org/tools/"
 arch="all"

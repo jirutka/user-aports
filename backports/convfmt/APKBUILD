@@ -4,7 +4,7 @@ pkgname=convfmt
 pkgver=0.1.5_git20230802
 # https://github.com/oriontvv/convfmt/issues/76
 _gitrev=f50071d2a0b2953fc0b3f0d9b7184f1342517a05
-pkgrel=0
+pkgrel=1
 pkgdesc="CLI tool which can convert between JSON, YAML, TOML etc."
 url="https://github.com/oriontvv/convfmt"
 arch="all"

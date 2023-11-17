@@ -2,7 +2,7 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=hfsfuse
 pkgver=0.153
-pkgrel=0
+pkgrel=1
 pkgdesc="FUSE driver for HFS+ filesystems"
 url="https://github.com/0x09/hfsfuse"
 arch="all"

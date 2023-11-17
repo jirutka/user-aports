@@ -3,7 +3,7 @@
 pkgname=guacamole-dotool
 pkgver=0.2.0_git20231103
 _gitrev=ef546927fdc8ddf059663289d0f3b15e5ef6b12a
-pkgrel=0
+pkgrel=1
 pkgdesc="Guacamole CLI client for scripting"
 url="https://github.com/jirutka/guacamole-dotool"
 # riscv64,s390x: memory access out of bounds in @rollup/wasm-node
