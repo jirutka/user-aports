@@ -4,7 +4,7 @@ _versuffix=dbru
 _verurl=${pkgver//./}
 _vermajor=${pkgver%%.*}
 _verminor=${pkgver#*.}; _verminor=${_verminor%%.*}
-pkgrel=0
+pkgrel=1
 pkgdesc="Oracle Instant Client"
 url="https://www.oracle.com/database/technologies/instant-client.html"
 arch="x86_64"

@@ -3,7 +3,7 @@
 pkgname=received
 pkgver=0.5_git20190403
 _gitrev=5da7c2eb70375921496ca412f5b9b47326b156ad
-pkgrel=0
+pkgrel=1
 pkgdesc="LMTP server that delivers mails to Sidekiq/Redis"
 url="https://github.com/jirutka/received"
 arch="all"

@@ -2,7 +2,7 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=prebackup
 pkgver=0.6.0
-pkgrel=0
+pkgrel=1
 pkgdesc="Pre/post backup scripts"
 url="https://github.com/jirutka/prebackup"
 arch="noarch"

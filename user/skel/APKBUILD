@@ -2,7 +2,7 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=skel
 pkgver=1.3
-pkgrel=0
+pkgrel=1
 pkgdesc="Base dotfiles into /etc/skel"
 url="https://github.com/jirutka/user-aports"
 arch="noarch"

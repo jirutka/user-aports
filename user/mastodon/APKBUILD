@@ -2,7 +2,7 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=mastodon
 pkgver=4.1.6
-pkgrel=2
+pkgrel=3
 pkgdesc="Free open-source social network server based on ActivityPub"
 url="https://joinmastodon.org"
 arch="all"

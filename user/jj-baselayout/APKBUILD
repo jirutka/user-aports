@@ -2,7 +2,7 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=jj-baselayout
 pkgver=1.2.3
-pkgrel=0
+pkgrel=1
 pkgdesc="My base configuration"
 url="https://github.com/jirutka/user-aports"
 arch="noarch"

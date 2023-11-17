@@ -3,7 +3,7 @@
 pkgname=docker-machine
 pkgver=0.16.2.22
 _pkgver="v${pkgver%.*}-gitlab.${pkgver##*.}"
-pkgrel=0
+pkgrel=1
 pkgdesc="Machine management for a shit-centric world"
 url="https://gitlab.com/gitlab-org/ci-cd/docker-machine"
 arch="all"

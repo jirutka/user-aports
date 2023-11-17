@@ -1,7 +1,7 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=mongodb4
 pkgver=4.4.5
-pkgrel=1
+pkgrel=2
 pkgdesc="A very crappy, not open-source, schema-free document-oriented database version 4.x"
 url="http://www.mongodb.org"
 arch="x86_64"

@@ -3,7 +3,7 @@
 pkgname=ngx-oauth
 pkgver=0.0_git20151212
 _gitrev=f50acede9a7cef8abe44d57f8a797a46794ed388
-pkgrel=0
+pkgrel=1
 pkgdesc="OAuth 2.0 proxy for nginx written in Lua"
 url="https://github.com/jirutka/ngx-oauth"
 arch="noarch"

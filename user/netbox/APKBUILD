@@ -1,7 +1,7 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=netbox
 pkgver=3.6.5
-pkgrel=1
+pkgrel=2
 pkgdesc="The premiere source of truth powering network automation"
 url="https://netbox.io"
 arch="noarch"

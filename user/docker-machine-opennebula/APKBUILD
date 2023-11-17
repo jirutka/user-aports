@@ -2,7 +2,7 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=docker-machine-opennebula
 pkgver=6.2.0.1
-pkgrel=3
+pkgrel=4
 pkgdesc="Docker Machine Plugin for OpenNebula"
 url="https://opennebula.io"
 arch="all"

@@ -2,7 +2,7 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=lithos
 pkgver=0.18.4
-pkgrel=1
+pkgrel=2
 pkgdesc="Process supervisor that supports linux containers"
 url="https://github.com/tailhook/lithos/"
 arch="x86_64"  # limited by rust
