@@ -1,8 +1,8 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=mastodon
-pkgver=4.1.6
-pkgrel=3
+pkgver=4.2.3
+pkgrel=0
 pkgdesc="Free open-source social network server based on ActivityPub"
 url="https://joinmastodon.org"
 arch="all"
@@ -41,7 +41,6 @@ source="https://github.com/mastodon/mastodon/archive/v$pkgver/mastodon-$pkgver.t
 	sample-config.patch
 	setup-task.patch
 	streaming-log-timestamp.patch
-	fix-rails-settings-yaml-aliases.patch.txt
 	bin-wrapper.in
 	$pkgname-sidekiq.initd
 	$pkgname-sidekiq.confd
@@ -74,6 +73,7 @@ prepare() {
 	jq --slurpfile requires streaming-requires.txt \
 		'{ dependencies: .dependencies | with_entries(select([.key] | inside($requires))) }' \
 		package.json > streaming/package.json
+	ln -s ../yarn.lock streaming/yarn.lock
 
 	# Create config for Bundler.
 	mkdir -p .bundle
@@ -93,12 +93,10 @@ build() {
 	msg "Installing Ruby gems..."
 	bundle install --no-cache
 
-	patch -p1 < "$srcdir"/fix-rails-settings-yaml-aliases.patch.txt
-
 	msg "Installing npm modules..."
 	yarn install --production --frozen-lockfile --check-files
 	cd streaming
-	yarn install --production --offline --check-files
+	yarn install --production --frozen-lockfile --check-files
 	cd - >/dev/null
 
 	# (Re)generate bin/bundle, bin/puma, and bin/sidekiq.
@@ -246,11 +244,10 @@ package() {
 }
 
 sha512sums="
-abf1673675586d701f1a7e8e732dd3265ca8f68245ea57d06d02b681c1a033b2b3c0b66e8c2f3c64a24f5cda0b1225c05603a5bb30827da1d8fbfa4d600f7b6d  mastodon-4.1.6.tar.gz
+65cbd5b586e189931d7c007c227f553ebbfa30f051443a3fff334260bd66751b0b583495b4add677eb66da0332e7943d30fb23944c0ad6af1af37598c337e41f  mastodon-4.2.3.tar.gz
 54adbd99af14a59764cc6dbcef062d20d255c7837246df3d51e3cfd106a792c1af85b507cc9d05e43a717be3712a6efa4216aacf7889c02600cfef8d357fc14b  sample-config.patch
 0b5f15c520c1ca0e20c82cf7fe7bf07394d6fffaaa1a036e11db0ae92b78632f72391944702932dcac68e1c7ec130dad784fa1794815c73bec295e0969b8ab58  setup-task.patch
 1af2f532a413d03ffc4fb31270559e7f082f31406fcbd400348def0beb526d39f93ae38fc66375a447bd72657db007597940fb1b85a46c7fed9a89671141eb06  streaming-log-timestamp.patch
-731c6d75c38efa0782fa2d57dede7b74bb3316345fdb77d257d4a6a87f21589080564f3703a3422f841e2605e8b6108b0fa5380b8163339d2a9cbcde782472b4  fix-rails-settings-yaml-aliases.patch.txt
 6d0d2df5a40fcc9744eec14d191b0577cf7c19df5c4724304731910dd7db43c0ef12b628a36547da2ba6ccb5dd68f2ea5707bcb61e15b900f80cbee3b2968683  bin-wrapper.in
 5980c5b1cea2603e240ec8b3fe30a4b7c40eb7df9e10311407f9f8d232e5d67cced41f3bac284a9dce41a9daacf5da972c6ef13bbcbcc41bb411216c68003d64  mastodon-sidekiq.initd
 3928c6b77662857108f332abeb85c717855311318be6a797f1d99b364e80a071a236d3148b98e3bb5a6aebdcb6e8531304a2ffafcd98af3cc0afd1b884a9c610  mastodon-sidekiq.confd
