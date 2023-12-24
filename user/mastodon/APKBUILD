@@ -2,7 +2,7 @@
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=mastodon
 pkgver=4.2.3
-pkgrel=0
+pkgrel=1
 pkgdesc="Free open-source social network server based on ActivityPub"
 url="https://joinmastodon.org"
 arch="all"
@@ -73,7 +73,7 @@ prepare() {
 	jq --slurpfile requires streaming-requires.txt \
 		'{ dependencies: .dependencies | with_entries(select([.key] | inside($requires))) }' \
 		package.json > streaming/package.json
-	ln -s ../yarn.lock streaming/yarn.lock
+	cp yarn.lock streaming/
 
 	# Create config for Bundler.
 	mkdir -p .bundle
@@ -87,6 +87,21 @@ prepare() {
 		BUNDLE_JOBS: ${JOBS:-2}
 		BUNDLE_WITHOUT: "test:development:exclude"
 	EOF
+
+	# Download and use a recent yarn (Mastodon relies on yarn and installing
+	# dependencies with yarn 1.x results in some missing deps).
+	yarn set version stable
+
+	# We currently cannot use the latest due to Webpacker.
+	# TODO: Remove on next Mastodon minor release.
+	yarn set version 3.x
+
+	# Use standard node_modules instead of PnP.
+	yarn config set nodeLinker node-modules
+
+	# XXX: This shouldn't be disabled, but it fails on CI without it, not on
+	#  in my dev environment, and I don't know why.
+	yarn config set enableImmutableInstalls false
 }
 
 build() {
@@ -94,9 +109,9 @@ build() {
 	bundle install --no-cache
 
 	msg "Installing npm modules..."
-	yarn install --production --frozen-lockfile --check-files
+	yarn install
 	cd streaming
-	yarn install --production --frozen-lockfile --check-files
+	yarn install
 	cd - >/dev/null
 
 	# (Re)generate bin/bundle, bin/puma, and bin/sidekiq.
