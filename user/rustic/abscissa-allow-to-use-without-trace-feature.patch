@@ -1,0 +1,103 @@
+Patch-Source: https://github.com/iqlusioninc/abscissa/pull/859
+--
+From accf926843e6ddfcfe6f661383a960b49433fa38 Mon Sep 17 00:00:00 2001
+From: Jakub Jirutka <jakub@jirutka.cz>
+Date: Sun, 31 Dec 2023 02:40:26 +0100
+Subject: [PATCH] Allow to use application without trace feature
+
+The trace feature brings with it a substantial dependency bloat.
+---
+ core/Cargo.toml                |  2 +-
+ core/src/application.rs        | 12 ++++++++++--
+ core/src/component/registry.rs |  1 +
+ core/src/prelude.rs            |  1 +
+ 4 files changed, 13 insertions(+), 3 deletions(-)
+
+diff --git a/vendor/abscissa/core/Cargo.toml b/vendor/abscissa/core/Cargo.toml
+index 7be86885..d3db8ada 100644
+--- a/vendor/abscissa/core/Cargo.toml
++++ b/vendor/abscissa/core/Cargo.toml
+@@ -48,11 +48,11 @@ default = [
+     "application",
+     "secrets",
+     "testing",
++    "trace",
+ ]
+ application = [
+     "arc-swap",
+     "config",
+-    "trace",
+     "options",
+     "semver/serde",
+     "terminal"
+diff --git a/vendor/abscissa/core/src/application.rs b/vendor/abscissa/core/src/application.rs
+index 2d7a1bb3..01999087 100644
+--- a/vendor/abscissa/core/src/application.rs
++++ b/vendor/abscissa/core/src/application.rs
+@@ -7,6 +7,8 @@ mod state;
+
+ pub use self::{cell::AppCell, exit::fatal_error, name::Name, state::State};
+
++#[cfg(feature = "trace")]
++use crate::trace::{self, Tracing};
+ use crate::{
+     command::Command,
+     component::Component,
+@@ -15,7 +17,6 @@ use crate::{
+     runnable::Runnable,
+     shutdown::Shutdown,
+     terminal::{component::Terminal, ColorChoice},
+-    trace::{self, Tracing},
+     FrameworkError,
+     FrameworkErrorKind::*,
+ };
+@@ -113,10 +114,16 @@ pub trait Application: Default + Sized + 'static {
+         command: &Self::Cmd,
+     ) -> Result<Vec<Box<dyn Component<Self>>>, FrameworkError> {
+         let terminal = Terminal::new(self.term_colors(command));
++
++        #[cfg(feature = "trace")]
+         let tracing = Tracing::new(self.tracing_config(command), self.term_colors(command))
+             .expect("tracing subsystem failed to initialize");
+
+-        Ok(vec![Box::new(terminal), Box::new(tracing)])
++        Ok(vec![
++            Box::new(terminal),
++            #[cfg(feature = "trace")]
++            Box::new(tracing),
++        ])
+     }
+
+     /// Load configuration from the given path.
+@@ -153,6 +160,7 @@ pub trait Application: Default + Sized + 'static {
+     }
+
+     /// Get the tracing configuration for this application.
++    #[cfg(feature = "trace")]
+     fn tracing_config(&self, command: &Self::Cmd) -> trace::Config {
+         trace::Config::default()
+     }
+diff --git a/vendor/abscissa/core/src/component/registry.rs b/vendor/abscissa/core/src/component/registry.rs
+index 5377abd1..add8e0cd 100644
+--- a/vendor/abscissa/core/src/component/registry.rs
++++ b/vendor/abscissa/core/src/component/registry.rs
+@@ -227,6 +227,7 @@ where
+         assert!(self.id_map.insert(id, index).is_none());
+         assert!(self.type_map.insert(type_id, index).is_none());
+
++        #[cfg(feature = "trace")]
+         debug!("registered component: {} (v{})", id, version);
+         Ok(())
+     }
+diff --git a/vendor/abscissa/core/src/prelude.rs b/vendor/abscissa/core/src/prelude.rs
+index 614acaf9..b19b8e0d 100644
+--- a/vendor/abscissa/core/src/prelude.rs
++++ b/vendor/abscissa/core/src/prelude.rs
+@@ -7,6 +7,7 @@ pub use crate::{Application, Command, Runnable};
+ pub use crate::{ensure, fail, fatal, format_err};
+
+ /// Tracing macros
++#[cfg(feature = "trace")]
+ pub use crate::tracing::{debug, error, event, info, span, trace, warn, Level};
+
+ /// Status macros
