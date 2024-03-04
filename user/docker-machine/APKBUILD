@@ -1,9 +1,9 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=docker-machine
-pkgver=0.16.2.22
+pkgver=0.16.2.24
 _pkgver="v${pkgver%.*}-gitlab.${pkgver##*.}"
-pkgrel=1
+pkgrel=0
 pkgdesc="Machine management for a shit-centric world"
 url="https://gitlab.com/gitlab-org/ci-cd/docker-machine"
 arch="all"
@@ -13,23 +13,14 @@ source="https://gitlab.com/gitlab-org/ci-cd/docker-machine/-/archive/$_pkgver/do
 	0001-Add-provisioner-for-Alpine-Linux.patch
 	0002-vmwarevsphere2.patch
 	"
-builddir="$srcdir/src/github.com/docker/machine"
+builddir="$srcdir/$pkgname-$_pkgver"
 
 export GOCACHE="${GOCACHE:-"$srcdir/go-cache"}"
 export GOTMPDIR="${GOTMPDIR:-"$srcdir"}"
 export GOMODCACHE="${GOMODCACHE:-"$srcdir/go"}"
 
-prepare() {
-	mkdir -p "${builddir%/*}"
-	mv "$srcdir"/$pkgname-$_pkgver "$builddir"
-
-	default_prepare
-}
-
 build() {
 	make build \
-		GO111MODULE=off \
-		GOPATH="$srcdir" \
 		GO_LDFLAGS="-X $(cat .godir)/version.GitCommit=0000000" \
 		VERBOSE=true
 }
@@ -43,7 +34,7 @@ package() {
 }
 
 sha512sums="
-bbf53fe78233b455b68d3503ffbb132c2d8a9ab948602555b7205492cffc795da04fada86c4d7a3c264a52793ddbaa5fa23a592a3f810923c04aa6a8ce5b5ccf  docker-machine-v0.16.2-gitlab.22.tar.gz
+0732ef151d98d176977c2f242f9c6cc93c2dc8a8b013bb21e729760bd5c5937a789e98d17b3db2bda233ff87bd213b4adf67fb42de53465b36b09eb2cb93eca1  docker-machine-v0.16.2-gitlab.24.tar.gz
 e20ff612fe93d35251f37e702bc5b572ea9a413a980c42228a26f411e408858dffadd4340a04e32430753b83ce618a546cf4abe6835727fbb7fa9bf1c4375bc4  0001-Add-provisioner-for-Alpine-Linux.patch
 23cf0edaaa8148bd5fdff2f4ac7961126d760da8043b5fac3257f4e5329b4927de18f299a152fd3e2abd58e1b64cafcbaceef0a550b74afa18d1e4f06aca6bae  0002-vmwarevsphere2.patch
 "
