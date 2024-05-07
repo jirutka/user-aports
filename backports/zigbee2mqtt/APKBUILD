@@ -1,0 +1,131 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=zigbee2mqtt
+pkgver=1.37.0
+pkgrel=0
+pkgdesc="Zigbee to MQTT bridge"
+url="https://www.zigbee2mqtt.io/"
+# armhf: some tests timeout and I don't care about armhf
+# ppc64le: fails to build @serialport/bindings
+# riscv64: tsc Maximum call stack size exceeded
+# x86: textrel
+arch="all !armhf !ppc64le !riscv64 !x86"
+# zigbee2mqtt is GPL-3.0, other licenses are for its dependencies.
+license="GPL-3.0-only AND MIT AND ISC AND BSD-3-Clause AND Python-2.0"
+depends="nodejs"
+makedepends="
+	linux-headers
+	nodejs
+	npm
+	python3
+	"
+pkgusers="zigbee2mqtt"
+pkggroups="$pkgusers"
+install="$pkgname.pre-install $pkgname.post-install"
+subpackages="
+	$pkgname-dbg::noarch
+	$pkgname-openrc
+	"
+source="https://github.com/Koenkk/zigbee2mqtt/archive/$pkgver/$pkgname-$pkgver.tar.gz
+	dont-build-on-start.patch
+	ungit.patch
+	pan_id-secret.patch
+
+	configuration.yaml
+	$pkgname.initd
+	$pkgname.confd
+	"
+options="net"
+
+build() {
+	npm ci --foreground-scripts --no-fund
+
+	# Rebuild serialport native bindings.
+	cd node_modules/@serialport/bindings-cpp
+	rm -rf prebuilds
+	npm exec --yes prebuildify@5 -- --napi --force --strip --verbose
+	rm -rf build src
+	cd - >/dev/null
+
+	npm run build
+}
+
+check() {
+	npm run test
+}
+
+package() {
+	local destdir="$pkgdir/usr/lib/$pkgname"
+
+	mkdir -p "$destdir"
+	cp -r dist node_modules cli.js index.js package.json "$destdir"/
+
+	cd "$pkgdir"
+
+	mkdir -p usr/bin
+	ln -s /usr/lib/$pkgname/cli.js usr/bin/$pkgname
+
+	install -d -m750 -o "$pkgusers" -g "$pkggroups" var/lib/$pkgname
+	ln -s /var/lib/$pkgname "$destdir"/data
+
+	install -D -m644 -o "$pkgusers" -g "$pkggroups" "$srcdir"/configuration.yaml -t etc/$pkgname/
+	ln -s /etc/$pkgname/configuration.yaml var/lib/$pkgname/configuration.yaml
+	ln -s /etc/$pkgname/secret.yaml var/lib/$pkgname/secret.yaml
+
+	install -D -m755 "$srcdir"/$pkgname.initd "$pkgdir"/etc/init.d/$pkgname
+	install -D -m644 "$srcdir"/$pkgname.confd "$pkgdir"/etc/conf.d/$pkgname
+
+	cd "$destdir"
+
+	# Remove dev dependencies.
+	npm prune --omit dev
+
+	cd node_modules
+
+	# Remove unnecessary files and garbage.
+	find . -empty -type d -delete
+	find . \( -name '.git*' \
+			-o -name 'doc' \
+			-o -name 'fixture' \
+			-o -name 'fixtures' \
+			-o -name 'test' \
+			-o -name 'tests' \) \
+		-type d -exec rm -rf '{}' +
+	find . ../dist \( -name '.*' \
+			-o -name '*.flow' \
+			-o -name '*.gz' \
+			-o -name '*.md' \
+			-o -name '*.min.js' \
+			-o -name '*.test.js' \
+			-o -name '*.ts' \
+			-o -name '*.ts.map' \) \
+		-type f -delete
+	rm -rf moment/dist moment/min moment/src
+	rm -rf jszip/dist
+	rm -rf mqtt/dist
+	rm -rf pako/dist
+
+	cd unix-dgram
+	rm -rf build/node_gyp_bins
+	rm -rf src
+	rm -rf build/Release/obj.target build/Release/.deps
+	strip build/Release/*.node
+}
+
+dbg() {
+	pkgdesc="$pkgdesc (.map files for debugging)"
+	depends="$pkgname=$pkgver-r$pkgrel"
+
+	cd "$pkgdir"
+	amove $(find usr/lib/$pkgname -type f -name '*.map')
+}
+
+sha512sums="
+a60911e384c9404675ecee6f4433e486acc2b1371435d6982767e8488f597da543f9eac6d29c9598e2ec32db852a458aa374ef3ca6ad748217ccea9f7eb53169  zigbee2mqtt-1.37.0.tar.gz
+8775de86a7a00e69cd6ec275f87458cd3b842547e2fc91dde9c1e74b61c751c798bf7d94274129ffbef2eac5c5954cfb0da0c37c5df141aa52a3d895dba823ac  dont-build-on-start.patch
+dcb9c4cacdc3799d008ffc68868d83f64941bb5a00b555103868f1236e3a395c68d486fcaa6d7174422ec065994bf925a7aeed9537e07fe32e5093076eafcaba  ungit.patch
+30eb7ca0a65a99fd04d227853dba5f2d64d409948706cfc934f85217490d40fb06763404fa755817ca462905e130f6eaa42fbe81216247856f57154bca54b017  pan_id-secret.patch
+9e963f3d8dd25149f4532d5dbe31217e22a1e468344272ddcf4f64eaf68c069f85a3979cbe388503b7701a06fdb451d02c610726ad0540cc630496e351e0bc0c  configuration.yaml
+74ffc0d00be0ed6d4a7a837e3f3e6b6f03f50fdd82bb0ea0694016549554364809dfe69befa4ff1031536ab2483194bb6d7bda7c8859233fa5b029e76432b689  zigbee2mqtt.initd
+cb84a6cbdfbbd6e7163289b4a2b7e4737c3549f679f1becc8c2327bd7a27be8f10666467551f8aa7d7dca3b17daf48d54aa451d85c76b02ccf12579c3528ea59  zigbee2mqtt.confd
+"
