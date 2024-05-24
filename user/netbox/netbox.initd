@@ -4,7 +4,7 @@ name="NetBox"
 
 extra_commands="migrate migrate_restart"
 extra_started_commands="reload"
-description_migrate="If there are pending database migrations, apply them, reindex search index, clear sessions and clear cache"
+description_migrate="If there are pending database migrations, apply them, run trace_paths, remove stale content types, remove expired user sessions and reindex search index"
 description_migrate_restart="Run migrate and then restart"
 description_reload="Gracefully reload all the workers and the master process"
 
@@ -57,10 +57,11 @@ migrate() {
 	if netbox-manage migrate --check -v 0; then
 		einfo "No migrations to apply"
 	else
-		netbox-manage migrate \
-			&& netbox-manage reindex --lazy \
-			&& netbox-manage clearsessions \
-			&& netbox-manage clearcache
+		netbox-manage migrate --no-input \
+			&& netbox-manage trace_paths --no-input \
+			&& netbox-manage remove_stale_contenttypes --no-input \
+			&& netbox-manage clearsessions --no-input \
+			&& netbox-manage reindex --no-input --lazy
 	fi
 	eend $?
 }
