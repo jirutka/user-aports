@@ -19,7 +19,15 @@ jobs:
         - ${{ github.workspace }}:/home/ci/aports
         - /tmp:/tmp
     steps:
-      - name: Configure repositories
+      - name: Checkout aports repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 10
+
+      - name: Copy packager key to /etc/apk/keys
+        run: cp .keys/$PACKAGER_KEYNAME.pub /etc/apk/keys/
+
+      - name: Configure Alpine repositories
         run: |
           cat > /etc/apk/repositories <<EOF
           http://alpine.example.org/$BRANCH/backports
@@ -27,17 +35,13 @@ jobs:
           https://dl-cdn.alpinelinux.org/alpine/$BRANCH/community
           http://alpine.example.org/$BRANCH/user
           EOF
+          apk update
 
       - name: Install packages
         run: apk add alpine-sdk lua-aports sshfs
 
       - name: Add /home/ci/aports to git safe directories
         run: git config --global --add safe.directory /home/ci/aports
-
-      - name: Checkout aports repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 10
 
       - name: Mount remote package repository
         run: |
@@ -69,8 +73,6 @@ jobs:
           patch -d / -p 1 < aports/.github/workflows/files/buildrepo.patch
 
           sed -i "s/JOBS=[0-9]*/JOBS=$(nproc)/" /etc/abuild.conf
-
-          cp $REPOS_DIR/keys/* /etc/apk/keys/
 
           mkdir -p .abuild
           echo "PACKAGER_PRIVKEY=$REPOS_DIR/.secret/$PACKAGER_KEYNAME" > .abuild/abuild.conf
