@@ -35,7 +35,8 @@ jobs:
           https://dl-cdn.alpinelinux.org/alpine/$BRANCH/community
           https://repo.jirutka.cz/alpine/$BRANCH/user
           EOF
-          apk update
+          # Ignore unavailable repos, this happens when bootstrapping a new branch.
+          apk update || true
 
       - name: Install packages
         run: apk add alpine-sdk lua-aports sshfs
