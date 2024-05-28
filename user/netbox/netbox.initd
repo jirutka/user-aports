@@ -60,8 +60,8 @@ migrate() {
 		netbox-manage migrate --no-input \
 			&& netbox-manage trace_paths --no-input \
 			&& netbox-manage remove_stale_contenttypes --no-input \
-			&& netbox-manage clearsessions --no-input \
-			&& netbox-manage reindex --no-input --lazy
+			&& netbox-manage clearsessions \
+			&& netbox-manage reindex --lazy
 	fi
 	eend $?
 }
