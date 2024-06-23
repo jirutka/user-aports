@@ -1,0 +1,69 @@
+--- a/app/javascript/mastodon/features/compose/components/compose_form.jsx
++++ b/app/javascript/mastodon/features/compose/components/compose_form.jsx
+@@ -100,7 +100,7 @@
+     const fulltext = this.getFulltextForCharacterCounting();
+     const isOnlyWhitespace = fulltext.length !== 0 && fulltext.trim().length === 0;
+
+-    return !(isSubmitting || isUploading || isChangingUpload || length(fulltext) > 500 || (isOnlyWhitespace && !anyMedia));
++    return !(isSubmitting || isUploading || isChangingUpload || length(fulltext) > 2500 || (isOnlyWhitespace && !anyMedia));
+   };
+
+   handleSubmit = (e) => {
+@@ -297,7 +297,7 @@
+             </div>
+
+             <div className='character-counter__wrapper'>
+-              <CharacterCounter max={500} text={this.getFulltextForCharacterCounting()} />
++              <CharacterCounter max={2500} text={this.getFulltextForCharacterCounting()} />
+             </div>
+           </div>
+         </div>
+--- a/app/validators/status_length_validator.rb
++++ b/app/validators/status_length_validator.rb
+@@ -1,7 +1,7 @@
+ # frozen_string_literal: true
+
+ class StatusLengthValidator < ActiveModel::Validator
+-  MAX_CHARS = 500
++  MAX_CHARS = 2500
+   URL_PLACEHOLDER_CHARS = 23
+   URL_PLACEHOLDER = 'x' * 23
+
+--- a/spec/validators/status_length_validator_spec.rb
++++ b/spec/validators/status_length_validator_spec.rb
+@@ -16,20 +16,20 @@
+       expect(status).to_not receive(:errors)
+     end
+
+-    it 'adds an error when content warning is over 500 characters' do
+-      status = instance_double(Status, spoiler_text: 'a' * 520, text: '', errors: activemodel_errors, local?: true, reblog?: false)
++    it 'adds an error when content warning is over 2500 characters' do
++      status = instance_double(Status, spoiler_text: 'a' * 2520, text: '', errors: activemodel_errors, local?: true, reblog?: false)
+       subject.validate(status)
+       expect(status.errors).to have_received(:add)
+     end
+
+-    it 'adds an error when text is over 500 characters' do
+-      status = instance_double(Status, spoiler_text: '', text: 'a' * 520, errors: activemodel_errors, local?: true, reblog?: false)
++    it 'adds an error when text is over 2500 characters' do
++      status = instance_double(Status, spoiler_text: '', text: 'a' * 2520, errors: activemodel_errors, local?: true, reblog?: false)
+       subject.validate(status)
+       expect(status.errors).to have_received(:add)
+     end
+
+-    it 'adds an error when text and content warning are over 500 characters total' do
+-      status = instance_double(Status, spoiler_text: 'a' * 250, text: 'b' * 251, errors: activemodel_errors, local?: true, reblog?: false)
++    it 'adds an error when text and content warning are over 2500 characters total' do
++      status = instance_double(Status, spoiler_text: 'a' * 2250, text: 'b' * 251, errors: activemodel_errors, local?: true, reblog?: false)
+       subject.validate(status)
+       expect(status.errors).to have_received(:add)
+     end
+@@ -66,7 +66,7 @@
+     end
+
+     it 'does count both parts of remote usernames for overly long domains' do
+-      text   = "@alice@#{'b' * 500}.com"
++      text   = "@alice@#{'b' * 2500}.com"
+       status = instance_double(Status, spoiler_text: '', text: text, errors: activemodel_errors, local?: true, reblog?: false)
+
+       subject.validate(status)
