@@ -1,7 +1,7 @@
 # Contributor: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 pkgname=mastodon
-pkgver=4.2.10
+pkgver=4.2.13
 pkgrel=0
 pkgdesc="Free open-source social network server based on ActivityPub"
 url="https://joinmastodon.org"
@@ -260,7 +260,7 @@ package() {
 }
 
 sha512sums="
-1fe5417136bc020a83b83eaccef7f1f46c13fc8318681f12ba556b1b6b03e25ef7b6335c28f4e6722101e97b63020cbd0d3fbacdaf9b3b5a4b73c3cf3e230813  mastodon-4.2.10.tar.gz
+4a966c8f8e51f448bb01b3d78b591e499a41886c7bba4e165d0b9d049df2e95467dc5a593587f240437ef1bbffb29075295cd3845f9573963e3f4fd85cf4e18a  mastodon-4.2.13.tar.gz
 54adbd99af14a59764cc6dbcef062d20d255c7837246df3d51e3cfd106a792c1af85b507cc9d05e43a717be3712a6efa4216aacf7889c02600cfef8d357fc14b  sample-config.patch
 0b5f15c520c1ca0e20c82cf7fe7bf07394d6fffaaa1a036e11db0ae92b78632f72391944702932dcac68e1c7ec130dad784fa1794815c73bec295e0969b8ab58  setup-task.patch
 1af2f532a413d03ffc4fb31270559e7f082f31406fcbd400348def0beb526d39f93ae38fc66375a447bd72657db007597940fb1b85a46c7fed9a89671141eb06  streaming-log-timestamp.patch
