@@ -15,8 +15,8 @@ depends="
 	py3-dulwich
 	py3-markupsafe
 	py3-pillow>=9
-	py3-psycopg-c~=3
-	py3-psycopg-pool~=3
+	py3-psycopg-c~3
+	py3-psycopg-pool~3
 	py3-regex
 	py3-rpds-py
 	py3-tzdata
