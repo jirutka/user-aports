@@ -1,7 +1,7 @@
 = My aports
 :source-language: sh
 :repo-name: user-aports
-:repo-branch: v3.20
+:repo-branch: v3.21
 :gh-name: jirutka/{repo-name}
 :gh-branch: master
 :key-file: jakub@jirutka.cz-655775c4.rsa.pub
