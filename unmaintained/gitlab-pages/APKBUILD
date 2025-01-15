@@ -12,6 +12,7 @@ source="$pkgname-$pkgver.tar.gz::https://gitlab.com/gitlab-org/$pkgname/reposito
 	ungit-makefile.patch
 	$pkgname.initd"
 builddir="$srcdir/src/gitlab.com/gitlab-org/$pkgname"
+options="!check"
 
 prepare() {
 	local dirname=$(basename $pkgname-v$pkgver-*)

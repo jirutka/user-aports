@@ -33,6 +33,7 @@ source="https://github.com/healthchecks/$pkgname/archive/v$pkgver/$pkgname-$pkgv
 	$pkgname.logrotate
 	"
 builddir="$srcdir/$pkgname-$pkgver"
+options="!check"
 
 _prefix="/usr/lib/bundles/$pkgname"
 

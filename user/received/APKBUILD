@@ -18,6 +18,7 @@ source="https://github.com/jirutka/$pkgname/archive/$_gitrev.tar.gz
 	remove-mongo.patch
 	"
 builddir="$srcdir/$pkgname-$_gitrev"
+options="!check"
 
 _prefix="/usr/lib/bundles/$pkgname"
 

@@ -8,6 +8,7 @@ url="https://github.com/jirutka/user-aports"
 arch="noarch"
 license="MIT"
 source=""
+options="!check"
 
 package() {
 	mkdir -p "$pkgdir"

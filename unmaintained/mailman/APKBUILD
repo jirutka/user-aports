@@ -25,6 +25,7 @@ source="$pkgname-$_pkgver.tar.gz::https://gitlab.com/mailman/$pkgname/repository
 	mailman.cfg
 	hyperkitty.cfg"
 builddir="$srcdir/build"
+options="!check"
 
 _prefix="/usr/lib/bundles/$pkgname"
 

@@ -39,6 +39,7 @@ source="postorius-$_postorius_ref.tar.gz::https://gitlab.com/mailman/postorius/r
 	hyperkitty-allow-to-hide-signup.patch
 	postorius-allow-to-hide-signup.patch"
 builddir="$srcdir/build"
+options="!check"
 
 _postorius_dir="$srcdir/postorius-$_postorius_ref-$_postorius_ref"
 _hyperkitty_dir="$srcdir/hyperkitty-$_hyperkitty_ref-$_hyperkitty_ref"

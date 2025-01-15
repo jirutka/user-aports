@@ -73,6 +73,7 @@ source="https://github.com/jirutka/gitlab-foss/archive/$_gitrev/gitlabhq-$_gitre
 	bin-wrapper.in
 	"
 builddir="$srcdir/gitlab-foss-$_gitrev"
+options="!check"
 
 _prefix="usr/lib/bundles/$_pkgname"
 

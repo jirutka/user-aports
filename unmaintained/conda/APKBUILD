@@ -16,6 +16,7 @@ depends="python3
 makedepends="py3-setuptools"
 source="https://github.com/conda/$_pkgname/archive/$pkgver/$_pkgname-$pkgver.tar.gz"
 builddir="$srcdir/$_pkgname-$pkgver"
+options="!check"
 
 prepare() {
 	default_prepare
