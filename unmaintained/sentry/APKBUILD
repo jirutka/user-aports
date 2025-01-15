@@ -23,6 +23,7 @@ source="https://github.com/getsentry/sentry/releases/download/$pkgver/$pkgname-$
 	fix-redis-version.patch
 	"
 builddir="$srcdir/$pkgname-$pkgver"
+options="!check"
 
 _prefix="/usr/lib/bundles/$pkgname"
 

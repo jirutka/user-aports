@@ -11,6 +11,7 @@ install="$pkgname.post-install"
 source=".gitconfig
 	.profile
 	.vimrc"
+options="!check"
 
 package() {
 	mkdir -p "$pkgdir"

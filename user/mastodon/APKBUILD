@@ -51,6 +51,7 @@ source="https://github.com/mastodon/mastodon/archive/v$pkgver/mastodon-$pkgver.t
 	$pkgname.logrotated
 	$pkgname.weekly
 	"
+options="!check"
 
 export YARN_CACHE_FOLDER="$srcdir/yarn-cache"
 

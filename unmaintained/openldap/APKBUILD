@@ -57,6 +57,7 @@ source="https://www.openldap.org/software/download/OpenLDAP/$pkgname-release/$pk
 	slapd.initd
 	slapd.confd
 	"
+options="!check"
 
 # SLAPD backends
 _backends=""

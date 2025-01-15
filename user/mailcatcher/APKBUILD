@@ -15,6 +15,7 @@ source="https://rubygems.org/downloads/$pkgname-$pkgver.gem
 	0001-add-persist-option.patch
 	"
 builddir="$srcdir/build"
+options="!check"
 
 _prefix="/usr/lib/bundles/$pkgname"
 

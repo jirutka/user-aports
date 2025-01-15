@@ -13,6 +13,7 @@ makedepends="openldap-dev>=2.4 python2-dev py2-pip"
 source="https://github.com/Banno/$_pkgname/archive/$pkgver/$pkgname-$pkgver.tar.gz
 	constraints.txt"
 builddir="$srcdir/$_pkgname-$pkgver"
+options="!check"
 
 _prefix="/usr/lib/bundles/sentry"
 

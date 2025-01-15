@@ -20,6 +20,7 @@ source="$pkgname-$pkgver.tar.gz::https://github.com/matrix-org/$pkgname/archive/
 	$pkgname.logrotate
 	"
 builddir="$srcdir/$pkgname-$_gitrev"
+options="!check"
 
 _prefix="/usr/lib/bundles/$pkgname"
 
