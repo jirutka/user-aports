@@ -1,0 +1,22 @@
+Patch-Source: https://github.com/python-social-auth/social-core/pull/1031 (updated)
+
+diff --git a/src/netbox-4.2.9/lib/python3.12/site-packages/social_core/backends/open_id_connect.py b/src/netbox-4.2.9/lib/python3.12/site-packages/social_core/backends/open_id_connect.py
+index c740fcf..aa37eca 100644
+--- a/social_core/backends/open_id_connect.py
++++ b/social_core/backends/open_id_connect.py
+@@ -56,6 +56,7 @@ class OpenIdConnectAuth(BaseOAuth2):
+     USERNAME_KEY = "preferred_username"
+     JWT_ALGORITHMS = ["RS256"]
+     JWT_DECODE_OPTIONS: dict[str, Any] = {}
++    JWT_LEEWAY = 1.0  # seconds
+     # When these options are unspecified, server will choose via openid autoconfiguration
+     ID_TOKEN_ISSUER = ""
+     ACCESS_TOKEN_URL = ""
+@@ -233,6 +234,7 @@ class OpenIdConnectAuth(BaseOAuth2):
+                 audience=client_id,
+                 issuer=self.id_token_issuer(),
+                 options=self.setting("JWT_DECODE_OPTIONS", self.JWT_DECODE_OPTIONS),
++                leeway=self.setting("JWT_LEEWAY", self.JWT_LEEWAY),
+             )
+         except ExpiredSignatureError:
+             raise AuthTokenError(self, "Signature has expired")
