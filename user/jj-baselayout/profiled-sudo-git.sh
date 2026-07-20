@@ -1,18 +1,24 @@
-# This script sets environment variables SUDO_GIT_NAME and SUDO_GIT_EMAIL
-# with values from the user's .gitconfig. The variables are used by
-# /usr/local/sbin/git wrapper script to pass user's name and email to git
-# when executed via sudo root (both sudo git and sudo sh) or doas.
+# When a member of group wheel runs a root shell using sudo or doas and uses
+# git, use name and email from his/her .gitconfig.
 
-# If root, do nothing.
-[ "$USER" != root ] || return
+[ -f /usr/bin/git ] || return
 
-# If $USER is not member of group wheel, do nothing.
-id -nG | grep -qw wheel || return
+if [ "$USER" = root ]; then
+	if [ "$SUDO_GIT_NAME" ] && [ "$SUDO_GIT_EMAIL" ]; then
+		git() { /usr/bin/git -c user.name="$SUDO_GIT_NAME" -c user.email="$SUDO_GIT_EMAIL" "$@"; }
+	fi
 
-SUDO_GIT_NAME=$(GIT_CONFIG="$HOME/.gitconfig" \
-	/usr/bin/git config user.name 2>/dev/null || echo "$USER")
-SUDO_GIT_EMAIL=$(GIT_CONFIG="$HOME/.gitconfig" \
-	/usr/bin/git config user.email 2>/dev/null || echo "$USER@localhost")
+# If $USER is a member of group wheel.
+elif id -nG | grep -qw wheel; then
+	if [ -z "$SUDO_GIT_NAME" ]; then
+		SUDO_GIT_NAME=$(GIT_CONFIG="$HOME/.gitconfig" \
+			/usr/bin/git config user.name 2>/dev/null || echo "$USER")
+		export SUDO_GIT_NAME
+	fi
 
-export SUDO_GIT_NAME
-export SUDO_GIT_EMAIL
+	if [ -z "$SUDO_GIT_EMAIL" ]; then
+		SUDO_GIT_EMAIL=$(GIT_CONFIG="$HOME/.gitconfig" \
+			/usr/bin/git config user.email 2>/dev/null || echo "$USER@localhost")
+		export SUDO_GIT_EMAIL
+	fi
+fi
