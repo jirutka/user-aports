@@ -14,7 +14,7 @@ id -nG | grep -qw wheel || return
 
 printf '\033[37;1mLast changes in /etc:\033[0m\n'
 
-git -C /etc log \
+doas git -C /etc log \
 	--abbrev-commit \
 	--decorate \
 	--date=short \
