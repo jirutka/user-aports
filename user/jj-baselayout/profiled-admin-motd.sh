@@ -12,14 +12,16 @@
 # If $USER is not member of wheel, do nothing.
 id -nG | grep -qw wheel || return
 
-printf '\033[37;1mLast changes in /etc:\033[0m\n'
+if [ -d /etc/.git ] && [ -f /usr/bin/git ]; then
+	printf '\033[37;1mLast changes in /etc:\033[0m\n'
 
-doas git -C /etc log \
-	--abbrev-commit \
-	--decorate \
-	--date=short \
-	--format=format:'* %ad: %s  %C(dim white)<%an>%C(reset)' \
-	-3
+	doas git -C /etc log \
+		--abbrev-commit \
+		--decorate \
+		--date=short \
+		--format=format:'* %ad: %s  %C(dim white)<%an>%C(reset)' \
+		-3
+fi
 
 logged=$(ps -o args \
 	| sed -En 's/^sshd(-session)?: (\w+) \[priv\].*/\2/p' \
