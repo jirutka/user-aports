@@ -22,7 +22,7 @@ git -C /etc log \
 	-3
 
 logged=$(ps -o args \
-	| sed -En 's/^sshd: (\w+) \[priv\].*/\1/p' \
+	| sed -En 's/^sshd(-session)?: (\w+) \[priv\].*/\2/p' \
 	| sort | uniq \
 	| grep -xv "$USER" \
 	| xargs)
