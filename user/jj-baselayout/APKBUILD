@@ -7,7 +7,16 @@ pkgdesc="My base configuration"
 url="https://github.com/jirutka/user-aports"
 arch="noarch"
 license="MIT"
-depends="ca-certificates less logrotate git git-metafile skel cmd:sudo"
+depends="
+	ca-certificates
+	cmd:sudo
+	git
+	git-metafile
+	kitty-terminfo
+	less
+	logrotate
+	skel
+	"
 install="$pkgname.post-install $pkgname.post-upgrade"
 source="git
 	network-update-issue
