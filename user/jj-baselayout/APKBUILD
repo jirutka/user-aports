@@ -20,8 +20,8 @@ depends="
 install="$pkgname.post-install $pkgname.post-upgrade"
 source="git
 	network-update-issue
-	profiled-admin_motd.sh
-	profiled-sudo_git_vars.sh
+	profiled-admin-motd.sh
+	profiled-sudo-git.sh
 	sudoersd-wheel
 	sysctld-swappiness.conf
 	wheel.doasd
@@ -42,7 +42,7 @@ package() {
 	mkdir -p etc/network/if-post-down.d
 	ln -s ../if-post-up.d/update-issue etc/network/if-post-down.d/update-issue
 
-	for name in admin_motd.sh sudo_git_vars.sh; do
+	for name in admin-motd.sh sudo-git.sh; do
 		install -D -m 644 "$srcdir"/profiled-$name etc/profile.d/$name
 	done
 
@@ -57,8 +57,8 @@ package() {
 sha512sums="
 0a71fa0b0bf0f8699e6094d8cc9171c5d2b02272e5719cc015df825f306dfa9b5deaac9175525a6bfaa15b1443526c647d4a1d9128f5c1e2a36edb29853cf5d3  git
 8dae386a5b02ed524f202470e53bf6398c435a221f864ee64c1ac1e6274c8d17c884c3a738e906818fb1602ab5b7a958b4cc4f6a542ac99875320789db1a9350  network-update-issue
-1ac76c2d1eecaac226e7818ab44c6fb0d6bb3629079287a06a7025d73f7a5f995075621f48964757ce3146161e19c608a31427ad7be9b0df05340e4b2141ce93  profiled-admin_motd.sh
-00d99a76955172249f833770b3dfdfd2c7437dc99b01587a4acec8d9d0f020a9e10447c7f241cb0596f0bc5fad4f6700c2d67eac30afd3994dca229d2f6e995a  profiled-sudo_git_vars.sh
+1ac76c2d1eecaac226e7818ab44c6fb0d6bb3629079287a06a7025d73f7a5f995075621f48964757ce3146161e19c608a31427ad7be9b0df05340e4b2141ce93  profiled-admin-motd.sh
+00d99a76955172249f833770b3dfdfd2c7437dc99b01587a4acec8d9d0f020a9e10447c7f241cb0596f0bc5fad4f6700c2d67eac30afd3994dca229d2f6e995a  profiled-sudo-git.sh
 e972222dae2472ef92241b41ca5bbf0801a740938e5ce23cc51166787e2ebc89d58ec5d30a1d90d744ec9b104387b6fa59b156e3e0e6ff1e5bcdb671b5bc9a85  sudoersd-wheel
 834ac62de4fc7c847683cda1623014e7a7f17138c3a61b1e8a88fa59a8151c520d1d9c7bba3b641defb6eb78a72162ed0c9da8240838710cd89095aa5ab8a656  sysctld-swappiness.conf
 a03f101c8a7acfc9793d7d79fdb3474772469c1c623e6c626cc333c34e2d24b617794eee33763e93ceb1d046e7b9d753e7795888d042730b7dc79689802e8f6d  wheel.doasd
