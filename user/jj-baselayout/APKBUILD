@@ -14,6 +14,7 @@ source="git
 	profiled-admin_motd.sh
 	profiled-sudo_git_vars.sh
 	sudoersd-wheel
+	sysctld-swappiness.conf
 	wheel.doasd
 	"
 # !tracedeps - avoid adding cmd:git=$pkgver to dependencies.
@@ -39,6 +40,8 @@ package() {
 	install -D -m 640 "$srcdir"/sudoersd-wheel etc/sudoers.d/wheel
 	install -D -m 640 "$srcdir"/wheel.doasd etc/doas.d/wheel.conf
 
+	install -D -m 644 "$srcdir"/sysctld-swappiness.conf etc/sysctl.d/swappiness.conf
+
 	ln -s color_prompt.sh.disabled etc/profile.d/color_prompt.sh
 }
 
@@ -48,5 +51,6 @@ sha512sums="
 1ac76c2d1eecaac226e7818ab44c6fb0d6bb3629079287a06a7025d73f7a5f995075621f48964757ce3146161e19c608a31427ad7be9b0df05340e4b2141ce93  profiled-admin_motd.sh
 00d99a76955172249f833770b3dfdfd2c7437dc99b01587a4acec8d9d0f020a9e10447c7f241cb0596f0bc5fad4f6700c2d67eac30afd3994dca229d2f6e995a  profiled-sudo_git_vars.sh
 e972222dae2472ef92241b41ca5bbf0801a740938e5ce23cc51166787e2ebc89d58ec5d30a1d90d744ec9b104387b6fa59b156e3e0e6ff1e5bcdb671b5bc9a85  sudoersd-wheel
+834ac62de4fc7c847683cda1623014e7a7f17138c3a61b1e8a88fa59a8151c520d1d9c7bba3b641defb6eb78a72162ed0c9da8240838710cd89095aa5ab8a656  sysctld-swappiness.conf
 a03f101c8a7acfc9793d7d79fdb3474772469c1c623e6c626cc333c34e2d24b617794eee33763e93ceb1d046e7b9d753e7795888d042730b7dc79689802e8f6d  wheel.doasd
 "
